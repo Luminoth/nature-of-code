@@ -1,28 +1,16 @@
-use once_cell::sync::OnceCell;
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use processing::errors::ProcessingErr;
 use processing::Screen;
 use rand::Rng;
 
-static mut RANDOM_COUNTS: OnceCell<Vec<u32>> = OnceCell::new();
-
-fn random_counts() -> &'static mut Vec<u32> {
-    unsafe { RANDOM_COUNTS.get_mut().unwrap() }
-}
-
 fn setup<'a>() -> Result<Screen<'a>, ProcessingErr> {
-    let screen = core::create_canvas(640, 240)?;
-
-    unsafe {
-        RANDOM_COUNTS.set(vec![0; 20]).unwrap();
-    }
-
-    Ok(screen)
+    core::create_canvas(640, 240)
 }
 
-fn draw(screen: &mut Screen) -> Result<(), ProcessingErr> {
+fn draw(screen: &mut Screen, random_counts: &mut Vec<u32>) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 255.0);
-
-    let random_counts = random_counts();
 
     let mut rng = rand::thread_rng();
     let index = rng.gen_range(0..random_counts.len());
@@ -46,7 +34,11 @@ fn draw(screen: &mut Screen) -> Result<(), ProcessingErr> {
 }
 
 fn main() -> Result<(), ProcessingErr> {
-    core::run(setup, draw)?;
+    let random_counts = Rc::new(RefCell::new(vec![0; 20]));
+
+    core::run(setup, |screen| {
+        draw(screen, random_counts.borrow_mut().as_mut())
+    })?;
 
     Ok(())
 }

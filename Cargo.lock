@@ -113,7 +113,6 @@ name = "chapter01-1"
 version = "0.1.0"
 dependencies = [
  "core",
- "once_cell",
  "processing",
  "rand 0.8.3",
 ]
@@ -123,7 +122,6 @@ name = "chapter01-2"
 version = "0.1.0"
 dependencies = [
  "core",
- "once_cell",
  "processing",
  "rand 0.8.3",
 ]
@@ -173,6 +171,7 @@ checksum = "3d7b894f5411737b7867f4827955924d7c254fc9f4d91a6aad6b097804b1018b"
 name = "core"
 version = "0.1.0"
 dependencies = [
+ "once_cell",
  "processing",
 ]
 

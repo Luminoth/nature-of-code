@@ -1,4 +1,6 @@
-use once_cell::sync::OnceCell;
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use processing::errors::ProcessingErr;
 use processing::Screen;
 use rand::Rng;
@@ -8,13 +10,8 @@ struct Walker {
     x: i32,
     y: i32,
 }
-static mut WALKER: OnceCell<Walker> = OnceCell::new();
 
 impl Walker {
-    fn instance() -> &'static mut Walker {
-        unsafe { WALKER.get_mut().unwrap() }
-    }
-
     fn new(screen: &mut Screen) -> Self {
         Self {
             x: (screen.width() / 2) as i32,
@@ -42,15 +39,10 @@ fn setup<'a>() -> Result<Screen<'a>, ProcessingErr> {
     let mut screen = core::create_canvas(640, 360)?;
     core::background_grayscale(&mut screen, 255.0);
 
-    unsafe {
-        WALKER.set(Walker::new(&mut screen)).unwrap();
-    }
-
     Ok(screen)
 }
 
-fn draw(screen: &mut Screen) -> Result<(), ProcessingErr> {
-    let walker = Walker::instance();
+fn draw(screen: &mut Screen, walker: &mut Walker) -> Result<(), ProcessingErr> {
     walker.step();
     walker.display(screen)?;
 
@@ -58,7 +50,16 @@ fn draw(screen: &mut Screen) -> Result<(), ProcessingErr> {
 }
 
 fn main() -> Result<(), ProcessingErr> {
-    core::run(setup, draw)?;
+    let walker = Rc::new(RefCell::new(None));
+
+    core::run(
+        || {
+            let mut screen = setup()?;
+            *walker.borrow_mut() = Some(Walker::new(&mut screen));
+            Ok(screen)
+        },
+        |screen| draw(screen, walker.borrow_mut().as_mut().unwrap()),
+    )?;
 
     Ok(())
 }

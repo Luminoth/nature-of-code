@@ -6,7 +6,7 @@ use processing::Screen;
 
 pub fn run<'a, S, D>(setup: S, draw: D) -> Result<(), ProcessingErr>
 where
-    S: Fn() -> Result<Screen<'a>, ProcessingErr>,
+    S: FnOnce() -> Result<Screen<'a>, ProcessingErr>,
     D: Fn(&mut Screen) -> Result<(), ProcessingErr>,
 {
     let mut screen = setup()?;
