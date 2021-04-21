@@ -3,4 +3,6 @@
 members = [
     "core",
     "example",
+    "chapter01-1",
+    "chapter01-2",
 ]

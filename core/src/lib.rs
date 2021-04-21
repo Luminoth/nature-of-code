@@ -34,6 +34,14 @@ pub fn background_rgb(screen: &mut Screen, r: f32, g: f32, b: f32) {
     screen.background(r / 255.0, g / 255.0, b / 255.0, 1.0);
 }
 
+pub fn stroke_grayscale(screen: &mut Screen, v: f32) {
+    stroke_rgb(screen, v, v, v);
+}
+
+pub fn stroke_rgb(screen: &mut Screen, r: f32, g: f32, b: f32) {
+    screen.fill(&[r / 255.0], &[g / 255.0], &[b / 255.0], &[1.0]);
+}
+
 pub fn fill_grayscale(screen: &mut Screen, v: f32) {
     fill_rgb(screen, v, v, v);
 }
