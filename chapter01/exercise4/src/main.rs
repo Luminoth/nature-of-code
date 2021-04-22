@@ -25,8 +25,8 @@ fn main() -> Result<(), ProcessingErr> {
     let normal_x = Normal::new(320.0, 60.0).unwrap();
     let normal_y = Normal::new(180.0, 30.0).unwrap();
 
-    for i in 0..dots.len() {
-        dots[i] = (normal_x.sample(&mut rng), normal_y.sample(&mut rng));
+    for dot in &mut dots {
+        *dot = (normal_x.sample(&mut rng), normal_y.sample(&mut rng));
     }
 
     core::run(setup, |screen| draw(screen, &dots))?;

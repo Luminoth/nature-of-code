@@ -47,8 +47,8 @@ fn main() -> Result<(), ProcessingErr> {
     let mut rng = rand::thread_rng();
     let normal = Normal::new(128.0, 65.0).unwrap();
 
-    for i in 0..dots.len() {
-        dots[i].randomize(&mut rng, &normal);
+    for dot in &mut dots {
+        dot.randomize(&mut rng, &normal);
     }
 
     core::run(setup, |screen| draw(screen, &dots))?;

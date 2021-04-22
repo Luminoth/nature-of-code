@@ -157,6 +157,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "chapter01-exercise5"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "processing",
+ "rand 0.8.3",
+ "rand_distr",
+]
+
+[[package]]
 name = "cloudabi"
 version = "0.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
