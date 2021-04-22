@@ -5,7 +5,9 @@ use processing::errors::ProcessingErr;
 use processing::Screen;
 use rand::Rng;
 
-#[derive(Debug)]
+const EXERCISE_1_1: bool = true;
+
+#[derive(Debug, Default)]
 struct Walker {
     x: i32,
     y: i32,
@@ -27,11 +29,19 @@ impl Walker {
     fn step(&mut self) {
         let mut rng = rand::thread_rng();
 
-        let stepx = rng.gen_range(0..3) - 1;
-        let stepy = rng.gen_range(0..3) - 1;
+        let (stepx, stepy) = if EXERCISE_1_1 {
+            // bias down (+y) and to the right (+x)
+            (
+                rng.gen_range::<i32, _>(-1..3),
+                rng.gen_range::<i32, _>(-1..3),
+            )
+        } else {
+            (rng.gen_range(0..3) - 1, rng.gen_range(0..3) - 1)
+        };
 
-        self.x += stepx;
-        self.y += stepy;
+        // use signum() so we only step 1 at a time
+        self.x += stepx.signum();
+        self.y += stepy.signum();
     }
 }
 
