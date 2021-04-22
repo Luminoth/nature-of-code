@@ -18,6 +18,7 @@ fn draw(screen: &mut Screen) -> Result<(), ProcessingErr> {
 
     let x = screen.mouse_x();
     let y = screen.mouse_y();
+    println!("drawing ellipse at {}, {}", x, y);
     core::shapes::ellipse(screen, x, y, 80.0, 80.0)?;
 
     Ok(())

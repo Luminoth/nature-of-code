@@ -5,7 +5,8 @@ use processing::errors::ProcessingErr;
 use processing::Screen;
 use rand::Rng;
 
-const EXERCISE_1_1: bool = true;
+const EXERCISE_1_1: bool = false;
+const EXERCISE_1_3: bool = true;
 
 #[derive(Debug, Default)]
 struct Walker {
@@ -26,7 +27,7 @@ impl Walker {
         core::shapes::point(screen, self.x as f64, self.y as f64)
     }
 
-    fn step(&mut self) {
+    fn step(&mut self, screen: &mut Screen) {
         let mut rng = rand::thread_rng();
 
         let (stepx, stepy) = if EXERCISE_1_1 {
@@ -35,6 +36,20 @@ impl Walker {
                 rng.gen_range::<i32, _>(-1..3),
                 rng.gen_range::<i32, _>(-1..3),
             )
+        } else if EXERCISE_1_3 {
+            // 50% chance of moving towards the mouse
+            let towards_mouse = rng.gen_bool(0.5);
+            if towards_mouse {
+                // this suffers from https://github.com/rennis250/processing-rs/issues/7
+                println!("mouse pos: {}, {}", screen.mouse_x(), screen.mouse_y());
+                (
+                    screen.mouse_x() as i32 - self.x,
+                    screen.mouse_y() as i32 - self.y,
+                )
+            } else {
+                println!("random");
+                (rng.gen_range(0..3) - 1, rng.gen_range(0..3) - 1)
+            }
         } else {
             (rng.gen_range(0..3) - 1, rng.gen_range(0..3) - 1)
         };
@@ -53,7 +68,7 @@ fn setup<'a>() -> Result<Screen<'a>, ProcessingErr> {
 }
 
 fn draw(screen: &mut Screen, walker: &mut Walker) -> Result<(), ProcessingErr> {
-    walker.step();
+    walker.step(screen);
     walker.display(screen)?;
 
     Ok(())
