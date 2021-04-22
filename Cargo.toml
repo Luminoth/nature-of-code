@@ -7,4 +7,5 @@ members = [
     "chapter01/example2",
     "chapter01/example4",
     "chapter01/exercise4",
+    "chapter01/exercise4_2",
 ]
