@@ -26,6 +26,8 @@ pub fn create_canvas<'a>(width: u32, height: u32) -> Result<Screen<'a>, Processi
     Ok(screen)
 }
 
+/* background */
+
 pub fn background_grayscale(screen: &mut Screen, v: f32) {
     background_rgb(screen, v, v, v);
 }
@@ -33,6 +35,8 @@ pub fn background_grayscale(screen: &mut Screen, v: f32) {
 pub fn background_rgb(screen: &mut Screen, r: f32, g: f32, b: f32) {
     screen.background(r / 255.0, g / 255.0, b / 255.0, 1.0);
 }
+
+/* stroke */
 
 pub fn stroke_grayscale(screen: &mut Screen, v: f32) {
     stroke_rgb(screen, v, v, v);
@@ -42,13 +46,25 @@ pub fn stroke_rgb(screen: &mut Screen, r: f32, g: f32, b: f32) {
     screen.fill(&[r / 255.0], &[g / 255.0], &[b / 255.0], &[1.0]);
 }
 
+/* fill */
+
 pub fn fill_grayscale(screen: &mut Screen, v: f32) {
     fill_rgb(screen, v, v, v);
 }
 
-pub fn fill_rgb(screen: &mut Screen, r: f32, g: f32, b: f32) {
-    screen.fill(&[r / 255.0], &[g / 255.0], &[b / 255.0], &[1.0]);
+pub fn fill_grayscale_alpha(screen: &mut Screen, v: f32, a: f32) {
+    fill_rgba(screen, v, v, v, a);
 }
+
+pub fn fill_rgb(screen: &mut Screen, r: f32, g: f32, b: f32) {
+    fill_rgba(screen, r, g, b, 255.0);
+}
+
+pub fn fill_rgba(screen: &mut Screen, r: f32, g: f32, b: f32, a: f32) {
+    screen.fill(&[r / 255.0], &[g / 255.0], &[b / 255.0], &[a / 255.0]);
+}
+
+/* internal utils */
 
 pub(crate) fn x_to_screen(screen: &Screen, v: f64) -> f64 {
     let hw = screen.width() as f64 / 2.0;
