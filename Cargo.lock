@@ -109,7 +109,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "chapter01-1"
+name = "chapter01-example1"
 version = "0.1.0"
 dependencies = [
  "core",
@@ -118,7 +118,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "chapter01-2"
+name = "chapter01-example2"
 version = "0.1.0"
 dependencies = [
  "core",
