@@ -3,6 +3,7 @@
 members = [
     "core",
     "example",
+    "perlin-example",
     "chapter01/example1",
     "chapter01/example2",
     "chapter01/example4",

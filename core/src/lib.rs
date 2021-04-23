@@ -1,13 +1,16 @@
 pub mod input;
 pub mod shapes;
 
+use noise::{NoiseFn, Perlin, Seedable};
+use once_cell::sync::Lazy;
 use processing::errors::ProcessingErr;
 use processing::Screen;
+use rand::random;
 
-pub fn run<'a, S, D>(setup: S, draw: D) -> Result<(), ProcessingErr>
+pub fn run<'a, S, D>(setup: S, mut draw: D) -> Result<(), ProcessingErr>
 where
     S: FnOnce() -> Result<Screen<'a>, ProcessingErr>,
-    D: Fn(&mut Screen) -> Result<(), ProcessingErr>,
+    D: FnMut(&mut Screen) -> Result<(), ProcessingErr>,
 {
     let mut screen = setup()?;
 
@@ -62,6 +65,27 @@ pub fn fill_rgb(screen: &mut Screen, r: f32, g: f32, b: f32) {
 
 pub fn fill_rgba(screen: &mut Screen, r: f32, g: f32, b: f32, a: f32) {
     screen.fill(&[r / 255.0], &[g / 255.0], &[b / 255.0], &[a / 255.0]);
+}
+
+/* utils */
+
+static PERLIN: Lazy<Perlin> = Lazy::new(|| Perlin::new().set_seed(random()));
+
+pub fn noise(point: f64) -> f64 {
+    map(PERLIN.get([point, 0.0]), -1.0, 1.0, 0.0, 1.0)
+}
+
+pub fn noise2d(point: [f64; 2]) -> f64 {
+    map(PERLIN.get(point), -1.0, 1.0, 0.0, 1.0)
+}
+
+pub fn noise3d(point: [f64; 2]) -> f64 {
+    map(PERLIN.get(point), -1.0, 1.0, 0.0, 1.0)
+}
+
+// https://www.arduino.cc/reference/en/language/functions/math/map/
+pub fn map(x: f64, in_min: f64, in_max: f64, out_min: f64, out_max: f64) -> f64 {
+    (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 }
 
 /* internal utils */
