@@ -2,6 +2,7 @@
 
 members = [
     "core",
+    "ecosystem",
     "example",
     "perlin-example",
     "vector-example",
