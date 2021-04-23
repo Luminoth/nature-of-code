@@ -37,8 +37,8 @@ impl Walker {
         let dirx: i32 = rng.gen_range(0..3) - 1;
         let diry: i32 = rng.gen_range(0..3) - 1;
 
-        self.x = core::clamp(self.x + dirx.signum() * stepx, 0, screen.width() as i32);
-        self.y = core::clamp(self.y + diry.signum() * stepy, 0, screen.height() as i32);
+        self.x = core::math::clamp(self.x + dirx.signum() * stepx, 0, screen.width() as i32);
+        self.y = core::math::clamp(self.y + diry.signum() * stepy, 0, screen.height() as i32);
     }
 }
 

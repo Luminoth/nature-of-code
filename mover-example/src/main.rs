@@ -4,7 +4,7 @@ use std::rc::Rc;
 use nalgebra::Vector2;
 use processing::errors::ProcessingErr;
 use processing::Screen;
-//use rand::Rng;
+use rand::Rng;
 
 #[derive(Debug, Default)]
 struct Mover {
@@ -16,14 +16,10 @@ struct Mover {
 
 impl Mover {
     fn new(screen: &Screen) -> Self {
-        //let mut rng = rand::thread_rng();
-
         Self {
             location: Vector2::new(screen.width() as f64 / 2.0, screen.height() as f64 / 2.0),
-            velocity: Vector2::default(),
-            acceleration: Vector2::new(-0.001, 0.01),
-            //acceleration: Vector2::new(rng.gen_range(-2.0..2.0), rng.gen_range(-2.0..2.0)),
             topspeed: 10.0,
+            ..Default::default()
         }
     }
 
@@ -42,6 +38,10 @@ impl Mover {
     }
 
     fn update(&mut self) {
+        let mut rng = rand::thread_rng();
+
+        self.acceleration = core::math::vector2_random() * rng.gen_range(0.0..2.0);
+
         self.velocity = (self.velocity + self.acceleration).cap_magnitude(self.topspeed);
         self.location += self.velocity;
     }

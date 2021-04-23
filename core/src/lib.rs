@@ -1,4 +1,5 @@
 pub mod input;
+pub mod math;
 pub mod shapes;
 
 use noise::{NoiseFn, Perlin, Seedable};
@@ -6,6 +7,8 @@ use once_cell::sync::Lazy;
 use processing::errors::ProcessingErr;
 use processing::Screen;
 use rand::random;
+
+use crate::math::*;
 
 pub fn run<'a, S, D>(setup: S, mut draw: D) -> Result<(), ProcessingErr>
 where
@@ -90,15 +93,6 @@ pub fn noise2d(point: [f64; 2]) -> f64 {
 
 pub fn noise3d(point: [f64; 3]) -> f64 {
     map(PERLIN.get(point), -1.0, 1.0, 0.0, 1.0)
-}
-
-pub fn clamp<T: Ord>(v: T, min: T, max: T) -> T {
-    std::cmp::min(max, std::cmp::max(min, v))
-}
-
-// https://www.arduino.cc/reference/en/language/functions/math/map/
-pub fn map(x: f64, in_min: f64, in_max: f64, out_min: f64, out_max: f64) -> f64 {
-    (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 }
 
 /* internal utils */
