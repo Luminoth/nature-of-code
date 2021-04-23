@@ -17,7 +17,9 @@ where
     loop {
         input::update(&mut screen);
 
+        screen.push_matrix();
         draw(&mut screen)?;
+        screen.pop_matrix();
 
         screen.reveal()?;
     }

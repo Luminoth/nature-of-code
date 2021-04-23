@@ -4,6 +4,7 @@ members = [
     "core",
     "example",
     "perlin-example",
+    "vector-example",
     "intro/example1",
     "intro/example2",
     "intro/example4",
