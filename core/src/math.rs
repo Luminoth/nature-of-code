@@ -1,6 +1,8 @@
 use nalgebra::Vector2;
 use rand::Rng;
 
+use crate::*;
+
 pub fn clamp<T: Ord>(v: T, min: T, max: T) -> T {
     std::cmp::min(max, std::cmp::max(min, v))
 }
@@ -14,4 +16,14 @@ pub fn vector2_random() -> Vector2<f64> {
     let mut rng = rand::thread_rng();
 
     Vector2::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0)).normalize()
+}
+
+pub fn vector2_perlin() -> Vector2<f64> {
+    let mut rng = rand::thread_rng();
+
+    Vector2::new(
+        noise(rng.gen_range(-1.0..1.0)),
+        noise(rng.gen_range(-1.0..1.0)),
+    )
+    .normalize()
 }

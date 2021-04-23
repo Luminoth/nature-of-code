@@ -40,7 +40,9 @@ impl Mover {
     fn update(&mut self) {
         let mut rng = rand::thread_rng();
 
-        self.acceleration = core::math::vector2_random() * rng.gen_range(0.0..2.0);
+        self.acceleration = core::math::vector2_random()
+            * core::noise(rng.gen_range(0.0..1.0))
+            * rng.gen_range(0.5..1.0);
 
         self.velocity = (self.velocity + self.acceleration).cap_magnitude(self.topspeed);
         self.location += self.velocity;
