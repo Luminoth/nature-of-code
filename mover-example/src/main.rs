@@ -4,24 +4,26 @@ use std::rc::Rc;
 use nalgebra::Vector2;
 use processing::errors::ProcessingErr;
 use processing::Screen;
-use rand::Rng;
+//use rand::Rng;
 
 #[derive(Debug, Default)]
 struct Mover {
     location: Vector2<f64>,
     velocity: Vector2<f64>,
+    acceleration: Vector2<f64>,
+    topspeed: f64,
 }
 
 impl Mover {
     fn new(screen: &Screen) -> Self {
-        let mut rng = rand::thread_rng();
+        //let mut rng = rand::thread_rng();
 
         Self {
-            location: Vector2::new(
-                rng.gen_range(0..screen.width()) as f64,
-                rng.gen_range(0..screen.height()) as f64,
-            ),
-            velocity: Vector2::new(rng.gen_range(-2.0..2.0), rng.gen_range(-2.0..2.0)),
+            location: Vector2::new(screen.width() as f64 / 2.0, screen.height() as f64 / 2.0),
+            velocity: Vector2::default(),
+            acceleration: Vector2::new(-0.001, 0.01),
+            //acceleration: Vector2::new(rng.gen_range(-2.0..2.0), rng.gen_range(-2.0..2.0)),
+            topspeed: 10.0,
         }
     }
 
@@ -40,6 +42,7 @@ impl Mover {
     }
 
     fn update(&mut self) {
+        self.velocity = (self.velocity + self.acceleration).cap_magnitude(self.topspeed);
         self.location += self.velocity;
     }
 
