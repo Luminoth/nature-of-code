@@ -115,64 +115,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "chapter01-example1"
-version = "0.1.0"
-dependencies = [
- "core",
- "processing",
- "rand 0.8.3",
-]
-
-[[package]]
-name = "chapter01-example2"
-version = "0.1.0"
-dependencies = [
- "core",
- "processing",
- "rand 0.8.3",
-]
-
-[[package]]
-name = "chapter01-example4"
-version = "0.1.0"
-dependencies = [
- "core",
- "processing",
- "rand 0.8.3",
- "rand_distr",
-]
-
-[[package]]
-name = "chapter01-exercise4"
-version = "0.1.0"
-dependencies = [
- "core",
- "processing",
- "rand 0.8.3",
- "rand_distr",
-]
-
-[[package]]
-name = "chapter01-exercise4_2"
-version = "0.1.0"
-dependencies = [
- "core",
- "processing",
- "rand 0.8.3",
- "rand_distr",
-]
-
-[[package]]
-name = "chapter01-exercise5"
-version = "0.1.0"
-dependencies = [
- "core",
- "processing",
- "rand 0.8.3",
- "rand_distr",
-]
-
-[[package]]
 name = "cloudabi"
 version = "0.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -615,6 +557,64 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f5f9f47468e9a76a6452271efadc88fe865a82be91fe75e6c0c57b87ccea59d4"
 dependencies = [
  "adler32",
+]
+
+[[package]]
+name = "intro-example1"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "processing",
+ "rand 0.8.3",
+]
+
+[[package]]
+name = "intro-example2"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "processing",
+ "rand 0.8.3",
+]
+
+[[package]]
+name = "intro-example4"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "processing",
+ "rand 0.8.3",
+ "rand_distr",
+]
+
+[[package]]
+name = "intro-exercise4"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "processing",
+ "rand 0.8.3",
+ "rand_distr",
+]
+
+[[package]]
+name = "intro-exercise4_2"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "processing",
+ "rand 0.8.3",
+ "rand_distr",
+]
+
+[[package]]
+name = "intro-exercise5"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "processing",
+ "rand 0.8.3",
+ "rand_distr",
 ]
 
 [[package]]

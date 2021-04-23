@@ -10,8 +10,8 @@ fn draw(screen: &mut Screen, tx: &mut f64, ty: &mut f64) -> Result<(), Processin
     let y = core::map(core::noise(*ty), 0.0, 1.0, 0.0, screen.height() as f64);
     core::shapes::ellipse(screen, x, y, 16.0, 16.0)?;
 
-    *tx = *tx + 0.01;
-    *ty = *ty + 0.01;
+    *tx += 0.01;
+    *ty += 0.01;
 
     Ok(())
 }

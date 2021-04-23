@@ -1,5 +1,5 @@
 [package]
-name = "chapter01-exercise4"
+name = "intro-example2"
 version = "0.1.0"
 authors = ["Shane Lillie <ignignokterr@gmail.com>"]
 edition = "2018"
@@ -9,7 +9,6 @@ edition = "2018"
 [dependencies]
 processing = "0.3"
 rand = "0.8"
-rand_distr = "0.4"
 
 [dependencies.core]
 path = "../../core"
