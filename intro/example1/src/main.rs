@@ -15,7 +15,7 @@ struct Walker {
 }
 
 impl Walker {
-    fn new(screen: &mut Screen) -> Self {
+    fn new(screen: &Screen) -> Self {
         Self {
             x: (screen.width() / 2) as i32,
             y: (screen.height() / 2) as i32,
@@ -79,8 +79,8 @@ fn main() -> Result<(), ProcessingErr> {
 
     core::run(
         || {
-            let mut screen = setup()?;
-            *walker.borrow_mut() = Some(Walker::new(&mut screen));
+            let screen = setup()?;
+            *walker.borrow_mut() = Some(Walker::new(&screen));
             Ok(screen)
         },
         |screen| draw(screen, walker.borrow_mut().as_mut().unwrap()),

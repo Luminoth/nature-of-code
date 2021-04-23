@@ -777,6 +777,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "mover-example"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "nalgebra 0.26.1",
+ "processing",
+ "rand 0.8.3",
+]
+
+[[package]]
 name = "nalgebra"
 version = "0.16.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
