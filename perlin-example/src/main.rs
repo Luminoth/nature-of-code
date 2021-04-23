@@ -20,7 +20,7 @@ fn main() -> Result<(), ProcessingErr> {
     let mut tx = 0.0;
     let mut ty = 1000.0;
 
-    core::run(setup, |screen| draw(screen, &mut tx, &mut ty))?;
+    core::run(setup, |screen, _| draw(screen, &mut tx, &mut ty))?;
 
     Ok(())
 }

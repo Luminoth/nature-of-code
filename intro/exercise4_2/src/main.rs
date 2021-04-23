@@ -51,7 +51,7 @@ fn main() -> Result<(), ProcessingErr> {
         dot.randomize(&mut rng, &normal);
     }
 
-    core::run(setup, |screen| draw(screen, &dots))?;
+    core::run(setup, |screen, _| draw(screen, &dots))?;
 
     Ok(())
 }

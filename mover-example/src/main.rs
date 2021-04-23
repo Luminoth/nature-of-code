@@ -77,7 +77,7 @@ fn main() -> Result<(), ProcessingErr> {
             *mover.borrow_mut() = Some(Mover::new(&screen));
             Ok(screen)
         },
-        |screen| draw(screen, mover.borrow_mut().as_mut().unwrap()),
+        |screen, _| draw(screen, mover.borrow_mut().as_mut().unwrap()),
     )?;
 
     Ok(())

@@ -36,7 +36,7 @@ fn draw(screen: &mut Screen, random_counts: &mut Vec<u32>) -> Result<(), Process
 fn main() -> Result<(), ProcessingErr> {
     let random_counts = Rc::new(RefCell::new(vec![0; 20]));
 
-    core::run(setup, |screen| {
+    core::run(setup, |screen, _| {
         draw(screen, random_counts.borrow_mut().as_mut())
     })?;
 

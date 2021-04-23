@@ -29,7 +29,7 @@ fn main() -> Result<(), ProcessingErr> {
         *dot = (normal_x.sample(&mut rng), normal_y.sample(&mut rng));
     }
 
-    core::run(setup, |screen| draw(screen, &dots))?;
+    core::run(setup, |screen, _| draw(screen, &dots))?;
 
     Ok(())
 }

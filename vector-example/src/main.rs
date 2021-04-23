@@ -6,7 +6,7 @@ fn setup<'a>() -> Result<Screen<'a>, ProcessingErr> {
     core::create_canvas(640, 360)
 }
 
-fn draw(screen: &mut Screen) -> Result<(), ProcessingErr> {
+fn draw(screen: &mut Screen, _: f64) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 255.0);
 
     let mut mouse = Vector2::new(screen.mouse_x(), screen.mouse_y());

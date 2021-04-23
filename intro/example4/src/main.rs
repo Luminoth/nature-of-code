@@ -6,7 +6,7 @@ fn setup<'a>() -> Result<Screen<'a>, ProcessingErr> {
     core::create_canvas(640, 360)
 }
 
-fn draw(screen: &mut Screen) -> Result<(), ProcessingErr> {
+fn draw(screen: &mut Screen, _: f64) -> Result<(), ProcessingErr> {
     let mut rng = rand::thread_rng();
     let normal = Normal::new(320.0, 60.0).unwrap();
 

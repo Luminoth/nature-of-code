@@ -2,6 +2,8 @@ pub mod input;
 pub mod math;
 pub mod shapes;
 
+use std::time::Instant;
+
 use noise::{NoiseFn, Perlin, Seedable};
 use once_cell::sync::Lazy;
 use processing::errors::ProcessingErr;
@@ -13,15 +15,17 @@ use crate::math::*;
 pub fn run<'a, S, D>(setup: S, mut draw: D) -> Result<(), ProcessingErr>
 where
     S: FnOnce() -> Result<Screen<'a>, ProcessingErr>,
-    D: FnMut(&mut Screen) -> Result<(), ProcessingErr>,
+    D: FnMut(&mut Screen, f64) -> Result<(), ProcessingErr>,
 {
     let mut screen = setup()?;
 
+    let mut timer = Instant::now();
     loop {
         input::update(&mut screen);
 
         screen.reset_matrix();
-        draw(&mut screen)?;
+        draw(&mut screen, timer.elapsed().as_secs_f64())?;
+        timer = Instant::now();
 
         screen.reveal()?;
     }

@@ -65,7 +65,7 @@ fn main() -> Result<(), ProcessingErr> {
             *walker.borrow_mut() = Some(Walker::new(&mut screen));
             Ok(screen)
         },
-        |screen| draw(screen, walker.borrow_mut().as_mut().unwrap()),
+        |screen, _| draw(screen, walker.borrow_mut().as_mut().unwrap()),
     )?;
 
     Ok(())

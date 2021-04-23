@@ -5,7 +5,7 @@ fn setup<'a>() -> Result<Screen<'a>, ProcessingErr> {
     core::create_canvas(400, 400)
 }
 
-fn draw(screen: &mut Screen) -> Result<(), ProcessingErr> {
+fn draw(screen: &mut Screen, _: f64) -> Result<(), ProcessingErr> {
     //core::background_grayscale(screen, 220.0);
 
     if core::input::mouse_is_pressed() {
