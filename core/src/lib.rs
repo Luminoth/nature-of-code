@@ -31,6 +31,14 @@ pub fn create_canvas<'a>(width: u32, height: u32) -> Result<Screen<'a>, Processi
     Ok(screen)
 }
 
+pub fn translate(screen: &mut Screen, x: f64, y: f64) {
+    screen.translate(
+        x_to_screen(screen, x) as f32,
+        y_to_screen(screen, y) as f32,
+        0.0,
+    );
+}
+
 /* background */
 
 pub fn background_grayscale(screen: &mut Screen, v: f32) {
@@ -81,7 +89,7 @@ pub fn noise2d(point: [f64; 2]) -> f64 {
     map(PERLIN.get(point), -1.0, 1.0, 0.0, 1.0)
 }
 
-pub fn noise3d(point: [f64; 2]) -> f64 {
+pub fn noise3d(point: [f64; 3]) -> f64 {
     map(PERLIN.get(point), -1.0, 1.0, 0.0, 1.0)
 }
 
@@ -92,22 +100,22 @@ pub fn map(x: f64, in_min: f64, in_max: f64, out_min: f64, out_max: f64) -> f64 
 
 /* internal utils */
 
-pub(crate) fn x_to_screen(screen: &Screen, v: f64) -> f64 {
+pub(crate) fn x_to_screen(screen: &Screen, x: f64) -> f64 {
     let hw = screen.width() as f64 / 2.0;
-    (v - hw) / hw
+    (x - hw) / hw
 }
 
-pub(crate) fn y_to_screen(screen: &Screen, v: f64) -> f64 {
+pub(crate) fn y_to_screen(screen: &Screen, y: f64) -> f64 {
     let hh = screen.height() as f64 / 2.0;
-    (hh - v) / hh
+    (hh - y) / hh
 }
 
-pub(crate) fn w_to_screen(screen: &Screen, v: f64) -> f64 {
+pub(crate) fn w_to_screen(screen: &Screen, w: f64) -> f64 {
     let hw = screen.width() as f64 / 2.0;
-    v / hw
+    w / hw
 }
 
-pub(crate) fn h_to_screen(screen: &Screen, v: f64) -> f64 {
+pub(crate) fn h_to_screen(screen: &Screen, h: f64) -> f64 {
     let hh = screen.height() as f64 / 2.0;
-    v / hh
+    h / hh
 }

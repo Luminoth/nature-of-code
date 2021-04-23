@@ -17,15 +17,9 @@ fn draw(screen: &mut Screen) -> Result<(), ProcessingErr> {
     core::fill_grayscale(screen, 0.0);
     core::shapes::rect(screen, 0.0, 0.0, m, 10.0)?;
 
-    // TODO: this doesn't work
-    // but it does work if we don't translate and instead
-    // just draw the line from the center to the mouse
-    // (without subtracting the center)
-    screen.translate(
-        screen.width() as f32 / 2.0,
-        screen.height() as f32 / 2.0,
-        0.0,
-    );
+    // TODO: this isn't quite working right
+    // something in the point to pixel conversion in core is wrong
+    core::translate(screen, center.x, center.y);
     core::shapes::line(screen, 0.0, 0.0, mouse.x, mouse.y)?;
 
     Ok(())
