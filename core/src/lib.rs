@@ -39,8 +39,8 @@ pub fn create_canvas<'a>(width: u32, height: u32) -> Result<Screen<'a>, Processi
 
 pub fn translate(screen: &mut Screen, x: f64, y: f64) {
     screen.translate(
-        x_to_screen(screen, x) as f32,
-        y_to_screen(screen, y) as f32,
+        1.0 + x_to_screen(screen, x) as f32,
+        -1.0 + y_to_screen(screen, y) as f32,
         0.0,
     );
 }
@@ -102,13 +102,11 @@ pub fn noise3d(point: [f64; 3]) -> f64 {
 /* internal utils */
 
 pub(crate) fn x_to_screen(screen: &Screen, x: f64) -> f64 {
-    let hw = screen.width() as f64 / 2.0;
-    (x - hw) / hw
+    map(x, 0.0, screen.width() as f64, -1.0, 1.0)
 }
 
 pub(crate) fn y_to_screen(screen: &Screen, y: f64) -> f64 {
-    let hh = screen.height() as f64 / 2.0;
-    (hh - y) / hh
+    -map(y, 0.0, screen.height() as f64, -1.0, 1.0)
 }
 
 pub(crate) fn w_to_screen(screen: &Screen, w: f64) -> f64 {

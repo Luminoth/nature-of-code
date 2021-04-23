@@ -17,8 +17,6 @@ fn draw(screen: &mut Screen, _: f64) -> Result<(), ProcessingErr> {
     core::fill_grayscale(screen, 0.0);
     core::shapes::rect(screen, 0.0, 0.0, m, 10.0)?;
 
-    // TODO: this isn't quite working right
-    // something in the point to pixel conversion in core is wrong
     core::translate(screen, center.x, center.y);
     core::shapes::line(screen, 0.0, 0.0, mouse.x, mouse.y)?;
 
