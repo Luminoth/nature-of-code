@@ -17,9 +17,8 @@ where
     loop {
         input::update(&mut screen);
 
-        screen.push_matrix();
+        screen.reset_matrix();
         draw(&mut screen)?;
-        screen.pop_matrix();
 
         screen.reveal()?;
     }
@@ -91,6 +90,10 @@ pub fn noise2d(point: [f64; 2]) -> f64 {
 
 pub fn noise3d(point: [f64; 3]) -> f64 {
     map(PERLIN.get(point), -1.0, 1.0, 0.0, 1.0)
+}
+
+pub fn clamp<T: Ord>(v: T, min: T, max: T) -> T {
+    std::cmp::min(max, std::cmp::max(min, v))
 }
 
 // https://www.arduino.cc/reference/en/language/functions/math/map/

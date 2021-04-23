@@ -25,7 +25,7 @@ impl Walker {
         core::shapes::point(screen, self.x as f64, self.y as f64)
     }
 
-    fn step(&mut self) {
+    fn step(&mut self, screen: &Screen) {
         let mut rng = rand::thread_rng();
 
         let normal_x = Normal::new(5.0, 2.0).unwrap();
@@ -37,8 +37,8 @@ impl Walker {
         let dirx: i32 = rng.gen_range(0..3) - 1;
         let diry: i32 = rng.gen_range(0..3) - 1;
 
-        self.x += dirx.signum() * stepx;
-        self.y += diry.signum() * stepy;
+        self.x = core::clamp(self.x + dirx.signum() * stepx, 0, screen.width() as i32);
+        self.y = core::clamp(self.y + diry.signum() * stepy, 0, screen.height() as i32);
     }
 }
 
@@ -50,7 +50,7 @@ fn setup<'a>() -> Result<Screen<'a>, ProcessingErr> {
 }
 
 fn draw(screen: &mut Screen, walker: &mut Walker) -> Result<(), ProcessingErr> {
-    walker.step();
+    walker.step(screen);
     walker.display(screen)?;
 
     Ok(())
