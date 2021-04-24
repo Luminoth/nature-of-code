@@ -1,6 +1,7 @@
 //! ECS components
 
 pub mod creatures;
+pub mod debug;
 
 use bevy::prelude::*;
 

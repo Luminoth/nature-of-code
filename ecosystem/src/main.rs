@@ -1,15 +1,20 @@
 //! Nature of Code Ecosystem Project
 
 mod components;
+mod events;
 mod resources;
 mod states;
 mod systems;
 
+use bevy::diagnostic::*;
 use bevy::prelude::*;
 
+use events::debug::*;
+use resources::debug::*;
 use resources::*;
 use states::*;
 use systems::creatures::*;
+use systems::debug::*;
 
 const WINDOW_WIDTH: f32 = 640.0;
 const WINDOW_HEIGHT: f32 = 360.0;
@@ -32,6 +37,11 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.insert_resource(PerlinNoise::default());
 }
 
+/// Debug setup
+fn setup_debug(mut commands: Commands) {
+    commands.insert_resource(DebugState::default());
+}
+
 /// Application entry
 #[bevy_main]
 fn main() {
@@ -50,6 +60,9 @@ fn main() {
         })
         // plugins
         .add_plugins(DefaultPlugins)
+        .add_plugin(FrameTimeDiagnosticsPlugin)
+        // events
+        .add_event::<ToggleDebugEvent>()
         // game states
         .add_state(GameState::Game)
         .add_system_set(
@@ -66,5 +79,9 @@ fn main() {
         )
         // setup
         .add_startup_system(setup.system())
+        .add_startup_system(setup_debug.system())
+        // debug
+        .add_system(debug_system.system())
+        .add_system(fps_text_system.system())
         .run();
 }

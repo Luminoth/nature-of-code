@@ -1,6 +1,7 @@
 //! ECS resources
 
 pub mod creatures;
+pub mod debug;
 
 use noise::{NoiseFn, Perlin, Seedable};
 use rand::distributions::uniform::{SampleRange, SampleUniform};

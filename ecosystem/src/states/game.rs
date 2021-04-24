@@ -18,6 +18,7 @@ pub fn setup(
     // cameras
     commands.insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)));
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    commands.spawn_bundle(UiCameraBundle::default());
 
     // materials
     let fly_materials = FlyMaterials {
