@@ -6,6 +6,7 @@ use bevy_rapier2d::rapier::dynamics::RigidBodySet;
 
 use crate::components::creatures::*;
 
+/// Fly behavior
 pub fn fly(
     mut rigidbodies: ResMut<RigidBodySet>,
     mut query: Query<&RigidBodyHandleComponent, With<Fly>>,
@@ -15,6 +16,7 @@ pub fn fly(
     }
 }
 
+/// Fish behavior
 pub fn fish(
     mut rigidbodies: ResMut<RigidBodySet>,
     mut query: Query<&RigidBodyHandleComponent, With<Fish>>,
@@ -24,6 +26,7 @@ pub fn fish(
     }
 }
 
+/// Snake behavior
 pub fn snake(
     mut rigidbodies: ResMut<RigidBodySet>,
     mut query: Query<&RigidBodyHandleComponent, With<Snake>>,
