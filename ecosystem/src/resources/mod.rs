@@ -11,7 +11,7 @@ use rand_distr::{Normal, StandardNormal};
 
 /// Random wrapper
 pub struct Random {
-    // TODO: would SmallRng be better here? we don't need a secur rng
+    // TODO: would SmallRng be better here? we don't need a secure rng
     random: StdRng,
 }
 
