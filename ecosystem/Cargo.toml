@@ -8,6 +8,7 @@ edition = "2018"
 
 [dependencies]
 bevy = "0.5"
+bevy_prototype_lyon = "0.3"
 derivative = "2.2"
 noise = "0.7"
 rand = "0.8"

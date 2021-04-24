@@ -8,6 +8,7 @@ mod systems;
 
 use bevy::diagnostic::*;
 use bevy::prelude::*;
+use bevy_prototype_lyon::prelude::*;
 
 use events::debug::*;
 use resources::debug::*;
@@ -60,6 +61,7 @@ fn main() {
         })
         // plugins
         .add_plugins(DefaultPlugins)
+        .add_plugin(ShapePlugin)
         .add_plugin(FrameTimeDiagnosticsPlugin)
         // events
         .add_event::<ToggleDebugEvent>()
