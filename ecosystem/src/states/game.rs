@@ -43,7 +43,8 @@ pub fn setup(
 
     // flies
     for _ in 0..rng.gen_range(1..5) {
-        let pos = vec2_random(-hw + 5.0, hw - 5.0, -hh + 5.0, hh - 5.0);
+        let mut pos = vec2_random(-hw + 5.0, hw - 5.0, -hh + 5.0, hh - 5.0);
+        pos.z = 2.0;
         info!("spawning fly at {}", pos);
 
         commands
@@ -62,7 +63,8 @@ pub fn setup(
 
     // fish
     for _ in 0..rng.gen_range(3..6) {
-        let pos = vec2_random(-hw + 10.0, hw - 10.0, -hh + 10.0, hh - 10.0);
+        let mut pos = vec2_random(-hw + 10.0, hw - 10.0, -hh + 10.0, hh - 10.0);
+        pos.z = 0.0;
         info!("spawning fish at {}", pos);
 
         commands
@@ -81,7 +83,8 @@ pub fn setup(
 
     // snakes
     for _ in 0..rng.gen_range(1..3) {
-        let pos = vec2_random(-hw + 5.0, hw - 5.0, -hh + 10.0, hh - 10.0);
+        let mut pos = vec2_random(-hw + 5.0, hw - 5.0, -hh + 10.0, hh - 10.0);
+        pos.z = 1.0;
         info!("spawning snake at {}", pos);
 
         commands
