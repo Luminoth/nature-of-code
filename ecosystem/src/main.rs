@@ -1,22 +1,18 @@
 //! Nature of Code Ecosystem Project
 
 mod components;
+mod resources;
 mod states;
 mod systems;
 
 use bevy::prelude::*;
 use bevy_rapier2d::physics::RapierPhysicsPlugin;
 
-use components::camera::*;
 use states::*;
 use systems::creatures::*;
 
 const WINDOW_WIDTH: f32 = 640.0;
 const WINDOW_HEIGHT: f32 = 360.0;
-
-// https://indiehoodgames.wordpress.com/2013/07/27/pixel-perfect-calculator-for-orthographic-camera-unity3d/
-const PIXELS_PER_UNIT: f32 = 32.0;
-const CAMERA_SIZE: f32 = WINDOW_HEIGHT / (2.0 * PIXELS_PER_UNIT);
 
 /// Misc setup
 fn setup(asset_server: Res<AssetServer>) {
@@ -59,10 +55,5 @@ fn main() {
         )
         // setup
         .add_startup_system(setup.system())
-        // add internal camera system update
-        .add_system_to_stage(
-            bevy::app::CoreStage::PostUpdate,
-            bevy::render::camera::camera_system::<OrthoProjection>.system(),
-        )
         .run();
 }

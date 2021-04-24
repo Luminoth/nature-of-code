@@ -1,3 +1,3 @@
-//! ECS components
+//! ECS resources
 
 pub mod creatures;

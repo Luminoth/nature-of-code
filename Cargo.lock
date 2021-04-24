@@ -1485,6 +1485,7 @@ dependencies = [
  "bevy",
  "bevy_rapier2d",
  "derivative",
+ "rand 0.8.3",
 ]
 
 [[package]]
