@@ -57,7 +57,7 @@ pub fn setup(
                 ..Default::default()
             })
             .insert(Physics {
-                max_speed: 1.0,
+                max_speed: 1.25,
                 ..Default::default()
             })
             .insert(Fly::default());
@@ -82,7 +82,7 @@ pub fn setup(
                 max_speed: 0.5,
                 ..Default::default()
             })
-            .insert(Fish::default());
+            .insert(Fish::new(2.0));
     }
 
     // snakes
@@ -101,10 +101,10 @@ pub fn setup(
                 ..Default::default()
             })
             .insert(Physics {
-                max_speed: 1.5,
+                max_speed: 1.0,
                 ..Default::default()
             })
-            .insert(Snake::default());
+            .insert(Snake::new(2.0));
     }
 }
 
