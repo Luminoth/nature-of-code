@@ -52,7 +52,7 @@ pub fn setup(
         commands
             .spawn_bundle(SpriteBundle {
                 material: fly_materials.material.clone(),
-                sprite: Sprite::new(Vec2::new(10.0, 10.0)),
+                sprite: Sprite::new(Vec2::new(5.0, 5.0)),
                 transform: Transform::from_translation(pos),
                 ..Default::default()
             })
@@ -79,7 +79,7 @@ pub fn setup(
                 ..Default::default()
             })
             .insert(Physics {
-                max_speed: 5.0,
+                max_speed: 0.5,
                 ..Default::default()
             })
             .insert(Fish::default());
@@ -89,19 +89,19 @@ pub fn setup(
     for _ in 0..rng.gen_range(1..3) {
         let mut pos = vec2_uniform();
         pos.x *= hw - 5.0;
-        pos.y *= hh - 10.0;
+        pos.y *= hh - 5.0;
         pos.z = 1.0;
         info!("spawning snake at {}", pos);
 
         commands
             .spawn_bundle(SpriteBundle {
                 material: snake_materials.material.clone(),
-                sprite: Sprite::new(Vec2::new(10.0, 20.0)),
+                sprite: Sprite::new(Vec2::new(10.0, 10.0)),
                 transform: Transform::from_translation(pos),
                 ..Default::default()
             })
             .insert(Physics {
-                max_speed: 3.0,
+                max_speed: 1.5,
                 ..Default::default()
             })
             .insert(Snake::default());
