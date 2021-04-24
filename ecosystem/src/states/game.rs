@@ -6,7 +6,7 @@ use rand::Rng;
 use crate::components::creatures::*;
 use crate::components::*;
 use crate::resources::creatures::*;
-use crate::vec2_random;
+use crate::vec2_uniform;
 
 /// Game setup
 pub fn setup(
@@ -43,7 +43,9 @@ pub fn setup(
 
     // flies
     for _ in 0..rng.gen_range(1..5) {
-        let mut pos = vec2_random(-hw + 5.0, hw - 5.0, -hh + 5.0, hh - 5.0);
+        let mut pos = vec2_uniform();
+        pos.x *= hw - 5.0;
+        pos.y *= hh - 5.0;
         pos.z = 2.0;
         info!("spawning fly at {}", pos);
 
@@ -63,7 +65,9 @@ pub fn setup(
 
     // fish
     for _ in 0..rng.gen_range(3..6) {
-        let mut pos = vec2_random(-hw + 10.0, hw - 10.0, -hh + 10.0, hh - 10.0);
+        let mut pos = vec2_uniform();
+        pos.x *= hw - 10.0;
+        pos.y *= hh - 10.0;
         pos.z = 0.0;
         info!("spawning fish at {}", pos);
 
@@ -83,7 +87,9 @@ pub fn setup(
 
     // snakes
     for _ in 0..rng.gen_range(1..3) {
-        let mut pos = vec2_random(-hw + 5.0, hw - 5.0, -hh + 10.0, hh - 10.0);
+        let mut pos = vec2_uniform();
+        pos.x *= hw - 5.0;
+        pos.y *= hh - 10.0;
         pos.z = 1.0;
         info!("spawning snake at {}", pos);
 
