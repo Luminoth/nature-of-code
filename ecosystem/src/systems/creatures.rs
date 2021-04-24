@@ -1,37 +1,37 @@
 //! Creature systems
 
 use bevy::prelude::*;
-use bevy_rapier2d::physics::RigidBodyHandleComponent;
-use bevy_rapier2d::rapier::dynamics::RigidBodySet;
+use noise::Perlin;
 
 use crate::components::creatures::*;
+use crate::components::*;
 
 /// Fly behavior
-pub fn fly(
-    mut rigidbodies: ResMut<RigidBodySet>,
-    mut query: Query<&RigidBodyHandleComponent, With<Fly>>,
-) {
-    for rbhandle in query.iter_mut() {
-        if let Some(_rigidbody) = rigidbodies.get_mut(rbhandle.handle()) {}
+pub fn fly(_noise: Res<Perlin>, mut query: Query<(&mut Transform, &mut Physics), With<Fly>>) {
+    for (mut transform, mut physics) in query.iter_mut() {
+        let acceleration = physics.acceleration;
+
+        physics.velocity += acceleration;
+        transform.translation += physics.velocity;
     }
 }
 
 /// Fish behavior
-pub fn fish(
-    mut rigidbodies: ResMut<RigidBodySet>,
-    mut query: Query<&RigidBodyHandleComponent, With<Fish>>,
-) {
-    for rbhandle in query.iter_mut() {
-        if let Some(_rigidbody) = rigidbodies.get_mut(rbhandle.handle()) {}
+pub fn fish(mut query: Query<(&mut Transform, &mut Physics), With<Fish>>) {
+    for (mut transform, mut physics) in query.iter_mut() {
+        let acceleration = physics.acceleration;
+
+        physics.velocity += acceleration;
+        transform.translation += physics.velocity;
     }
 }
 
 /// Snake behavior
-pub fn snake(
-    mut rigidbodies: ResMut<RigidBodySet>,
-    mut query: Query<&RigidBodyHandleComponent, With<Snake>>,
-) {
-    for rbhandle in query.iter_mut() {
-        if let Some(_rigidbody) = rigidbodies.get_mut(rbhandle.handle()) {}
+pub fn snake(mut query: Query<(&mut Transform, &mut Physics), With<Snake>>) {
+    for (mut transform, mut physics) in query.iter_mut() {
+        let acceleration = physics.acceleration;
+
+        physics.velocity += acceleration;
+        transform.translation += physics.velocity;
     }
 }

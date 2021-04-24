@@ -6,7 +6,8 @@ mod states;
 mod systems;
 
 use bevy::prelude::*;
-use bevy_rapier2d::physics::RapierPhysicsPlugin;
+use noise::{Perlin, Seedable};
+use rand::random;
 
 use states::*;
 use systems::creatures::*;
@@ -15,9 +16,11 @@ const WINDOW_WIDTH: f32 = 640.0;
 const WINDOW_HEIGHT: f32 = 360.0;
 
 /// Misc setup
-fn setup(asset_server: Res<AssetServer>) {
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     #[cfg(debug_assertions)]
     asset_server.watch_for_changes().unwrap();
+
+    commands.insert_resource(Perlin::new().set_seed(random()));
 }
 
 /// Application entry
@@ -38,7 +41,6 @@ fn main() {
         })
         // plugins
         .add_plugins(DefaultPlugins)
-        .add_plugin(RapierPhysicsPlugin)
         // game states
         .add_state(GameState::Game)
         .add_system_set(
