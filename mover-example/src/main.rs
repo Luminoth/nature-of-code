@@ -11,14 +11,20 @@ struct Mover {
     location: Vector2<f64>,
     velocity: Vector2<f64>,
     acceleration: Vector2<f64>,
+    mass: f64,
     topspeed: f64,
 }
 
 impl Mover {
     fn new(screen: &Screen) -> Self {
+        let mut rng = rand::thread_rng();
+        let x = rng.gen_range(0..screen.width()) as f64;
+        let y = rng.gen_range(0..screen.height()) as f64;
+
         Self {
-            location: Vector2::new(screen.width() as f64 / 2.0, screen.height() as f64 / 2.0),
-            topspeed: 10.0,
+            location: Vector2::new(x, y),
+            mass: 10.0,
+            topspeed: 1.0,
             ..Default::default()
         }
     }
@@ -37,14 +43,21 @@ impl Mover {
         }
     }
 
+    fn apply_force(&mut self, force: Vector2<f64>) {
+        let force = force / self.mass;
+        self.acceleration += force;
+    }
+
     fn update(&mut self) {
         let mut rng = rand::thread_rng();
 
         self.acceleration =
-            core::math::vector2_random() * core::sample_noise2d() * rng.gen_range(0.5..1.0);
+            core::math::vector2_random() * core::sample_noise2d() * rng.gen_range(0.1..0.5);
 
         self.velocity = (self.velocity + self.acceleration).cap_magnitude(self.topspeed);
         self.location += self.velocity;
+
+        self.acceleration = Vector2::default();
     }
 
     fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
