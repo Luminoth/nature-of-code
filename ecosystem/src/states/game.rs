@@ -49,7 +49,7 @@ pub fn setup(
         ..Default::default()
     };
 
-    for _ in 0..random.random_range(1..5) {
+    for _ in 0..random.normal_clamped::<f32>(5.0, 1.0, 3.0, 6.0) as u32 {
         let mut pos = vec2_uniform(&mut *random);
         pos.x *= hw - 5.0;
         pos.y *= hh - 5.0;
@@ -82,7 +82,7 @@ pub fn setup(
         ..Default::default()
     };
 
-    for _ in 0..random.random_range(3..6) {
+    for _ in 0..random.normal_clamped::<f32>(4.0, 3.0, 2.0, 8.0) as u32 {
         let mut pos = vec2_uniform(&mut *random);
         pos.x *= hw - 10.0;
         pos.y *= hh - 10.0;
@@ -115,7 +115,7 @@ pub fn setup(
         ..Default::default()
     };
 
-    for _ in 0..random.random_range(1..3) {
+    for _ in 0..random.normal_clamped::<f32>(2.0, 1.0, 1.0, 4.0) as u32 {
         let mut pos = vec2_uniform(&mut *random);
         pos.x *= hw - 5.0;
         pos.y *= hh - 5.0;

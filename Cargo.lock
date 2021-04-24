@@ -1443,7 +1443,9 @@ dependencies = [
  "bevy_prototype_lyon",
  "derivative",
  "noise",
+ "num-traits 0.2.14",
  "rand 0.8.3",
+ "rand_distr",
 ]
 
 [[package]]
