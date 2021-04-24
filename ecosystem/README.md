@@ -6,5 +6,4 @@
 
 * Nervous Fly
 * Swimming Fish
-* Hopping Bunny
 * Slithering Snake
