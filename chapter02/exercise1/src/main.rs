@@ -63,8 +63,12 @@ fn setup<'a>() -> Result<Screen<'a>, ProcessingErr> {
 fn draw(screen: &mut Screen, balloon: &mut Balloon) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 255.0);
 
+    // float
     balloon.apply_force(Vector2::new(0.0, -0.005));
 
+    // wind
+    // TODO: this would be better if we accelerated for a while
+    // in a direction before changing directions
     balloon.apply_force(
         Vector2::new(
             core::math::map(core::sample_noise2d(), 0.0, 1.0, -1.0, 1.0),
