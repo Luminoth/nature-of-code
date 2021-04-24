@@ -13,4 +13,5 @@ members = [
     "intro/exercise4",
     "intro/exercise4_2",
     "intro/exercise5",
+    "chapter02/exercise1",
 ]

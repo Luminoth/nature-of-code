@@ -4,47 +4,48 @@ use std::rc::Rc;
 use nalgebra::Vector2;
 use processing::errors::ProcessingErr;
 use processing::Screen;
-use rand::Rng;
 
 #[derive(Debug, Default)]
-struct Mover {
+struct Balloon {
     location: Vector2<f64>,
     velocity: Vector2<f64>,
     acceleration: Vector2<f64>,
     topspeed: f64,
 }
 
-impl Mover {
+impl Balloon {
     fn new(screen: &Screen) -> Self {
         Self {
-            location: Vector2::new(screen.width() as f64 / 2.0, screen.height() as f64 / 2.0),
-            topspeed: 10.0,
+            location: Vector2::new(screen.width() as f64 / 2.0, screen.height() as f64),
             ..Default::default()
         }
     }
 
     fn check_edges(&mut self, screen: &Screen) {
         if self.location.x > screen.width() as f64 {
-            self.location.x = 0.0;
-        } else if self.location.x < 0.0 {
             self.location.x = screen.width() as f64;
+        } else if self.location.x < 0.0 {
+            self.location.x = 0.0;
         }
 
         if self.location.y > screen.height() as f64 {
-            self.location.y = 0.0;
-        } else if self.location.y < 0.0 {
             self.location.y = screen.height() as f64;
+        } else if self.location.y < 0.0 {
+            self.location.y = 0.0;
         }
     }
 
+    fn apply_force(&mut self, force: Vector2<f64>) {
+        self.acceleration += force;
+    }
+
     fn update(&mut self) {
-        let mut rng = rand::thread_rng();
+        self.velocity += self.acceleration;
+        self.velocity.y = core::math::clampf(self.velocity.y, -1.0, 1.0);
 
-        self.acceleration =
-            core::math::vector2_random() * core::sample_noise2d() * rng.gen_range(0.5..1.0);
-
-        self.velocity = (self.velocity + self.acceleration).cap_magnitude(self.topspeed);
         self.location += self.velocity;
+
+        self.acceleration = Vector2::default();
     }
 
     fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
@@ -59,26 +60,35 @@ fn setup<'a>() -> Result<Screen<'a>, ProcessingErr> {
     core::create_canvas(640, 360)
 }
 
-fn draw(screen: &mut Screen, mover: &mut Mover) -> Result<(), ProcessingErr> {
+fn draw(screen: &mut Screen, balloon: &mut Balloon) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 255.0);
 
-    mover.update();
-    mover.check_edges(screen);
-    mover.display(screen)?;
+    balloon.apply_force(Vector2::new(0.0, -0.005));
+
+    balloon.apply_force(
+        Vector2::new(
+            core::math::map(core::sample_noise2d(), 0.0, 1.0, -1.0, 1.0),
+            0.0,
+        ) * 0.01,
+    );
+
+    balloon.update();
+    balloon.check_edges(screen);
+    balloon.display(screen)?;
 
     Ok(())
 }
 
 fn main() -> Result<(), ProcessingErr> {
-    let mover = Rc::new(RefCell::new(None));
+    let balloon = Rc::new(RefCell::new(None));
 
     core::run(
         || {
             let screen = setup()?;
-            *mover.borrow_mut() = Some(Mover::new(&screen));
+            *balloon.borrow_mut() = Some(Balloon::new(&screen));
             Ok(screen)
         },
-        |screen, _| draw(screen, mover.borrow_mut().as_mut().unwrap()),
+        |screen, _| draw(screen, balloon.borrow_mut().as_mut().unwrap()),
     )?;
 
     Ok(())
