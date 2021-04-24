@@ -1,17 +1,18 @@
 //! Game state systems
 
 use bevy::prelude::*;
-use rand::Rng;
 
 use crate::components::creatures::*;
 use crate::components::*;
 use crate::resources::creatures::*;
+use crate::resources::*;
 use crate::vec2_uniform;
 
 /// Game setup
 pub fn setup(
     mut commands: Commands,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut random: ResMut<Random>,
     windows: Res<Windows>,
 ) {
     // cameras
@@ -36,14 +37,13 @@ pub fn setup(
 
     // creatures
 
-    let mut rng = rand::thread_rng();
     let window = windows.get_primary().unwrap();
     let hw = window.width() as f32 / 2.0;
     let hh = window.height() as f32 / 2.0;
 
     // flies
-    for _ in 0..rng.gen_range(1..5) {
-        let mut pos = vec2_uniform();
+    for _ in 0..random.random_range(1..5) {
+        let mut pos = vec2_uniform(&mut *random);
         pos.x *= hw - 5.0;
         pos.y *= hh - 5.0;
         pos.z = 2.0;
@@ -64,8 +64,8 @@ pub fn setup(
     }
 
     // fish
-    for _ in 0..rng.gen_range(3..6) {
-        let mut pos = vec2_uniform();
+    for _ in 0..random.random_range(3..6) {
+        let mut pos = vec2_uniform(&mut *random);
         pos.x *= hw - 10.0;
         pos.y *= hh - 10.0;
         pos.z = 0.0;
@@ -86,8 +86,8 @@ pub fn setup(
     }
 
     // snakes
-    for _ in 0..rng.gen_range(1..3) {
-        let mut pos = vec2_uniform();
+    for _ in 0..random.random_range(1..3) {
+        let mut pos = vec2_uniform(&mut *random);
         pos.x *= hw - 5.0;
         pos.y *= hh - 5.0;
         pos.z = 1.0;

@@ -6,7 +6,6 @@ mod states;
 mod systems;
 
 use bevy::prelude::*;
-use rand::Rng;
 
 use resources::*;
 use states::*;
@@ -15,9 +14,13 @@ use systems::creatures::*;
 const WINDOW_WIDTH: f32 = 640.0;
 const WINDOW_HEIGHT: f32 = 360.0;
 
-pub fn vec2_uniform() -> Vec3 {
-    let mut rng = rand::thread_rng();
-    Vec3::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), 0.0).normalize()
+pub fn vec2_uniform(random: &mut Random) -> Vec3 {
+    Vec3::new(
+        random.random_range(-1.0..1.0),
+        random.random_range(-1.0..1.0),
+        0.0,
+    )
+    .normalize()
 }
 
 /// Misc setup
@@ -25,7 +28,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     #[cfg(debug_assertions)]
     asset_server.watch_for_changes().unwrap();
 
-    commands.insert_resource(Noise::default());
+    commands.insert_resource(Random::default());
+    commands.insert_resource(PerlinNoise::default());
 }
 
 /// Application entry
