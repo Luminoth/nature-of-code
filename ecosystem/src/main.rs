@@ -2,13 +2,14 @@
 
 mod components;
 mod states;
+mod systems;
 
-use bevy::diagnostic::*;
 use bevy::prelude::*;
 use bevy_rapier2d::physics::RapierPhysicsPlugin;
 
 use components::camera::*;
 use states::*;
+use systems::creatures::*;
 
 const WINDOW_WIDTH: f32 = 640.0;
 const WINDOW_HEIGHT: f32 = 360.0;
@@ -42,12 +43,16 @@ fn main() {
         // plugins
         .add_plugins(DefaultPlugins)
         .add_plugin(RapierPhysicsPlugin)
-        .add_plugin(FrameTimeDiagnosticsPlugin)
-        //.add_plugin(LogDiagnosticsPlugin::default())
         // game states
         .add_state(GameState::Game)
         .add_system_set(
             SystemSet::on_enter(GameState::Game).with_system(states::game::setup.system()),
+        )
+        .add_system_set(
+            SystemSet::on_update(GameState::Game)
+                .with_system(fly.system())
+                .with_system(fish.system())
+                .with_system(snake.system()),
         )
         .add_system_set(
             SystemSet::on_exit(GameState::Game).with_system(states::game::teardown.system()),
