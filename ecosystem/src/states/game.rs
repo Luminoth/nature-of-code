@@ -6,6 +6,7 @@ use rand::Rng;
 use crate::components::creatures::*;
 use crate::components::*;
 use crate::resources::creatures::*;
+use crate::vec2_random;
 
 /// Game setup
 pub fn setup(
@@ -42,11 +43,7 @@ pub fn setup(
 
     // flies
     for _ in 0..rng.gen_range(1..5) {
-        let pos = Vec3::new(
-            rng.gen_range(-hw + 5.0..hw - 5.0),
-            rng.gen_range(-hh + 5.0..hh - 5.0),
-            0.0,
-        );
+        let pos = vec2_random(-hw + 5.0, hw - 5.0, -hh + 5.0, hh - 5.0);
         info!("spawning fly at {}", pos);
 
         commands
@@ -57,7 +54,7 @@ pub fn setup(
                 ..Default::default()
             })
             .insert(Physics {
-                topspeed: 1.0,
+                max_speed: 1.0,
                 ..Default::default()
             })
             .insert(Fly::default());
@@ -65,11 +62,7 @@ pub fn setup(
 
     // fish
     for _ in 0..rng.gen_range(3..6) {
-        let pos = Vec3::new(
-            rng.gen_range(-hw + 10.0..hw - 10.0),
-            rng.gen_range(-hh + 10.0..hh - 10.0),
-            0.0,
-        );
+        let pos = vec2_random(-hw + 10.0, hw - 10.0, -hh + 10.0, hh - 10.0);
         info!("spawning fish at {}", pos);
 
         commands
@@ -80,7 +73,7 @@ pub fn setup(
                 ..Default::default()
             })
             .insert(Physics {
-                topspeed: 5.0,
+                max_speed: 5.0,
                 ..Default::default()
             })
             .insert(Fish::default());
@@ -88,11 +81,7 @@ pub fn setup(
 
     // snakes
     for _ in 0..rng.gen_range(1..3) {
-        let pos = Vec3::new(
-            rng.gen_range(-hw + 5.0..hw - 5.0),
-            rng.gen_range(-hh + 10.0..hh - 10.0),
-            0.0,
-        );
+        let pos = vec2_random(-hw + 5.0, hw - 5.0, -hh + 10.0, hh - 10.0);
         info!("spawning snake at {}", pos);
 
         commands
@@ -103,7 +92,7 @@ pub fn setup(
                 ..Default::default()
             })
             .insert(Physics {
-                topspeed: 3.0,
+                max_speed: 3.0,
                 ..Default::default()
             })
             .insert(Snake::default());

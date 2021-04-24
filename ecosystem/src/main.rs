@@ -7,13 +7,18 @@ mod systems;
 
 use bevy::prelude::*;
 use noise::{Perlin, Seedable};
-use rand::random;
+use rand::{random, Rng};
 
 use states::*;
 use systems::creatures::*;
 
 const WINDOW_WIDTH: f32 = 640.0;
 const WINDOW_HEIGHT: f32 = 360.0;
+
+pub fn vec2_random(xmin: f32, xmax: f32, ymin: f32, ymax: f32) -> Vec3 {
+    let mut rng = rand::thread_rng();
+    Vec3::new(rng.gen_range(xmin..xmax), rng.gen_range(ymin..ymax), 0.0)
+}
 
 /// Misc setup
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
