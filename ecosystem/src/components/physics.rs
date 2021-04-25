@@ -7,6 +7,7 @@ pub struct Rigidbody {
     pub acceleration: Vec3,
     pub velocity: Vec3,
     pub mass: f32,
+    pub drag: f32,
 }
 
 impl Default for Rigidbody {
@@ -15,6 +16,7 @@ impl Default for Rigidbody {
             acceleration: Vec3::default(),
             velocity: Vec3::default(),
             mass: 1.0,
+            drag: 0.0,
         }
     }
 }
@@ -174,12 +176,11 @@ impl Surface {
 #[derive(Default)]
 pub struct Fluid {
     pub density: f32,
-    pub c: f32,
 }
 
 impl Fluid {
     /// Constructs a new fluid with the given drag coefficient
-    pub fn new(density: f32, c: f32) -> Self {
-        Self { density, c }
+    pub fn new(density: f32) -> Self {
+        Self { density }
     }
 }
