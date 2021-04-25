@@ -12,19 +12,15 @@ struct Mover {
     velocity: Vector2<f64>,
     acceleration: Vector2<f64>,
     mass: f64,
-    topspeed: f64,
+    //topspeed: f64,
 }
 
 impl Mover {
-    fn new(screen: &Screen) -> Self {
-        let mut rng = rand::thread_rng();
-        let x = rng.gen_range(0..screen.width()) as f64;
-        let y = rng.gen_range(0..screen.height()) as f64;
-
+    fn new(mass: f64, x: f64, y: f64) -> Self {
         Self {
             location: Vector2::new(x, y),
-            mass: 1.0,
-            topspeed: 1.0,
+            mass,
+            //topspeed: 1.0,
             ..Default::default()
         }
     }
@@ -83,13 +79,18 @@ impl Mover {
         self.acceleration += force;
     }
 
-    fn update(&mut self) {
+    #[allow(dead_code)]
+    fn apply_noise_force(&mut self) {
         let mut rng = rand::thread_rng();
 
-        self.acceleration =
-            core::math::vector2_random() * core::sample_noise2d() * rng.gen_range(0.1..0.5);
+        self.apply_force(
+            core::math::vector2_random() * core::sample_noise2d() * rng.gen_range(0.1..0.5),
+        );
+    }
 
-        self.velocity = (self.velocity + self.acceleration).cap_magnitude(self.topspeed);
+    fn update(&mut self) {
+        //self.velocity = (self.velocity + self.acceleration).cap_magnitude(self.topspeed);
+        self.velocity += self.acceleration;
         self.location += self.velocity;
 
         self.acceleration = Vector2::default();
@@ -113,26 +114,44 @@ fn setup<'a>() -> Result<Screen<'a>, ProcessingErr> {
     core::create_canvas(640, 360)
 }
 
-fn draw(screen: &mut Screen, mover: &mut Mover) -> Result<(), ProcessingErr> {
+fn draw(screen: &mut Screen, movers: &mut impl AsMut<[Mover]>) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 255.0);
 
-    mover.update();
-    mover.bounce_edges(screen);
-    mover.display(screen)?;
+    let wind = Vector2::new(0.01, 0.0);
+    let gravity = Vector2::new(0.0, 0.1);
+
+    for mover in movers.as_mut() {
+        mover.apply_force(wind);
+        mover.apply_force(gravity);
+
+        mover.update();
+        mover.bounce_edges(screen);
+        mover.display(screen)?;
+    }
 
     Ok(())
 }
 
 fn main() -> Result<(), ProcessingErr> {
-    let mover = Rc::new(RefCell::new(None));
+    let movers = Rc::new(RefCell::new(None));
 
     core::run(
         || {
+            let mut rng = rand::thread_rng();
+
             let screen = setup()?;
-            *mover.borrow_mut() = Some(Mover::new(&screen));
+
+            let mut mvrs = vec![];
+            for _ in 0..100 {
+                let x = rng.gen_range(0..screen.width()) as f64;
+                let y = rng.gen_range(0..screen.height()) as f64;
+                mvrs.push(Mover::new(rng.gen_range(0.1..5.0), x, y));
+            }
+            *movers.borrow_mut() = Some(mvrs);
+
             Ok(screen)
         },
-        |screen, _| draw(screen, mover.borrow_mut().as_mut().unwrap()),
+        |screen, _| draw(screen, movers.borrow_mut().as_mut().unwrap()),
     )?;
 
     Ok(())
