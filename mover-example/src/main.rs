@@ -120,9 +120,16 @@ fn draw(screen: &mut Screen, movers: &mut impl AsMut<[Mover]>) -> Result<(), Pro
     let wind = Vector2::new(0.01, 0.0);
     let gravity = Vector2::new(0.0, 0.1);
 
+    let c = 0.01;
+
     for mover in movers.as_mut() {
+        let friction = (mover.velocity * -1.0).normalize() * c;
+        if !friction.x.is_nan() && !friction.y.is_nan() {
+            mover.apply_force(friction);
+        }
+
         mover.apply_force(wind);
-        mover.apply_force(gravity);
+        mover.apply_force(gravity * mover.mass);
 
         mover.update();
         mover.bounce_edges(screen);
