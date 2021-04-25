@@ -2,11 +2,12 @@
 
 pub mod creatures;
 pub mod debug;
+pub mod environment;
 
 use bevy::prelude::*;
 
-/// Physics state
-pub struct Physics {
+/// Rigidbody state
+pub struct Rigidbody {
     pub acceleration: Vec3,
     pub velocity: Vec3,
     pub mass: f32,
@@ -14,7 +15,7 @@ pub struct Physics {
     pub max_speed: f32,
 }
 
-impl Default for Physics {
+impl Default for Rigidbody {
     fn default() -> Self {
         Self {
             acceleration: Vec3::default(),
@@ -25,7 +26,7 @@ impl Default for Physics {
     }
 }
 
-impl Physics {
+impl Rigidbody {
     /// Wrap a physical around bounds
     #[allow(dead_code)]
     pub fn wrap(&mut self, transform: &mut Transform, minx: f32, maxx: f32, miny: f32, maxy: f32) {
@@ -103,4 +104,16 @@ impl Physics {
         self.velocity = (self.velocity + self.acceleration).clamp_length_max(self.max_speed);
         transform.translation += self.velocity;
     }
+}
+
+/// Surface state
+#[derive(Default)]
+pub struct Surface {
+    pub c: f32,
+}
+
+/// Fluid state
+#[derive(Default)]
+pub struct Fluid {
+    pub c: f32,
 }

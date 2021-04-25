@@ -4,6 +4,7 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
 use crate::components::creatures::*;
+use crate::components::environment::*;
 use crate::components::*;
 //use crate::resources::creatures::*;
 use crate::resources::*;
@@ -37,11 +38,44 @@ pub fn setup(
     };
     commands.insert_resource(snake_materials.clone());*/
 
-    // creatures
-
     let window = windows.get_primary().unwrap();
+    let qw = window.width() as f32 / 4.0;
     let hw = window.width() as f32 / 2.0;
     let hh = window.height() as f32 / 2.0;
+
+    // environment
+
+    // ground
+    commands
+        .spawn_bundle(GeometryBuilder::build_as(
+            &shapes::Rectangle {
+                width: qw,
+                height: window.height(),
+                origin: shapes::RectangleOrigin::TopLeft,
+            },
+            ShapeColors::new(Color::rgba(0.0, 0.5, 0.0, 0.5)),
+            DrawMode::Fill(FillOptions::default()),
+            Transform::from_translation(Vec3::new(qw, hh, 10.0)),
+        ))
+        .insert(Surface::default())
+        .insert(Ground::default());
+
+    // water
+    commands
+        .spawn_bundle(GeometryBuilder::build_as(
+            &shapes::Rectangle {
+                width: window.width() * 0.75,
+                height: window.height(),
+                origin: shapes::RectangleOrigin::TopLeft,
+            },
+            ShapeColors::new(Color::rgba(0.18, 0.55, 0.34, 0.5)),
+            DrawMode::Fill(FillOptions::default()),
+            Transform::from_translation(Vec3::new(-hw, hh, 5.0)),
+        ))
+        .insert(Fluid::default())
+        .insert(Water::default());
+
+    // creatures
 
     // flies
     let shape = shapes::Ellipse {
@@ -50,7 +84,7 @@ pub fn setup(
     };
 
     for _ in 0..random.normal_clamped::<f32>(5.0, 1.0, 3.0, 6.0) as u32 {
-        let mut pos = Vec3::from((vec2_uniform(&mut *random), 2.0));
+        let mut pos = Vec3::from((vec2_uniform(&mut *random), 100.0));
         pos.x *= hw - 5.0;
         pos.y *= hh - 5.0;
         info!("spawning fly at {}", pos);
@@ -68,7 +102,7 @@ pub fn setup(
                 DrawMode::Fill(FillOptions::default()),
                 Transform::from_translation(pos),
             ))
-            .insert(Physics {
+            .insert(Rigidbody {
                 max_speed: 1.25,
                 ..Default::default()
             })
@@ -101,7 +135,7 @@ pub fn setup(
                 DrawMode::Fill(FillOptions::default()),
                 Transform::from_translation(pos),
             ))
-            .insert(Physics {
+            .insert(Rigidbody {
                 max_speed: 0.5,
                 ..Default::default()
             })
@@ -116,7 +150,7 @@ pub fn setup(
     };
 
     for _ in 0..random.normal_clamped::<f32>(2.0, 1.0, 1.0, 4.0) as u32 {
-        let mut pos = Vec3::from((vec2_uniform(&mut *random), 1.0));
+        let mut pos = Vec3::from((vec2_uniform(&mut *random), 20.0));
         pos.x *= hw - 5.0;
         pos.y *= hh - 5.0;
         info!("spawning snake at {}", pos);
@@ -130,11 +164,11 @@ pub fn setup(
             })*/
             .spawn_bundle(GeometryBuilder::build_as(
                 &shape,
-                ShapeColors::new(Color::DARK_GREEN),
+                ShapeColors::new(Color::MAROON),
                 DrawMode::Fill(FillOptions::default()),
                 Transform::from_translation(pos),
             ))
-            .insert(Physics {
+            .insert(Rigidbody {
                 max_speed: 1.0,
                 ..Default::default()
             })
