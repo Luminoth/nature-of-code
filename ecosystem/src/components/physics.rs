@@ -99,7 +99,7 @@ impl Rigidbody {
 
     /// Applies a force to the rigidbody
     pub fn apply_force(&mut self, force: Vec2) {
-        if force.x.is_nan() || force.y.is_nan() {
+        if !force.x.is_finite() || !force.y.is_finite() {
             return;
         }
 
@@ -108,10 +108,10 @@ impl Rigidbody {
     }
 
     /// Update a rigidbody
-    pub fn update(&mut self, transform: &mut Transform) {
+    pub fn update(&mut self, transform: &mut Transform, dt: f32) {
         // euler integration
-        self.velocity += self.acceleration;
-        transform.translation += self.velocity;
+        self.velocity += self.acceleration * dt;
+        transform.translation += self.velocity * dt;
 
         self.acceleration = Vec3::default();
     }
@@ -168,6 +168,7 @@ pub struct Surface {
 }
 
 impl Surface {
+    /// Constructs a new surface with the given coefficient of friction
     pub fn new(c: f32) -> Self {
         Self { c }
     }
@@ -176,11 +177,13 @@ impl Surface {
 /// Fluid state
 #[derive(Default)]
 pub struct Fluid {
+    pub density: f32,
     pub c: f32,
 }
 
 impl Fluid {
-    pub fn new(c: f32) -> Self {
-        Self { c }
+    /// Constructs a new fluid with the given drag coefficient
+    pub fn new(density: f32, c: f32) -> Self {
+        Self { density, c }
     }
 }

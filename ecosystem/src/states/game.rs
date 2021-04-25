@@ -57,7 +57,7 @@ pub fn setup(
             DrawMode::Fill(FillOptions::default()),
             Transform::from_translation(Vec3::new(qw, hh, 10.0)),
         ))
-        .insert(Surface::new(1.0))
+        .insert(Surface::new(0.5))
         .insert(Collider::new(CollisionLayer::Ground, qw, window.height()))
         .insert(Ground::default());
 
@@ -73,7 +73,7 @@ pub fn setup(
             DrawMode::Fill(FillOptions::default()),
             Transform::from_translation(Vec3::new(-hw, hh, 5.0)),
         ))
-        .insert(Fluid::new(1.0))
+        .insert(Fluid::new(1000.0, 0.1))
         .insert(Collider::new(
             CollisionLayer::Water,
             qw * 3.0,
@@ -85,7 +85,7 @@ pub fn setup(
     commands
         .spawn()
         .insert(Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)))
-        .insert(Fluid::new(1.0))
+        .insert(Fluid::new(1.0, 0.1))
         .insert(Collider::new(
             CollisionLayer::Air,
             window.width(),

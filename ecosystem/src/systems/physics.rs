@@ -21,7 +21,7 @@ pub fn physics_collisions(
         // apply drag
         for (fluid, ftransform, fcollider) in fluids.iter() {
             if collider.collides(transform, fcollider, ftransform) {
-                let drag_magnitude = fluid.c * rigidbody.speed_squared();
+                let drag_magnitude = 0.5 * fluid.density * rigidbody.speed_squared() * fluid.c;
                 let drag = (rigidbody.velocity * -1.0).normalize() * drag_magnitude;
                 rigidbody.apply_force(drag.truncate());
             }
@@ -29,8 +29,8 @@ pub fn physics_collisions(
     }
 }
 
-pub fn physics_after(mut query: Query<(&mut Transform, &mut Rigidbody)>) {
+pub fn physics_after(time: Res<Time>, mut query: Query<(&mut Transform, &mut Rigidbody)>) {
     for (mut transform, mut rigidbody) in query.iter_mut() {
-        rigidbody.update(&mut transform);
+        rigidbody.update(&mut transform, time.delta_seconds());
     }
 }
