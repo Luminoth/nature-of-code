@@ -26,14 +26,10 @@ pub fn creature_after(
 pub fn fly(
     mut random: ResMut<Random>,
     noise: Res<PerlinNoise>,
-    mut query: Query<(&mut Transform, &mut Rigidbody), With<Fly>>,
+    mut query: Query<&mut Rigidbody, With<Fly>>,
 ) {
-    for (mut transform, mut rigidbody) in query.iter_mut() {
-        rigidbody.acceleration = Vec3::from((
-            vec2_uniform(&mut *random) * noise.sample(&mut *random, 0.5) as f32,
-            0.0,
-        ));
-        rigidbody.update(&mut transform);
+    for mut rigidbody in query.iter_mut() {
+        rigidbody.apply_force(vec2_uniform(&mut *random) * noise.sample(&mut *random, 0.05) as f32);
     }
 }
 
@@ -42,17 +38,13 @@ pub fn fish(
     time: Res<Time>,
     mut random: ResMut<Random>,
     noise: Res<PerlinNoise>,
-    mut query: Query<(&mut Transform, &mut Rigidbody, &mut Fish)>,
+    mut query: Query<(&mut Rigidbody, &mut Fish)>,
 ) {
-    for (mut transform, mut rigidbody, mut fish) in query.iter_mut() {
+    for (mut rigidbody, mut fish) in query.iter_mut() {
         if fish.timer.tick(time.delta()).just_finished() {
-            rigidbody.acceleration = Vec3::from((
-                vec2_uniform(&mut *random) * noise.sample(&mut *random, 1.5) as f32,
-                0.0,
-            ));
+            rigidbody
+                .apply_force(vec2_uniform(&mut *random) * noise.sample(&mut *random, 1.5) as f32);
         }
-
-        rigidbody.update(&mut transform);
     }
 }
 
@@ -61,16 +53,12 @@ pub fn snake(
     time: Res<Time>,
     mut random: ResMut<Random>,
     noise: Res<PerlinNoise>,
-    mut query: Query<(&mut Transform, &mut Rigidbody, &mut Snake)>,
+    mut query: Query<(&mut Rigidbody, &mut Snake)>,
 ) {
-    for (mut transform, mut rigidbody, mut snake) in query.iter_mut() {
+    for (mut rigidbody, mut snake) in query.iter_mut() {
         if snake.timer.tick(time.delta()).just_finished() {
-            rigidbody.acceleration = Vec3::from((
-                vec2_uniform(&mut *random) * noise.sample(&mut *random, 1.5) as f32,
-                0.0,
-            ));
+            rigidbody
+                .apply_force(vec2_uniform(&mut *random) * noise.sample(&mut *random, 1.5) as f32);
         }
-
-        rigidbody.update(&mut transform);
     }
 }

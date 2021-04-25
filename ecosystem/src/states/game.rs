@@ -58,6 +58,7 @@ pub fn setup(
             Transform::from_translation(Vec3::new(qw, hh, 10.0)),
         ))
         .insert(Surface::default())
+        .insert(Collider::default())
         .insert(Ground::default());
 
     // water
@@ -73,6 +74,7 @@ pub fn setup(
             Transform::from_translation(Vec3::new(-hw, hh, 5.0)),
         ))
         .insert(Fluid::default())
+        .insert(Collider::default())
         .insert(Water::default());
 
     // creatures
@@ -103,9 +105,10 @@ pub fn setup(
                 Transform::from_translation(pos),
             ))
             .insert(Rigidbody {
-                max_speed: 1.25,
+                mass: 0.5,
                 ..Default::default()
             })
+            .insert(Collider::default())
             .insert(Creature::default())
             .insert(Fly::default());
     }
@@ -136,10 +139,11 @@ pub fn setup(
                 Transform::from_translation(pos),
             ))
             .insert(Rigidbody {
-                max_speed: 0.5,
+                mass: 2.0,
                 ..Default::default()
             })
             .insert(Creature::default())
+            .insert(Collider::default())
             .insert(Fish::new(2.0));
     }
 
@@ -169,10 +173,11 @@ pub fn setup(
                 Transform::from_translation(pos),
             ))
             .insert(Rigidbody {
-                max_speed: 1.0,
+                mass: 1.0,
                 ..Default::default()
             })
             .insert(Creature::default())
+            .insert(Collider::default())
             .insert(Snake::new(2.0));
     }
 }

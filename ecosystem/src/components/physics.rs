@@ -7,8 +7,6 @@ pub struct Rigidbody {
     pub acceleration: Vec3,
     pub velocity: Vec3,
     pub mass: f32,
-
-    pub max_speed: f32,
 }
 
 impl Default for Rigidbody {
@@ -17,7 +15,6 @@ impl Default for Rigidbody {
             acceleration: Vec3::default(),
             velocity: Vec3::default(),
             mass: 1.0,
-            max_speed: 1.0,
         }
     }
 }
@@ -96,9 +93,21 @@ impl Rigidbody {
 
     /// Update a physical
     pub fn update(&mut self, transform: &mut Transform) {
-        // clamped euler integration
-        self.velocity = (self.velocity + self.acceleration).clamp_length_max(self.max_speed);
+        // euler integration
+        self.velocity += self.acceleration;
         transform.translation += self.velocity;
+
+        self.acceleration = Vec3::default();
+    }
+}
+
+pub struct Collider {
+    // TODO: AABB
+}
+
+impl Default for Collider {
+    fn default() -> Self {
+        Self {}
     }
 }
 

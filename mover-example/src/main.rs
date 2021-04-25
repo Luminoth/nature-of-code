@@ -14,6 +14,7 @@ struct Liquid {
 }
 
 impl Liquid {
+    #[allow(clippy::many_single_char_names)]
     fn new(x: f64, y: f64, w: f64, h: f64, c: f64) -> Self {
         Self {
             location: Vector2::new(x, y),

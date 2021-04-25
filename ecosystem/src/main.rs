@@ -16,6 +16,7 @@ use resources::*;
 use states::*;
 use systems::creatures::*;
 use systems::debug::*;
+use systems::physics::*;
 
 const WINDOW_WIDTH: f32 = 640.0;
 const WINDOW_HEIGHT: f32 = 360.0;
@@ -71,10 +72,35 @@ fn main() {
         )
         .add_system_set(
             SystemSet::on_update(GameState::Game)
-                .with_system(creature_after.system().label("creature_after"))
-                .with_system(fly.system().before("creature_after"))
-                .with_system(fish.system().before("creature_after"))
-                .with_system(snake.system().before("creature_after")),
+                .with_system(
+                    physics_collisions
+                        .system()
+                        .label("physics_collisions")
+                        .before("physics_after"),
+                )
+                .with_system(physics_after.system().label("physics_after"))
+                .with_system(
+                    creature_after
+                        .system()
+                        .label("creature_after")
+                        .before("physics_collisions"),
+                )
+                .with_system(
+                    fly.system()
+                        .before("creature_after")
+                        .before("physics_collisions"),
+                )
+                .with_system(
+                    fish.system()
+                        .before("creature_after")
+                        .before("physics_collisions"),
+                )
+                .with_system(
+                    snake
+                        .system()
+                        .before("creature_after")
+                        .before("physics_collisions"),
+                ),
         )
         .add_system_set(
             SystemSet::on_exit(GameState::Game).with_system(states::game::teardown.system()),
