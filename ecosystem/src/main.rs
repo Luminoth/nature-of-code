@@ -26,7 +26,7 @@ pub fn vec2_uniform(random: &mut Random) -> Vec2 {
         random.random_range(-1.0..1.0),
         random.random_range(-1.0..1.0),
     )
-    .normalize()
+    .normalize_or_zero()
 }
 
 /// Misc setup

@@ -99,10 +99,6 @@ impl Rigidbody {
 
     /// Applies a force to the rigidbody
     pub fn apply_force(&mut self, force: Vec2) {
-        if !force.x.is_finite() || !force.y.is_finite() {
-            return;
-        }
-
         let force = force / self.mass;
         self.acceleration += force.extend(0.0);
     }

@@ -111,7 +111,7 @@ impl Mover {
     }
 
     fn apply_force(&mut self, force: Vector2<f64>) {
-        if force.x.is_nan() || force.y.is_nan() {
+        if !force.x.is_finite() || !force.y.is_finite() {
             return;
         }
 

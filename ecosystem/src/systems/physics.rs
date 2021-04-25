@@ -13,8 +13,8 @@ pub fn physics_collisions(
         // apply friction
         for (surface, stransform, scollider) in surfaces.iter() {
             if collider.collides(transform, scollider, stransform) {
-                let friction = (rigidbody.velocity * -1.0).normalize() * surface.c;
-                rigidbody.apply_force(friction.truncate());
+                let friction = rigidbody.velocity.normalize_or_zero() * surface.c;
+                rigidbody.apply_force(-friction.truncate());
             }
         }
 
@@ -22,7 +22,7 @@ pub fn physics_collisions(
         for (fluid, ftransform, fcollider) in fluids.iter() {
             if collider.collides(transform, fcollider, ftransform) {
                 let drag_magnitude = 0.5 * fluid.density * rigidbody.speed_squared() * fluid.c;
-                let drag = (rigidbody.velocity * -1.0).normalize() * drag_magnitude;
+                let drag = (rigidbody.velocity * -1.0).normalize_or_zero() * drag_magnitude;
                 rigidbody.apply_force(drag.truncate());
             }
         }
