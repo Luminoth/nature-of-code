@@ -20,11 +20,10 @@ use systems::debug::*;
 const WINDOW_WIDTH: f32 = 640.0;
 const WINDOW_HEIGHT: f32 = 360.0;
 
-pub fn vec2_uniform(random: &mut Random) -> Vec3 {
-    Vec3::new(
+pub fn vec2_uniform(random: &mut Random) -> Vec2 {
+    Vec2::new(
         random.random_range(-1.0..1.0),
         random.random_range(-1.0..1.0),
-        0.0,
     )
     .normalize()
 }
@@ -72,9 +71,10 @@ fn main() {
         )
         .add_system_set(
             SystemSet::on_update(GameState::Game)
-                .with_system(fly.system())
-                .with_system(fish.system())
-                .with_system(snake.system()),
+                .with_system(creature_after.system().label("creature_after"))
+                .with_system(fly.system().before("creature_after"))
+                .with_system(fish.system().before("creature_after"))
+                .with_system(snake.system().before("creature_after")),
         )
         .add_system_set(
             SystemSet::on_exit(GameState::Game).with_system(states::game::teardown.system()),

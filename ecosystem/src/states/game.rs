@@ -50,10 +50,9 @@ pub fn setup(
     };
 
     for _ in 0..random.normal_clamped::<f32>(5.0, 1.0, 3.0, 6.0) as u32 {
-        let mut pos = vec2_uniform(&mut *random);
+        let mut pos = Vec3::from((vec2_uniform(&mut *random), 2.0));
         pos.x *= hw - 5.0;
         pos.y *= hh - 5.0;
-        pos.z = 2.0;
         info!("spawning fly at {}", pos);
 
         commands
@@ -73,6 +72,7 @@ pub fn setup(
                 max_speed: 1.25,
                 ..Default::default()
             })
+            .insert(Creature::default())
             .insert(Fly::default());
     }
 
@@ -83,10 +83,9 @@ pub fn setup(
     };
 
     for _ in 0..random.normal_clamped::<f32>(4.0, 3.0, 2.0, 8.0) as u32 {
-        let mut pos = vec2_uniform(&mut *random);
+        let mut pos = Vec3::from((vec2_uniform(&mut *random), 0.0));
         pos.x *= hw - 10.0;
         pos.y *= hh - 10.0;
-        pos.z = 0.0;
         info!("spawning fish at {}", pos);
 
         commands
@@ -106,6 +105,7 @@ pub fn setup(
                 max_speed: 0.5,
                 ..Default::default()
             })
+            .insert(Creature::default())
             .insert(Fish::new(2.0));
     }
 
@@ -116,10 +116,9 @@ pub fn setup(
     };
 
     for _ in 0..random.normal_clamped::<f32>(2.0, 1.0, 1.0, 4.0) as u32 {
-        let mut pos = vec2_uniform(&mut *random);
+        let mut pos = Vec3::from((vec2_uniform(&mut *random), 1.0));
         pos.x *= hw - 5.0;
         pos.y *= hh - 5.0;
-        pos.z = 1.0;
         info!("spawning snake at {}", pos);
 
         commands
@@ -139,6 +138,7 @@ pub fn setup(
                 max_speed: 1.0,
                 ..Default::default()
             })
+            .insert(Creature::default())
             .insert(Snake::new(2.0));
     }
 }

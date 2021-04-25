@@ -15,6 +15,15 @@ pub struct Random {
     random: StdRng,
 }
 
+impl Default for Random {
+    /// Constructs a default random from system entropy
+    fn default() -> Self {
+        Self {
+            random: StdRng::from_entropy(),
+        }
+    }
+}
+
 impl Random {
     /// Constructs a new random from a seed
     pub fn new(seed: u64) -> Self {
@@ -63,18 +72,18 @@ impl Random {
     }
 }
 
-impl Default for Random {
-    /// Constructs a default random from system entropy
-    fn default() -> Self {
-        Self {
-            random: StdRng::from_entropy(),
-        }
-    }
-}
-
 /// Perlin noies wrapper
 pub struct PerlinNoise {
     perlin: Perlin,
+}
+
+impl Default for PerlinNoise {
+    /// Constructs a default perlin noise function from the thread local rng
+    fn default() -> Self {
+        Self {
+            perlin: Perlin::new().set_seed(random()),
+        }
+    }
 }
 
 impl PerlinNoise {
@@ -89,14 +98,5 @@ impl PerlinNoise {
     /// Sample noise in the domain [0..1],[0..1] scaled by frequency
     pub fn sample(&self, random: &mut Random, frequency: f64) -> f64 {
         self.perlin.get([random.random(), random.random()]) * frequency
-    }
-}
-
-impl Default for PerlinNoise {
-    /// Constructs a default perlin noise function from the thread local rng
-    fn default() -> Self {
-        Self {
-            perlin: Perlin::new().set_seed(random()),
-        }
     }
 }

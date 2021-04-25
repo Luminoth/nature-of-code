@@ -2,6 +2,10 @@
 
 use bevy::prelude::*;
 
+/// Shared creature component
+#[derive(Default)]
+pub struct Creature;
+
 /// Flies fly
 #[derive(Default)]
 pub struct Fly;
