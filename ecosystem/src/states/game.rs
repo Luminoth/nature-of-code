@@ -5,7 +5,7 @@ use bevy_prototype_lyon::prelude::*;
 
 use crate::components::creatures::*;
 use crate::components::environment::*;
-use crate::components::*;
+use crate::components::physics::*;
 //use crate::resources::creatures::*;
 use crate::resources::*;
 use crate::vec2_uniform;
