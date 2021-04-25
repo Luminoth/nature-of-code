@@ -9,12 +9,23 @@ pub fn physics_collisions(
     surfaces: Query<(&Surface, &Transform, &Collider)>,
     fluids: Query<(&Fluid, &Transform, &Collider)>,
 ) {
-    for (_transform, mut _rigidbody, _collider) in query.iter_mut() {
+    for (transform, mut rigidbody, collider) in query.iter_mut() {
         // apply friction
-        for (_surface, _stransform, _scollider) in surfaces.iter() {}
+        for (surface, stransform, scollider) in surfaces.iter() {
+            if collider.collides(transform, scollider, stransform) {
+                let friction = (rigidbody.velocity * -1.0).normalize() * surface.c;
+                rigidbody.apply_force(friction.truncate());
+            }
+        }
 
         // apply drag
-        for (_fluid, _ftransform, _fcollider) in fluids.iter() {}
+        for (fluid, ftransform, fcollider) in fluids.iter() {
+            if collider.collides(transform, fcollider, ftransform) {
+                let drag_magnitude = fluid.c * rigidbody.speed_squared();
+                let drag = (rigidbody.velocity * -1.0).normalize() * drag_magnitude;
+                rigidbody.apply_force(drag.truncate());
+            }
+        }
     }
 }
 

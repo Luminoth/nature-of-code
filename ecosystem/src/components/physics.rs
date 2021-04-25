@@ -20,7 +20,17 @@ impl Default for Rigidbody {
 }
 
 impl Rigidbody {
-    /// Wrap a physical around bounds
+    /// Gets the rigidbody speed
+    pub fn speed(&self) -> f32 {
+        self.velocity.length()
+    }
+
+    /// Gets the rigidbody speed squaed
+    pub fn speed_squared(&self) -> f32 {
+        self.velocity.length_squared()
+    }
+
+    /// Wrap a rigidbody around bounds
     #[allow(dead_code)]
     pub fn wrap(&mut self, transform: &mut Transform, minx: f32, maxx: f32, miny: f32, maxy: f32) {
         if transform.translation.x < minx {
@@ -36,7 +46,7 @@ impl Rigidbody {
         }
     }
 
-    /// Contain a physical inside bounds
+    /// Contain a rigidbody inside bounds
     #[allow(dead_code)]
     pub fn contain(
         &mut self,
@@ -59,7 +69,7 @@ impl Rigidbody {
         }
     }
 
-    /// Contain a physical inside bounds
+    /// Bounce a rigidbody inside bounds
     #[allow(dead_code)]
     pub fn bounce(
         &mut self,
@@ -86,12 +96,13 @@ impl Rigidbody {
         }
     }
 
+    /// Applies a force to the rigidbody
     pub fn apply_force(&mut self, force: Vec2) {
         let force = force / self.mass;
-        self.acceleration += Vec3::from((force, 0.0));
+        self.acceleration += force.extend(0.0);
     }
 
-    /// Update a physical
+    /// Update a rigidbody
     pub fn update(&mut self, transform: &mut Transform) {
         // euler integration
         self.velocity += self.acceleration;
@@ -102,12 +113,28 @@ impl Rigidbody {
 }
 
 pub struct Collider {
-    // TODO: AABB
+    pub size: Vec2,
+    pub height: f32,
 }
 
 impl Default for Collider {
     fn default() -> Self {
-        Self {}
+        Self {
+            size: Vec2::new(1.0, 1.0),
+            height: 0.0,
+        }
+    }
+}
+
+impl Collider {
+    /// Check if a collider is colliding with another collider
+    pub fn collides(
+        &self,
+        _transform: &Transform,
+        _other: &Collider,
+        _other_transform: &Transform,
+    ) -> bool {
+        false
     }
 }
 
