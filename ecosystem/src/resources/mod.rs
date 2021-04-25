@@ -3,6 +3,7 @@
 pub mod creatures;
 pub mod debug;
 
+use bevy::prelude::*;
 use noise::{NoiseFn, Perlin, Seedable};
 use num_traits::Float;
 use rand::distributions::uniform::{SampleRange, SampleUniform};
@@ -26,6 +27,7 @@ impl Default for Random {
 
 impl Random {
     /// Constructs a new random from a seed
+    #[allow(dead_code)]
     pub fn new(seed: u64) -> Self {
         Self {
             random: StdRng::seed_from_u64(seed),
@@ -46,7 +48,21 @@ impl Random {
         self.random.gen_range(range)
     }
 
+    /// Generates a uniform random vector in the range ([-1..1], [-1..1])
+    pub fn vec2(&mut self) -> Vec2 {
+        self.vec2_range(-1.0..1.0, -1.0..1.0)
+    }
+
+    /// Generates a uniform random vector in the given range
+    pub fn vec2_range<R>(&mut self, xrange: R, yrange: R) -> Vec2
+    where
+        R: SampleRange<f32>,
+    {
+        Vec2::new(self.random_range(xrange), self.random_range(yrange)).normalize_or_zero()
+    }
+
     /// Generates a random value with the given normal distribution
+    #[allow(dead_code)]
     pub fn normal<F>(&mut self, mean: F, std_dev: F) -> F
     where
         F: Float,
@@ -57,6 +73,7 @@ impl Random {
 
     /// Generates a random value with the given normal distribution
     /// Clamped to the given min / max
+    #[allow(dead_code)]
     pub fn normal_clamped<F>(&mut self, mean: F, std_dev: F, min: F, max: F) -> F
     where
         F: Float,

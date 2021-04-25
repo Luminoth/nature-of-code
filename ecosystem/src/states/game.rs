@@ -8,7 +8,6 @@ use crate::components::environment::*;
 use crate::components::physics::*;
 //use crate::resources::creatures::*;
 use crate::resources::*;
-use crate::vec2_uniform;
 
 /// Game setup
 pub fn setup(
@@ -102,7 +101,7 @@ pub fn setup(
     };
 
     for _ in 0..random.normal_clamped::<f32>(5.0, 1.0, 3.0, 6.0) as u32 {
-        let mut pos = vec2_uniform(&mut *random).extend(100.0);
+        let mut pos = random.vec2().extend(100.0);
         pos.x *= hw - 5.0;
         pos.y *= hh - 5.0;
         info!("spawning fly at {}", pos);
@@ -141,7 +140,7 @@ pub fn setup(
     };
 
     for _ in 0..random.normal_clamped::<f32>(4.0, 3.0, 2.0, 8.0) as u32 {
-        let mut pos = vec2_uniform(&mut *random).extend(0.0);
+        let mut pos = random.vec2().extend(0.0);
         pos.x *= hw - 10.0;
         pos.y *= hh - 10.0;
         info!("spawning fish at {}", pos);
@@ -180,7 +179,7 @@ pub fn setup(
     };
 
     for _ in 0..random.normal_clamped::<f32>(2.0, 1.0, 1.0, 4.0) as u32 {
-        let mut pos = vec2_uniform(&mut *random).extend(20.0);
+        let mut pos = random.vec2().extend(20.0);
         pos.x *= hw - 5.0;
         pos.y *= hh - 5.0;
         info!("spawning snake at {}", pos);

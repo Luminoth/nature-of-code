@@ -21,14 +21,6 @@ use systems::physics::*;
 const WINDOW_WIDTH: f32 = 640.0;
 const WINDOW_HEIGHT: f32 = 360.0;
 
-pub fn vec2_uniform(random: &mut Random) -> Vec2 {
-    Vec2::new(
-        random.random_range(-1.0..1.0),
-        random.random_range(-1.0..1.0),
-    )
-    .normalize_or_zero()
-}
-
 /// Misc setup
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     #[cfg(debug_assertions)]
