@@ -57,15 +57,15 @@ pub fn setup(
             DrawMode::Fill(FillOptions::default()),
             Transform::from_translation(Vec3::new(qw, hh, 10.0)),
         ))
-        .insert(Surface::default())
-        .insert(Collider::default())
+        .insert(Surface::new(1.0))
+        .insert(Collider::new(CollisionLayer::Ground, qw, window.height()))
         .insert(Ground::default());
 
     // water
     commands
         .spawn_bundle(GeometryBuilder::build_as(
             &shapes::Rectangle {
-                width: window.width() * 0.75,
+                width: qw * 3.0,
                 height: window.height(),
                 origin: shapes::RectangleOrigin::TopLeft,
             },
@@ -73,9 +73,25 @@ pub fn setup(
             DrawMode::Fill(FillOptions::default()),
             Transform::from_translation(Vec3::new(-hw, hh, 5.0)),
         ))
-        .insert(Fluid::default())
-        .insert(Collider::default())
+        .insert(Fluid::new(1.0))
+        .insert(Collider::new(
+            CollisionLayer::Water,
+            qw * 3.0,
+            window.height(),
+        ))
         .insert(Water::default());
+
+    // air
+    commands
+        .spawn()
+        .insert(Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)))
+        .insert(Fluid::new(1.0))
+        .insert(Collider::new(
+            CollisionLayer::Air,
+            window.width(),
+            window.height(),
+        ))
+        .insert(Air::default());
 
     // creatures
 
@@ -108,7 +124,11 @@ pub fn setup(
                 mass: 0.5,
                 ..Default::default()
             })
-            .insert(Collider::default())
+            .insert(Collider::new(
+                CollisionLayer::Air,
+                shape.radii.x * 2.0,
+                shape.radii.y * 2.0,
+            ))
             .insert(Creature::default())
             .insert(Fly::default());
     }
@@ -142,8 +162,12 @@ pub fn setup(
                 mass: 2.0,
                 ..Default::default()
             })
+            .insert(Collider::new(
+                CollisionLayer::Water,
+                shape.radii.x * 2.0,
+                shape.radii.y * 2.0,
+            ))
             .insert(Creature::default())
-            .insert(Collider::default())
             .insert(Fish::new(2.0));
     }
 
@@ -176,8 +200,12 @@ pub fn setup(
                 mass: 1.0,
                 ..Default::default()
             })
+            .insert(Collider::new(
+                CollisionLayer::Ground,
+                shape.radii.x * 2.0,
+                shape.radii.y * 2.0,
+            ))
             .insert(Creature::default())
-            .insert(Collider::default())
             .insert(Snake::new(2.0));
     }
 }

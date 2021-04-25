@@ -21,6 +21,7 @@ impl Default for Rigidbody {
 
 impl Rigidbody {
     /// Gets the rigidbody speed
+    #[allow(dead_code)]
     pub fn speed(&self) -> f32 {
         self.velocity.length()
     }
@@ -98,6 +99,10 @@ impl Rigidbody {
 
     /// Applies a force to the rigidbody
     pub fn apply_force(&mut self, force: Vec2) {
+        if force.x.is_nan() || force.y.is_nan() {
+            return;
+        }
+
         let force = force / self.mass;
         self.acceleration += force.extend(0.0);
     }
@@ -112,29 +117,47 @@ impl Rigidbody {
     }
 }
 
+/// Colliders on the same layer collide
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum CollisionLayer {
+    Water,
+    Ground,
+    Air,
+}
+
+/// Colliders collide
 pub struct Collider {
     pub size: Vec2,
-    pub height: f32,
+    pub layer: CollisionLayer,
 }
 
 impl Default for Collider {
     fn default() -> Self {
         Self {
             size: Vec2::new(1.0, 1.0),
-            height: 0.0,
+            layer: CollisionLayer::Ground,
         }
     }
 }
 
 impl Collider {
+    /// Constructs a new collider
+    pub fn new(layer: CollisionLayer, width: f32, height: f32) -> Self {
+        Self {
+            size: Vec2::new(width, height),
+            layer,
+        }
+    }
+
     /// Check if a collider is colliding with another collider
     pub fn collides(
         &self,
         _transform: &Transform,
-        _other: &Collider,
+        other: &Collider,
         _other_transform: &Transform,
     ) -> bool {
-        false
+        // TODO: also check overlapping bounds
+        self.layer == other.layer
     }
 }
 
@@ -144,8 +167,20 @@ pub struct Surface {
     pub c: f32,
 }
 
+impl Surface {
+    pub fn new(c: f32) -> Self {
+        Self { c }
+    }
+}
+
 /// Fluid state
 #[derive(Default)]
 pub struct Fluid {
     pub c: f32,
+}
+
+impl Fluid {
+    pub fn new(c: f32) -> Self {
+        Self { c }
+    }
 }
