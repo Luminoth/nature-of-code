@@ -23,13 +23,14 @@ impl Mover {
 
         Self {
             location: Vector2::new(x, y),
-            mass: 10.0,
+            mass: 1.0,
             topspeed: 1.0,
             ..Default::default()
         }
     }
 
-    fn check_edges(&mut self, screen: &Screen) {
+    #[allow(dead_code)]
+    fn wrap_edges(&mut self, screen: &Screen) {
         if self.location.x > screen.width() as f64 {
             self.location.x = 0.0;
         } else if self.location.x < 0.0 {
@@ -40,6 +41,40 @@ impl Mover {
             self.location.y = 0.0;
         } else if self.location.y < 0.0 {
             self.location.y = screen.height() as f64;
+        }
+    }
+
+    #[allow(dead_code)]
+    fn stop_edges(&mut self, screen: &Screen) {
+        if self.location.x > screen.width() as f64 {
+            self.location.x = screen.width() as f64;
+        } else if self.location.x < 0.0 {
+            self.location.x = 0.0;
+        }
+
+        if self.location.y > screen.height() as f64 {
+            self.location.y = screen.height() as f64;
+        } else if self.location.y < 0.0 {
+            self.location.y = 0.0;
+        }
+    }
+
+    #[allow(dead_code)]
+    fn bounce_edges(&mut self, screen: &Screen) {
+        if self.location.x > screen.width() as f64 {
+            self.location.x = screen.width() as f64;
+            self.velocity.x *= -1.0;
+        } else if self.location.x < 0.0 {
+            self.location.x = 0.0;
+            self.velocity.x *= -1.0;
+        }
+
+        if self.location.y > screen.height() as f64 {
+            self.location.y = screen.height() as f64;
+            self.velocity.y *= -1.0;
+        } else if self.location.y < 0.0 {
+            self.location.y = 0.0;
+            self.velocity.y *= -1.0;
         }
     }
 
@@ -64,7 +99,13 @@ impl Mover {
         core::stroke_grayscale(screen, 0.0);
         core::fill_grayscale(screen, 0.0);
 
-        core::shapes::ellipse(screen, self.location.x, self.location.y, 16.0, 16.0)
+        core::shapes::ellipse(
+            screen,
+            self.location.x,
+            self.location.y,
+            self.mass * 16.0,
+            self.mass * 16.0,
+        )
     }
 }
 
@@ -76,7 +117,7 @@ fn draw(screen: &mut Screen, mover: &mut Mover) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 255.0);
 
     mover.update();
-    mover.check_edges(screen);
+    mover.bounce_edges(screen);
     mover.display(screen)?;
 
     Ok(())
