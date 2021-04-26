@@ -13,14 +13,18 @@ pub struct Fly;
 /// Fish swim
 #[derive(Default)]
 pub struct Fish {
-    pub timer: Timer,
+    pub swim_direction: Vec2,
+    pub swim_timer: Timer,
+    pub swim_cooldown: Timer,
 }
 
 impl Fish {
     /// Construct a new fish that swims in a direction for the given duration
-    pub fn new(direction_duration: f32) -> Self {
+    pub fn new(swim_duration: f32, swim_cooldown: f32) -> Self {
         Self {
-            timer: Timer::from_seconds(direction_duration, true),
+            swim_direction: Vec2::default(),
+            swim_timer: Timer::from_seconds(swim_duration, false),
+            swim_cooldown: Timer::from_seconds(swim_cooldown, false),
         }
     }
 }
@@ -28,14 +32,14 @@ impl Fish {
 /// Snakes snek
 #[derive(Default)]
 pub struct Snake {
-    pub timer: Timer,
+    pub direction_timer: Timer,
 }
 
 impl Snake {
     /// Construct a new snake that slithers in a direction for the given duration
     pub fn new(direction_duration: f32) -> Self {
         Self {
-            timer: Timer::from_seconds(direction_duration, true),
+            direction_timer: Timer::from_seconds(direction_duration, false),
         }
     }
 }

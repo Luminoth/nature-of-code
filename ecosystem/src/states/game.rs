@@ -169,7 +169,7 @@ pub fn setup(
                 shape.radii.y * 2.0,
             ))
             .insert(Creature::default())
-            .insert(Fish::new(2.0));
+            .insert(Fish::new(2.0, 2.0));
     }
 
     // snakes

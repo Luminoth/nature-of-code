@@ -40,9 +40,16 @@ pub fn fish(
     mut query: Query<(&mut Rigidbody, &mut Fish)>,
 ) {
     for (mut rigidbody, mut fish) in query.iter_mut() {
-        // TODO: not quite this
-        if fish.timer.tick(time.delta()).just_finished() {
-            rigidbody.apply_force(random.direction() * noise.sample(&mut *random, 5000.0) as f32);
+        if !fish.swim_timer.finished() {
+            rigidbody.apply_force(fish.swim_direction * noise.sample(&mut *random, 100.0) as f32);
+        } else if fish.swim_timer.tick(time.delta()).just_finished() {
+            fish.swim_cooldown.reset();
+        }
+
+        if fish.swim_cooldown.tick(time.delta()).just_finished() {
+            fish.swim_direction = random.direction();
+
+            fish.swim_timer.reset();
         }
     }
 }
@@ -56,7 +63,7 @@ pub fn snake(
 ) {
     for (mut rigidbody, mut snake) in query.iter_mut() {
         // TODO: not quite this
-        if snake.timer.tick(time.delta()).just_finished() {
+        if snake.direction_timer.tick(time.delta()).just_finished() {
             rigidbody.apply_force(random.direction() * noise.sample(&mut *random, 10000.0) as f32);
         }
     }
