@@ -1,41 +1,41 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use glam::Vec2;
+use glam::DVec2;
 use processing::errors::ProcessingErr;
 use processing::Screen;
 
 #[derive(Debug, Default)]
 struct Balloon {
-    location: Vec2,
-    velocity: Vec2,
-    acceleration: Vec2,
+    location: DVec2,
+    velocity: DVec2,
+    acceleration: DVec2,
     topspeed: f64,
 }
 
 impl Balloon {
     fn new(screen: &Screen) -> Self {
         Self {
-            location: Vec2::new(screen.width() as f32 / 2.0, screen.height() as f32),
+            location: DVec2::new(screen.width() as f64 / 2.0, screen.height() as f64),
             ..Default::default()
         }
     }
 
     fn check_edges(&mut self, screen: &Screen) {
-        if self.location.x > screen.width() as f32 {
-            self.location.x = screen.width() as f32;
+        if self.location.x > screen.width() as f64 {
+            self.location.x = screen.width() as f64;
         } else if self.location.x < 0.0 {
             self.location.x = 0.0;
         }
 
-        if self.location.y > screen.height() as f32 {
-            self.location.y = screen.height() as f32;
+        if self.location.y > screen.height() as f64 {
+            self.location.y = screen.height() as f64;
         } else if self.location.y < 0.0 {
             self.location.y = 0.0;
         }
     }
 
-    fn apply_force(&mut self, force: Vec2) {
+    fn apply_force(&mut self, force: DVec2) {
         self.acceleration += force;
     }
 
@@ -45,20 +45,14 @@ impl Balloon {
 
         self.location += self.velocity;
 
-        self.acceleration = Vec2::default();
+        self.acceleration = DVec2::default();
     }
 
     fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
         core::stroke_grayscale(screen, 0.0);
         core::fill_grayscale(screen, 0.0);
 
-        core::shapes::ellipse(
-            screen,
-            self.location.x as f64,
-            self.location.y as f64,
-            16.0,
-            16.0,
-        )
+        core::shapes::ellipse(screen, self.location.x, self.location.y, 16.0, 16.0)
     }
 }
 
@@ -70,14 +64,14 @@ fn draw(screen: &mut Screen, balloon: &mut Balloon) -> Result<(), ProcessingErr>
     core::background_grayscale(screen, 255.0);
 
     // float
-    balloon.apply_force(Vec2::new(0.0, -0.005));
+    balloon.apply_force(DVec2::new(0.0, -0.005));
 
     // wind
     // TODO: this would be better if we accelerated for a while
     // in a direction before changing directions
     balloon.apply_force(
-        Vec2::new(
-            core::math::map(core::sample_noise2d() as f32, 0.0, 1.0, -1.0, 1.0),
+        DVec2::new(
+            core::math::map(core::sample_noise2d(), 0.0, 1.0, -1.0, 1.0),
             0.0,
         ) * 0.01,
     );

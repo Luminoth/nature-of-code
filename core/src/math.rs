@@ -1,4 +1,4 @@
-use glam::Vec2;
+use glam::DVec2;
 use num_traits::Float;
 use rand::Rng;
 
@@ -17,16 +17,16 @@ pub fn map<F: Float>(x: F, in_min: F, in_max: F, out_min: F, out_max: F) -> F {
     (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 }
 
-pub fn vector2_random() -> Vec2 {
+pub fn vector2_random() -> DVec2 {
     let mut rng = rand::thread_rng();
 
-    Vec2::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0)).normalize_or_zero()
+    DVec2::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0)).normalize_or_zero()
 }
 
-pub fn vector2_perlin() -> Vec2 {
-    Vec2::new(
-        map(sample_noise2d() as f32, 0.0, 1.0, -1.0, 1.0),
-        map(sample_noise2d() as f32, 0.0, 1.0, -1.0, 1.0),
+pub fn vector2_perlin() -> DVec2 {
+    DVec2::new(
+        map(sample_noise2d(), 0.0, 1.0, -1.0, 1.0),
+        map(sample_noise2d(), 0.0, 1.0, -1.0, 1.0),
     )
     .normalize_or_zero()
 }
