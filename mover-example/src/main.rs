@@ -111,7 +111,11 @@ impl Mover {
     }
 
     fn apply_force(&mut self, force: DVec2) {
-        let force = force / self.mass;
+        let force = if self.mass > 0.0 {
+            force / self.mass
+        } else {
+            force
+        };
         self.acceleration += force;
     }
 

@@ -118,6 +118,7 @@ impl PerlinNoise {
     }
 
     /// Sample noise in the domain [0..1],[0..1] scaled by frequency
+    #[allow(dead_code)]
     pub fn sample(&self, random: &mut Random, frequency: f64) -> f64 {
         self.perlin.get([random.random(), random.random()]) * frequency
     }
