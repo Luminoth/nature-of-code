@@ -29,7 +29,7 @@ pub fn fly(
 ) {
     for mut rigidbody in query.iter_mut() {
         rigidbody.apply_force(
-            random.direction() * 0.01, /*noise.sample(&mut *random, 1000.0) as f32*/
+            random.direction() * FLY_FORCE, /*noise.sample(&mut *random, 1000.0) as f32*/
         );
     }
 }
@@ -44,7 +44,7 @@ pub fn fish(
     for (mut rigidbody, mut fish) in query.iter_mut() {
         if !fish.swim_timer.finished() {
             rigidbody.apply_force(
-                fish.swim_direction * 500.0, /*noise.sample(&mut *random, 300.0) as f32*/
+                fish.swim_direction * FISH_FORCE, /*noise.sample(&mut *random, 300.0) as f32*/
             );
         } else if fish.swim_timer.tick(time.delta()).just_finished() {
             fish.swim_cooldown.reset();
@@ -68,8 +68,10 @@ pub fn snake(
     for (mut rigidbody, mut snake) in query.iter_mut() {
         // TODO: not quite this
         if snake.direction_timer.tick(time.delta()).just_finished() {
+            rigidbody.velocity = Vec3::default();
+
             rigidbody.apply_force(
-                random.direction() * 1500.0, /*noise.sample(&mut *random, 10000.0) as f32*/
+                random.direction() * SNAKE_GROUND_FORCE, /*noise.sample(&mut *random, 10000.0) as f32*/
             );
         }
     }

@@ -15,7 +15,16 @@ pub fn physics_collisions(
         for (surface, stransform, scollider) in surfaces.iter() {
             if collider.collides(transform, scollider, stransform) {
                 let magnitude = surface.c;
-                let friction = -rigidbody.velocity.normalize_or_zero() * magnitude;
+                let direction = -rigidbody.velocity.normalize_or_zero();
+
+                let friction = direction * magnitude;
+                if !friction.is_finite() {
+                    panic!(
+                        "Invalid friction c: {}, direction: {}",
+                        surface.c, direction
+                    );
+                }
+
                 rigidbody.apply_force(friction.truncate());
             }
         }
@@ -23,8 +32,18 @@ pub fn physics_collisions(
         // apply drag
         for (fluid, ftransform, fcollider) in fluids.iter() {
             if collider.collides(transform, fcollider, ftransform) {
-                let magnitude = 0.5 * fluid.density * rigidbody.speed_squared() * rigidbody.drag;
-                let drag = -rigidbody.velocity.normalize_or_zero() * magnitude;
+                let speed_squared = rigidbody.speed_squared();
+                let magnitude = 0.5 * fluid.density * speed_squared * rigidbody.drag;
+                let direction = -rigidbody.velocity.normalize_or_zero();
+
+                let drag = direction * magnitude;
+                if !drag.is_finite() {
+                    panic!(
+                        "Invalid drag p: {}, v2: {}, c: {}, direction: {}",
+                        fluid.density, speed_squared, rigidbody.drag, direction
+                    );
+                }
+
                 rigidbody.apply_force(drag.truncate());
             }
         }

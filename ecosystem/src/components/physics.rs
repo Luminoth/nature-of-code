@@ -25,17 +25,33 @@ impl Rigidbody {
     /// Gets the rigidbody speed
     #[allow(dead_code)]
     pub fn speed(&self) -> f32 {
-        self.velocity.length()
+        let speed = self.velocity.length();
+        // TODO: this shouldn't be possible and yet it happens?
+        if !speed.is_finite() {
+            0.0
+        } else {
+            speed
+        }
     }
 
     /// Gets the rigidbody speed squaed
     pub fn speed_squared(&self) -> f32 {
-        self.velocity.length_squared()
+        let speed_squared = self.velocity.length_squared();
+        // TODO: this shouldn't be possible and yet it happens?
+        if !speed_squared.is_finite() {
+            0.0
+        } else {
+            speed_squared
+        }
     }
 
     /// Wrap a rigidbody around bounds
     #[allow(dead_code)]
     pub fn wrap(&mut self, transform: &mut Transform, minx: f32, maxx: f32, miny: f32, maxy: f32) {
+        if !transform.translation.is_finite() {
+            panic!("Invalid transform {}", transform.translation);
+        }
+
         if transform.translation.x < minx {
             transform.translation.x = maxx;
         } else if transform.translation.x > maxx {
@@ -59,6 +75,10 @@ impl Rigidbody {
         miny: f32,
         maxy: f32,
     ) {
+        if !transform.translation.is_finite() {
+            panic!("Invalid transform {}", transform.translation);
+        }
+
         if transform.translation.x < minx {
             transform.translation.x = minx;
         } else if transform.translation.x > maxx {
@@ -82,19 +102,31 @@ impl Rigidbody {
         miny: f32,
         maxy: f32,
     ) {
+        if !transform.translation.is_finite() {
+            panic!("Invalid transform {}", transform.translation);
+        }
+
         if transform.translation.x < minx {
             transform.translation.x = minx;
+
+            self.acceleration.x *= -1.0;
             self.velocity.x *= -1.0;
         } else if transform.translation.x > maxx {
             transform.translation.x = maxx;
+
+            self.acceleration.x *= -1.0;
             self.velocity.x *= -1.0;
         }
 
         if transform.translation.y < miny {
             transform.translation.y = miny;
+
+            self.acceleration.y *= -1.0;
             self.velocity.y *= -1.0;
         } else if transform.translation.y > maxy {
             transform.translation.y = maxy;
+
+            self.acceleration.y *= -1.0;
             self.velocity.y *= -1.0;
         }
     }
@@ -106,14 +138,30 @@ impl Rigidbody {
         } else {
             force
         };
+
         self.acceleration += force.extend(0.0);
+        if !self.acceleration.is_finite() {
+            panic!("Invalid acceleration from force {}", force);
+        }
     }
 
     /// Update a rigidbody
     pub fn update(&mut self, transform: &mut Transform, dt: f32) {
-        // euler integration
         self.velocity += self.acceleration * dt;
+        if !self.velocity.is_finite() {
+            panic!(
+                "Invalid velocity from acceleration {} at slice {}",
+                self.acceleration, dt
+            );
+        }
+
         transform.translation += self.velocity * dt;
+        if !transform.translation.is_finite() {
+            panic!(
+                "Invalid position from velocity {} and at {}",
+                self.velocity, dt
+            );
+        }
 
         self.acceleration = Vec3::default();
     }

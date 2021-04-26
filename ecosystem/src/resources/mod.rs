@@ -1,6 +1,5 @@
 //! ECS resources
 
-pub mod creatures;
 pub mod debug;
 
 use bevy::prelude::*;
@@ -48,9 +47,9 @@ impl Random {
         self.random.gen_range(range)
     }
 
-    /// Generates a uniform random vector in the range ([-1..1], [-1..1])
+    /// Generates a uniform random vector in the range ([0..1], [0..1])
     pub fn vec2(&mut self) -> Vec2 {
-        self.vec2_range(-1.0..1.0, -1.0..1.0)
+        self.vec2_range(0.0..1.0, 0.0..1.0)
     }
 
     /// Generates a uniform random vector in the given range
@@ -61,9 +60,13 @@ impl Random {
         Vec2::new(self.random_range(xrange), self.random_range(yrange))
     }
 
-    /// Generates a uniform random direction vector, can be (0, 0)
+    /// Generates a uniform random direction vector, never 0 length
     pub fn direction(&mut self) -> Vec2 {
-        self.vec2().normalize_or_zero()
+        let mut direction = (self.vec2() * 2.0 - Vec2::new(1.0, 1.0)).normalize();
+        while !direction.is_finite() {
+            direction = (self.vec2() * 2.0 - Vec2::new(1.0, 1.0)).normalize();
+        }
+        direction
     }
 
     /// Generates a random value with the given normal distribution
