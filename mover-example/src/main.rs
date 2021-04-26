@@ -1,24 +1,24 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use nalgebra::Vector2;
+use glam::Vec2;
 use processing::errors::ProcessingErr;
 use processing::Screen;
 use rand::Rng;
 
 #[derive(Debug, Default)]
 struct Liquid {
-    location: Vector2<f64>,
-    size: Vector2<f64>,
-    c: f64,
+    location: Vec2,
+    size: Vec2,
+    c: f32,
 }
 
 impl Liquid {
     #[allow(clippy::many_single_char_names)]
-    fn new(x: f64, y: f64, w: f64, h: f64, c: f64) -> Self {
+    fn new(x: f32, y: f32, w: f32, h: f32, c: f32) -> Self {
         Self {
-            location: Vector2::new(x, y),
-            size: Vector2::new(w, h),
+            location: Vec2::new(x, y),
+            size: Vec2::new(w, h),
             c,
         }
     }
@@ -36,26 +36,26 @@ impl Liquid {
 
         core::shapes::rect(
             screen,
-            self.location.x,
-            self.location.y,
-            self.size.x,
-            self.size.y,
+            self.location.x as f64,
+            self.location.y as f64,
+            self.size.x as f64,
+            self.size.y as f64,
         )
     }
 }
 
 #[derive(Debug, Default)]
 struct Mover {
-    location: Vector2<f64>,
-    velocity: Vector2<f64>,
-    acceleration: Vector2<f64>,
-    mass: f64,
+    location: Vec2,
+    velocity: Vec2,
+    acceleration: Vec2,
+    mass: f32,
 }
 
 impl Mover {
-    fn new(mass: f64, x: f64, y: f64) -> Self {
+    fn new(mass: f32, x: f32, y: f32) -> Self {
         Self {
-            location: Vector2::new(x, y),
+            location: Vec2::new(x, y),
             mass,
             ..Default::default()
         }
@@ -63,29 +63,29 @@ impl Mover {
 
     #[allow(dead_code)]
     fn wrap_edges(&mut self, screen: &Screen) {
-        if self.location.x > screen.width() as f64 {
+        if self.location.x > screen.width() as f32 {
             self.location.x = 0.0;
         } else if self.location.x < 0.0 {
-            self.location.x = screen.width() as f64;
+            self.location.x = screen.width() as f32;
         }
 
-        if self.location.y > screen.height() as f64 {
+        if self.location.y > screen.height() as f32 {
             self.location.y = 0.0;
         } else if self.location.y < 0.0 {
-            self.location.y = screen.height() as f64;
+            self.location.y = screen.height() as f32;
         }
     }
 
     #[allow(dead_code)]
     fn stop_edges(&mut self, screen: &Screen) {
-        if self.location.x > screen.width() as f64 {
-            self.location.x = screen.width() as f64;
+        if self.location.x > screen.width() as f32 {
+            self.location.x = screen.width() as f32;
         } else if self.location.x < 0.0 {
             self.location.x = 0.0;
         }
 
-        if self.location.y > screen.height() as f64 {
-            self.location.y = screen.height() as f64;
+        if self.location.y > screen.height() as f32 {
+            self.location.y = screen.height() as f32;
         } else if self.location.y < 0.0 {
             self.location.y = 0.0;
         }
@@ -93,16 +93,16 @@ impl Mover {
 
     #[allow(dead_code)]
     fn bounce_edges(&mut self, screen: &Screen) {
-        if self.location.x > screen.width() as f64 {
-            self.location.x = screen.width() as f64;
+        if self.location.x > screen.width() as f32 {
+            self.location.x = screen.width() as f32;
             self.velocity.x *= -1.0;
         } else if self.location.x < 0.0 {
             self.location.x = 0.0;
             self.velocity.x *= -1.0;
         }
 
-        if self.location.y > screen.height() as f64 {
-            self.location.y = screen.height() as f64;
+        if self.location.y > screen.height() as f32 {
+            self.location.y = screen.height() as f32;
             self.velocity.y *= -1.0;
         } else if self.location.y < 0.0 {
             self.location.y = 0.0;
@@ -110,11 +110,7 @@ impl Mover {
         }
     }
 
-    fn apply_force(&mut self, force: Vector2<f64>) {
-        if !force.x.is_finite() || !force.y.is_finite() {
-            return;
-        }
-
+    fn apply_force(&mut self, force: Vec2) {
         let force = force / self.mass;
         self.acceleration += force;
     }
@@ -124,15 +120,15 @@ impl Mover {
         let mut rng = rand::thread_rng();
 
         self.apply_force(
-            core::math::vector2_random() * core::sample_noise2d() * rng.gen_range(0.1..0.5),
+            core::math::vector2_random() * core::sample_noise2d() as f32 * rng.gen_range(0.1..0.5),
         );
     }
 
     fn drag(&mut self, liquid: &Liquid) {
-        let speed = self.velocity.magnitude();
+        let speed = self.velocity.length();
         let drag_magnitude = liquid.c * speed * speed;
 
-        let drag = (self.velocity * -1.0).normalize() * drag_magnitude;
+        let drag = (self.velocity * -1.0).normalize_or_zero() * drag_magnitude;
         self.apply_force(drag);
     }
 
@@ -140,7 +136,7 @@ impl Mover {
         self.velocity += self.acceleration;
         self.location += self.velocity;
 
-        self.acceleration = Vector2::default();
+        self.acceleration = Vec2::default();
     }
 
     fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
@@ -149,10 +145,10 @@ impl Mover {
 
         core::shapes::ellipse(
             screen,
-            self.location.x,
-            self.location.y,
-            self.mass * 16.0,
-            self.mass * 16.0,
+            self.location.x as f64,
+            self.location.y as f64,
+            self.mass as f64 * 16.0,
+            self.mass as f64 * 16.0,
         )
     }
 }
@@ -171,12 +167,12 @@ fn draw(
     liquid.display(screen)?;
 
     //let wind = Vector2::new(0.01, 0.0);
-    let gravity = Vector2::new(0.0, 0.1);
+    let gravity = Vec2::new(0.0, 0.1);
 
     //let c = 0.01;
 
     for mover in movers.as_mut() {
-        /*let friction = (mover.velocity * -1.0).normalize() * c;
+        /*let friction = (mover.velocity * -1.0).normalize_or_zero() * c;
         mover.apply_force(friction);*/
 
         if liquid.contains(mover) {
@@ -206,17 +202,17 @@ fn main() -> Result<(), ProcessingErr> {
 
             let mut mvrs = vec![];
             for _ in 0..100 {
-                let x = rng.gen_range(0..screen.width()) as f64;
-                let y = rng.gen_range(0..screen.height() / 4) as f64;
+                let x = rng.gen_range(0..screen.width()) as f32;
+                let y = rng.gen_range(0..screen.height() / 4) as f32;
                 mvrs.push(Mover::new(rng.gen_range(0.1..5.0), x, y));
             }
             *movers.borrow_mut() = Some(mvrs);
 
             *liquid.borrow_mut() = Some(Liquid::new(
                 0.0,
-                screen.height() as f64 / 2.0,
-                screen.width() as f64,
-                screen.height() as f64 / 2.0,
+                screen.height() as f32 / 2.0,
+                screen.width() as f32,
+                screen.height() as f32 / 2.0,
                 0.1,
             ));
 
