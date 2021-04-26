@@ -120,8 +120,8 @@ pub fn setup(
                 Transform::from_translation(pos),
             ))
             .insert(Rigidbody {
-                mass: 0.5,
-                drag: 0.1,
+                mass: 0.001,
+                drag: 0.01,
                 ..Default::default()
             })
             .insert(Collider::new(
@@ -159,8 +159,8 @@ pub fn setup(
                 Transform::from_translation(pos),
             ))
             .insert(Rigidbody {
-                mass: 2.0,
-                drag: 0.4,
+                mass: 15.0,
+                drag: 0.1,
                 ..Default::default()
             })
             .insert(Collider::new(
@@ -198,7 +198,7 @@ pub fn setup(
                 Transform::from_translation(pos),
             ))
             .insert(Rigidbody {
-                mass: 1.0,
+                mass: 0.15,
                 drag: 0.2,
                 ..Default::default()
             })

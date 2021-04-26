@@ -24,11 +24,13 @@ pub fn creature_after(
 /// Fly behavior
 pub fn fly(
     mut random: ResMut<Random>,
-    noise: Res<PerlinNoise>,
+    _noise: Res<PerlinNoise>,
     mut query: Query<&mut Rigidbody, With<Fly>>,
 ) {
     for mut rigidbody in query.iter_mut() {
-        rigidbody.apply_force(random.direction() * noise.sample(&mut *random, 1000.0) as f32);
+        rigidbody.apply_force(
+            random.direction() * 0.01, /*noise.sample(&mut *random, 1000.0) as f32*/
+        );
     }
 }
 
@@ -36,12 +38,14 @@ pub fn fly(
 pub fn fish(
     time: Res<Time>,
     mut random: ResMut<Random>,
-    noise: Res<PerlinNoise>,
+    _noise: Res<PerlinNoise>,
     mut query: Query<(&mut Rigidbody, &mut Fish)>,
 ) {
     for (mut rigidbody, mut fish) in query.iter_mut() {
         if !fish.swim_timer.finished() {
-            rigidbody.apply_force(fish.swim_direction * noise.sample(&mut *random, 100.0) as f32);
+            rigidbody.apply_force(
+                fish.swim_direction * 500.0, /*noise.sample(&mut *random, 300.0) as f32*/
+            );
         } else if fish.swim_timer.tick(time.delta()).just_finished() {
             fish.swim_cooldown.reset();
         }
@@ -58,13 +62,15 @@ pub fn fish(
 pub fn snake(
     time: Res<Time>,
     mut random: ResMut<Random>,
-    noise: Res<PerlinNoise>,
+    _noise: Res<PerlinNoise>,
     mut query: Query<(&mut Rigidbody, &mut Snake)>,
 ) {
     for (mut rigidbody, mut snake) in query.iter_mut() {
         // TODO: not quite this
         if snake.direction_timer.tick(time.delta()).just_finished() {
-            rigidbody.apply_force(random.direction() * noise.sample(&mut *random, 10000.0) as f32);
+            rigidbody.apply_force(
+                random.direction() * 1500.0, /*noise.sample(&mut *random, 10000.0) as f32*/
+            );
         }
     }
 }
