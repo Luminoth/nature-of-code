@@ -28,7 +28,7 @@ pub fn fly(
     mut query: Query<&mut Rigidbody, With<Fly>>,
 ) {
     for mut rigidbody in query.iter_mut() {
-        rigidbody.apply_force(random.vec2() * noise.sample(&mut *random, 1000.0) as f32);
+        rigidbody.apply_force(random.direction() * noise.sample(&mut *random, 1000.0) as f32);
     }
 }
 
@@ -42,7 +42,7 @@ pub fn fish(
     for (mut rigidbody, mut fish) in query.iter_mut() {
         // TODO: not quite this
         if fish.timer.tick(time.delta()).just_finished() {
-            rigidbody.apply_force(random.vec2() * noise.sample(&mut *random, 5000.0) as f32);
+            rigidbody.apply_force(random.direction() * noise.sample(&mut *random, 5000.0) as f32);
         }
     }
 }
@@ -57,7 +57,7 @@ pub fn snake(
     for (mut rigidbody, mut snake) in query.iter_mut() {
         // TODO: not quite this
         if snake.timer.tick(time.delta()).just_finished() {
-            rigidbody.apply_force(random.vec2() * noise.sample(&mut *random, 10000.0) as f32);
+            rigidbody.apply_force(random.direction() * noise.sample(&mut *random, 10000.0) as f32);
         }
     }
 }

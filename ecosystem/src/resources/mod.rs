@@ -58,7 +58,12 @@ impl Random {
     where
         R: SampleRange<f32>,
     {
-        Vec2::new(self.random_range(xrange), self.random_range(yrange)).normalize_or_zero()
+        Vec2::new(self.random_range(xrange), self.random_range(yrange))
+    }
+
+    /// Generates a uniform random direction vector, can be (0, 0)
+    pub fn direction(&mut self) -> Vec2 {
+        self.vec2().normalize_or_zero()
     }
 
     /// Generates a random value with the given normal distribution

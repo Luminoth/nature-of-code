@@ -101,9 +101,9 @@ pub fn setup(
     };
 
     for _ in 0..random.normal_clamped::<f32>(5.0, 1.0, 3.0, 6.0) as u32 {
-        let mut pos = random.vec2().extend(100.0);
-        pos.x *= hw - 5.0;
-        pos.y *= hh - 5.0;
+        let pos = random
+            .vec2_range(-hw + 5.0..hw - 5.0, -hh + 5.0..hh - 5.0)
+            .extend(100.0);
         info!("spawning fly at {}", pos);
 
         commands
@@ -140,9 +140,9 @@ pub fn setup(
     };
 
     for _ in 0..random.normal_clamped::<f32>(4.0, 3.0, 2.0, 8.0) as u32 {
-        let mut pos = random.vec2().extend(0.0);
-        pos.x *= hw - 10.0;
-        pos.y *= hh - 10.0;
+        let pos = random
+            .vec2_range(-hw + 10.0..qw - 10.0, -hh + 10.0..hh - 10.0)
+            .extend(0.0);
         info!("spawning fish at {}", pos);
 
         commands
@@ -179,9 +179,9 @@ pub fn setup(
     };
 
     for _ in 0..random.normal_clamped::<f32>(2.0, 1.0, 1.0, 4.0) as u32 {
-        let mut pos = random.vec2().extend(20.0);
-        pos.x *= hw - 5.0;
-        pos.y *= hh - 5.0;
+        let pos = random
+            .vec2_range(qw + 5.0..hw - 5.0, -hh + 5.0..hh - 5.0)
+            .extend(20.0);
         info!("spawning snake at {}", pos);
 
         commands
