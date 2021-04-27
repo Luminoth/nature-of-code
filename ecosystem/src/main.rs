@@ -9,6 +9,7 @@ mod systems;
 use bevy::diagnostic::*;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
+use num_traits::Float;
 
 use events::debug::*;
 use resources::debug::*;
@@ -18,8 +19,18 @@ use systems::creatures::*;
 use systems::debug::*;
 use systems::physics::*;
 
-const WINDOW_WIDTH: f32 = 640.0;
-const WINDOW_HEIGHT: f32 = 360.0;
+const WINDOW_WIDTH: f32 = 1024.0;
+const WINDOW_HEIGHT: f32 = 576.0;
+
+/// Clamps an ord between a min and a max
+pub fn clamp<T: Ord>(v: T, min: T, max: T) -> T {
+    std::cmp::min(max, std::cmp::max(min, v))
+}
+
+/// Clamps a float between a min and a max
+pub fn clampf<F: Float>(v: F, min: F, max: F) -> F {
+    Float::min(max, Float::max(min, v))
+}
 
 /// Misc setup
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -71,6 +82,12 @@ fn main() {
                         .before("physics_after"),
                 )
                 .with_system(physics_after.system().label("physics_after"))
+                .with_system(
+                    physics_debug
+                        .system()
+                        .after("physics_collisions")
+                        .before("physics_after"),
+                )
                 .with_system(
                     creature_after
                         .system()

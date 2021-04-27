@@ -24,12 +24,13 @@ pub fn creature_after(
 /// Fly behavior
 pub fn fly(
     mut random: ResMut<Random>,
-    _noise: Res<PerlinNoise>,
+    noise: Res<PerlinNoise>,
     mut query: Query<&mut Rigidbody, With<Fly>>,
 ) {
     for mut rigidbody in query.iter_mut() {
         rigidbody.apply_force(
-            random.direction() * FLY_FORCE, /*noise.sample(&mut *random, 1000.0) as f32*/
+            random.direction() * (FLY_FORCE * noise.sample(&mut random, 10.0) as f32),
+            "fly",
         );
     }
 }
@@ -45,6 +46,7 @@ pub fn fish(
         if !fish.swim_timer.finished() {
             rigidbody.apply_force(
                 fish.swim_direction * FISH_FORCE, /*noise.sample(&mut *random, 300.0) as f32*/
+                "swim",
             );
         } else if fish.swim_timer.tick(time.delta()).just_finished() {
             fish.swim_cooldown.reset();
@@ -72,6 +74,7 @@ pub fn snake(
 
             rigidbody.apply_force(
                 random.direction() * SNAKE_GROUND_FORCE, /*noise.sample(&mut *random, 10000.0) as f32*/
+                "slither",
             );
         }
     }

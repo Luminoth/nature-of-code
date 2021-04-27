@@ -25,7 +25,7 @@ pub fn physics_collisions(
                     );
                 }
 
-                rigidbody.apply_force(friction.truncate());
+                rigidbody.apply_force(friction.truncate(), "friction");
             }
         }
 
@@ -44,7 +44,9 @@ pub fn physics_collisions(
                     );
                 }
 
-                rigidbody.apply_force(drag.truncate());
+                //info!("drag: {} for speed {}", drag, speed_squared);
+
+                rigidbody.apply_force(drag.truncate(), "drag");
             }
         }
     }

@@ -7,7 +7,12 @@ use crate::components::environment::*;
 use crate::resources::*;
 
 /// Game setup
-pub fn setup(mut commands: Commands, mut random: ResMut<Random>, windows: Res<Windows>) {
+pub fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut random: ResMut<Random>,
+    windows: Res<Windows>,
+) {
     // cameras
     commands.insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)));
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
@@ -40,22 +45,22 @@ pub fn setup(mut commands: Commands, mut random: ResMut<Random>, windows: Res<Wi
     // creatures
 
     // flies
-    for _ in 0..random.normal_clamped::<f32>(5.0, 1.0, 3.0, 6.0) as u32 {
+    for id in 0..random.normal_clamped::<f32>(10.0, 3.0, 3.0, 20.0) as u32 {
         let position = random.vec2_range(-hw + 5.0..hw - 5.0, -hh + 5.0..hh - 5.0);
-        Fly::spawn(&mut commands, position);
+        Fly::spawn(&mut commands, &asset_server, id, position);
     }
 
     // fish
-    for _ in 0..random.normal_clamped::<f32>(4.0, 3.0, 2.0, 8.0) as u32 {
+    /*for id in 0..random.normal_clamped::<f32>(4.0, 3.0, 2.0, 8.0) as u32 {
         let position = random.vec2_range(-hw + 10.0..qw - 10.0, -hh + 10.0..hh - 10.0);
-        Fish::spawn(&mut commands, position);
-    }
+        Fish::spawn(&mut commands, &asset_server, id, position);
+    }*/
 
     // snakes
-    for _ in 0..random.normal_clamped::<f32>(2.0, 1.0, 1.0, 4.0) as u32 {
+    /*for id in 0..random.normal_clamped::<f32>(2.0, 1.0, 1.0, 4.0) as u32 {
         let position = random.vec2_range(qw + 5.0..hw - 5.0, -hh + 5.0..hh - 5.0);
-        Snake::spawn(&mut commands, position);
-    }
+        Snake::spawn(&mut commands, &asset_server, id, position);
+    }*/
 }
 
 /// Game teardown

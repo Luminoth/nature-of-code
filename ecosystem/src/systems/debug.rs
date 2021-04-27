@@ -4,6 +4,7 @@ use bevy::diagnostic::*;
 use bevy::prelude::*;
 
 use crate::components::debug::*;
+use crate::components::physics::*;
 use crate::events::debug::*;
 use crate::resources::debug::*;
 
@@ -84,5 +85,34 @@ pub fn fps_text_system(
         }
 
         text.sections[0].value = format!("{:.1} fps, {:.3} ms/frame", fps, frame_time * 1000.0);
+    }
+}
+
+/// Handles physics debug text
+pub fn physics_debug(
+    mut query: Query<(&PhysicsDebug, &mut Text)>,
+    ents: Query<(&Rigidbody, &Transform)>,
+) {
+    for (debug, mut text) in query.iter_mut() {
+        let rigidbody = ents.get_component::<Rigidbody>(debug.entity).unwrap();
+        let transform = ents.get_component::<Transform>(debug.entity).unwrap();
+
+        // dude I have no idea how to format this so it isn't impossible to read, wow
+        text.sections[0].value = format!(
+            "{}: a={:^30} v={:^30} p={:^30}",
+            debug.name,
+            format!(
+                "[{:^10.02}, {:^10.02}]",
+                rigidbody.acceleration.x, rigidbody.acceleration.y
+            ),
+            format!(
+                "[{:^10.02}, {:^10.02}]",
+                rigidbody.velocity.x, rigidbody.velocity.y
+            ),
+            format!(
+                "[{:^10.02}, {:^10.02}]",
+                transform.translation.x, transform.translation.y
+            ),
+        );
     }
 }

@@ -3,25 +3,28 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
+use super::debug::*;
 use super::physics::*;
 
+// NOTE: masses < 1 here can cause drag / friction to produce wildly oversized results
+
 const FLY_COLOR: Color = Color::WHITE;
-const FLY_MASS: f32 = 0.1;
+const FLY_MASS: f32 = 1.0; // 100x the mass of an actual housefly (g)
 const FLY_DRAG: f32 = 0.1;
 const FLY_SIZE: f32 = 2.0;
 pub const FLY_FORCE: f32 = FLY_MASS * 200.0;
 
 const FISH_COLOR: Color = Color::SALMON;
-const FISH_MASS: f32 = 15.0;
+const FISH_MASS: f32 = 1500.0; // 100x the mass of an actual koi (kg)
 const FISH_DRAG: f32 = 0.1;
 const FISH_SIZE: f32 = 10.0;
-pub const FISH_FORCE: f32 = FISH_MASS * 5000.0;
+pub const FISH_FORCE: f32 = FISH_MASS * 50.0;
 
 const SNAKE_COLOR: Color = Color::MAROON;
-const SNAKE_MASS: f32 = 0.15;
+const SNAKE_MASS: f32 = 15.0; // 100x the mass of an actual garter snake (kg)
 const SNAKE_DRAG: f32 = 0.2;
 const SNAKE_SIZE: f32 = 5.0;
-pub const SNAKE_GROUND_FORCE: f32 = SNAKE_MASS * 7000.0;
+pub const SNAKE_GROUND_FORCE: f32 = SNAKE_MASS * 70.0;
 
 /// Shared creature component
 #[derive(Default)]
@@ -34,15 +37,20 @@ pub struct Fly;
 impl Fly {
     /// Spawn a fly
     #[allow(dead_code)]
-    pub fn spawn(commands: &mut Commands, position: Vec2) {
-        info!("spawning fly at {}", position);
+    pub fn spawn(
+        commands: &mut Commands,
+        _asset_server: &Res<AssetServer>,
+        id: u32,
+        position: Vec2,
+    ) {
+        info!("spawning fly {} at {}", id, position);
 
         let shape = shapes::Ellipse {
             radii: Vec2::new(FLY_SIZE, FLY_SIZE),
             ..Default::default()
         };
 
-        commands
+        let _entity = commands
             .spawn_bundle(GeometryBuilder::build_as(
                 &shape,
                 ShapeColors::new(FLY_COLOR),
@@ -60,7 +68,36 @@ impl Fly {
                 shape.radii.y * 2.0,
             ))
             .insert(Creature::default())
-            .insert(Fly::default());
+            .insert(Fly::default())
+            .id();
+
+        /*commands
+        .spawn_bundle(TextBundle {
+            style: Style {
+                align_self: AlignSelf::FlexEnd,
+                position_type: PositionType::Absolute,
+                position: Rect {
+                    top: Val::Px(30.0 + (15.0 * id as f32)),
+                    left: Val::Px(15.0),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            text: Text::with_section(
+                "fly",
+                TextStyle {
+                    font: _asset_server.load("fonts/Roboto-Regular.ttf"),
+                    font_size: 14.0,
+                    color: Color::WHITE,
+                },
+                TextAlignment::default(),
+            ),
+            ..Default::default()
+        })
+        .insert(PhysicsDebug {
+            name: format!("Fly {}", id),
+            entity: _entity,
+        });*/
     }
 }
 
@@ -75,15 +112,20 @@ pub struct Fish {
 impl Fish {
     /// Spawn a fish
     #[allow(dead_code)]
-    pub fn spawn(commands: &mut Commands, position: Vec2) {
-        info!("spawning fish at {}", position);
+    pub fn spawn(
+        commands: &mut Commands,
+        _asset_server: &Res<AssetServer>,
+        id: u32,
+        position: Vec2,
+    ) {
+        info!("spawning fish {} at {}", id, position);
 
         let shape = shapes::Ellipse {
             radii: Vec2::new(FISH_SIZE, FISH_SIZE),
             ..Default::default()
         };
 
-        commands
+        let _entity = commands
             .spawn_bundle(GeometryBuilder::build_as(
                 &shape,
                 ShapeColors::new(FISH_COLOR),
@@ -101,7 +143,36 @@ impl Fish {
                 shape.radii.y * 2.0,
             ))
             .insert(Creature::default())
-            .insert(Fish::new(2.0, 2.0));
+            .insert(Fish::new(2.0, 2.0))
+            .id();
+
+        commands
+            .spawn_bundle(TextBundle {
+                style: Style {
+                    align_self: AlignSelf::FlexEnd,
+                    position_type: PositionType::Absolute,
+                    position: Rect {
+                        top: Val::Px(30.0 + (15.0 * id as f32)),
+                        left: Val::Px(15.0),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+                text: Text::with_section(
+                    "fish",
+                    TextStyle {
+                        font: _asset_server.load("fonts/Roboto-Regular.ttf"),
+                        font_size: 14.0,
+                        color: Color::WHITE,
+                    },
+                    TextAlignment::default(),
+                ),
+                ..Default::default()
+            })
+            .insert(PhysicsDebug {
+                name: format!("Fish {}", id),
+                entity: _entity,
+            });
     }
 
     /// Construct a new fish that swims in a direction for the given duration
@@ -123,15 +194,20 @@ pub struct Snake {
 impl Snake {
     /// Spawn a snake
     #[allow(dead_code)]
-    pub fn spawn(commands: &mut Commands, position: Vec2) {
-        info!("spawning snake at {}", position);
+    pub fn spawn(
+        commands: &mut Commands,
+        _asset_server: &Res<AssetServer>,
+        id: u32,
+        position: Vec2,
+    ) {
+        info!("spawning snake {} at {}", id, position);
 
         let shape = shapes::Ellipse {
             radii: Vec2::new(SNAKE_SIZE, SNAKE_SIZE),
             ..Default::default()
         };
 
-        commands
+        let _entity = commands
             .spawn_bundle(GeometryBuilder::build_as(
                 &shape,
                 ShapeColors::new(SNAKE_COLOR),
@@ -149,7 +225,36 @@ impl Snake {
                 shape.radii.y * 2.0,
             ))
             .insert(Creature::default())
-            .insert(Snake::new(2.0));
+            .insert(Snake::new(2.0))
+            .id();
+
+        commands
+            .spawn_bundle(TextBundle {
+                style: Style {
+                    align_self: AlignSelf::FlexEnd,
+                    position_type: PositionType::Absolute,
+                    position: Rect {
+                        top: Val::Px(30.0 + (15.0 * id as f32)),
+                        left: Val::Px(15.0),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+                text: Text::with_section(
+                    "snake",
+                    TextStyle {
+                        font: _asset_server.load("fonts/Roboto-Regular.ttf"),
+                        font_size: 14.0,
+                        color: Color::WHITE,
+                    },
+                    TextAlignment::default(),
+                ),
+                ..Default::default()
+            })
+            .insert(PhysicsDebug {
+                name: format!("Snake {}", id),
+                entity: _entity,
+            });
     }
 
     /// Construct a new snake that slithers in a direction for the given duration

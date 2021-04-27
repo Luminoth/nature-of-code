@@ -9,6 +9,8 @@ use rand::distributions::uniform::{SampleRange, SampleUniform};
 use rand::prelude::*;
 use rand_distr::{Normal, StandardNormal};
 
+use crate::clampf;
+
 /// Random wrapper
 pub struct Random {
     // TODO: would SmallRng be better here? we don't need a secure rng
@@ -33,12 +35,14 @@ impl Random {
         }
     }
 
-    /// Generates a uniform random value in the range 0..1
+    /// Generates a uniform random value in the range [0..1)
+    #[allow(dead_code)]
     pub fn random(&mut self) -> f64 {
         self.random_range(0.0..1.0)
     }
 
     /// Generates a uniform random value in the given range
+    #[allow(dead_code)]
     pub fn random_range<T, R>(&mut self, range: R) -> T
     where
         T: SampleUniform,
@@ -48,11 +52,13 @@ impl Random {
     }
 
     /// Generates a uniform random vector in the range ([0..1], [0..1])
+    #[allow(dead_code)]
     pub fn vec2(&mut self) -> Vec2 {
-        self.vec2_range(0.0..1.0, 0.0..1.0)
+        self.vec2_range(0.0..=1.0, 0.0..=1.0)
     }
 
     /// Generates a uniform random vector in the given range
+    #[allow(dead_code)]
     pub fn vec2_range<R>(&mut self, xrange: R, yrange: R) -> Vec2
     where
         R: SampleRange<f32>,
@@ -61,6 +67,7 @@ impl Random {
     }
 
     /// Generates a uniform random direction vector, never 0 length
+    #[allow(dead_code)]
     pub fn direction(&mut self) -> Vec2 {
         let mut direction = (self.vec2() * 2.0 - Vec2::new(1.0, 1.0)).normalize();
         while !direction.is_finite() {
@@ -87,12 +94,10 @@ impl Random {
         F: Float,
         StandardNormal: Distribution<F>,
     {
-        Float::min(
+        clampf(
+            Normal::new(mean, std_dev).unwrap().sample(&mut self.random),
+            min,
             max,
-            Float::max(
-                min,
-                Normal::new(mean, std_dev).unwrap().sample(&mut self.random),
-            ),
         )
     }
 }
@@ -120,9 +125,31 @@ impl PerlinNoise {
         }
     }
 
-    /// Sample noise in the domain [0..1],[0..1] scaled by frequency
+    /// Sample noise in the domain [0..1),[0..1) scaled by frequency
+    /// Result is in the range (-1..1)
     #[allow(dead_code)]
     pub fn sample(&self, random: &mut Random, frequency: f64) -> f64 {
-        self.perlin.get([random.random(), random.random()]) * frequency
+        self.perlin
+            .get([random.random_range(0.0..1.0), random.random_range(0.0..1.0)])
+            * frequency
+    }
+
+    /// Generates a noisey vector in the range ((-1..1), (-1..1))
+    #[allow(dead_code)]
+    pub fn vec2(&self, random: &mut Random) -> Vec2 {
+        Vec2::new(
+            self.sample(random, 1.0) as f32,
+            self.sample(random, 1.0) as f32,
+        )
+    }
+
+    /// Generates a uniform random direction vector, never 0 length
+    #[allow(dead_code)]
+    pub fn direction(&self, random: &mut Random) -> Vec2 {
+        let mut direction = self.vec2(random).normalize();
+        while !direction.is_finite() {
+            direction = self.vec2(random).normalize();
+        }
+        direction
     }
 }

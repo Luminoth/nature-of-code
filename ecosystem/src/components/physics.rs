@@ -132,17 +132,21 @@ impl Rigidbody {
     }
 
     /// Applies a force to the rigidbody
-    pub fn apply_force(&mut self, force: Vec2) {
+    pub fn apply_force(&mut self, force: Vec2, _name: impl AsRef<str>) {
         let force = if self.mass > 0.0 {
             force / self.mass
         } else {
             force
         };
 
+        //info!("applying force '{}': {}", _name.as_ref(), force);
+
         self.acceleration += force.extend(0.0);
         if !self.acceleration.is_finite() {
             panic!("Invalid acceleration from force {}", force);
         }
+
+        //info!("updated acceleration: {}", self.acceleration);
     }
 
     /// Update a rigidbody
@@ -154,6 +158,8 @@ impl Rigidbody {
                 self.acceleration, dt
             );
         }
+
+        //info!("updated velocity: {}", self.velocity);
 
         transform.translation += self.velocity * dt;
         if !transform.translation.is_finite() {
