@@ -12,6 +12,7 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use num_traits::Float;
 
+use components::physics::*;
 use events::debug::*;
 use resources::debug::*;
 use resources::*;
@@ -77,7 +78,7 @@ fn main() {
         .add_system_set(
             // fixed (physics) update
             SystemSet::on_update(GameState::Game)
-                .with_run_criteria(FixedTimestep::step(0.02))
+                .with_run_criteria(FixedTimestep::step(PHYSICS_STEP as f64))
                 .with_system(
                     physics_collisions
                         .system()

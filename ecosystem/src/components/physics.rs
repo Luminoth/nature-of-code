@@ -2,6 +2,10 @@
 
 use bevy::prelude::*;
 
+/// Physics step rate
+/// 50hz, the same as Unity
+pub const PHYSICS_STEP: f32 = 0.02;
+
 /// Rigidbody state
 pub struct Rigidbody {
     pub acceleration: Vec3,
@@ -164,25 +168,32 @@ impl Rigidbody {
 
     /// Update a rigidbody
     pub fn update(&mut self, transform: &mut Transform, dt: f32) {
-        self.velocity += self.acceleration * dt;
-        if !self.velocity.is_finite() {
-            panic!(
-                "Invalid velocity from acceleration {} at slice {}",
-                self.acceleration, dt
-            );
+        // in order to prevent hangs from causing large dts
+        // and in turn causing large accelerations and velocities
+        // to accumulate, this runs as many fixed steps as it can
+        // with acceleration reset after the first step
+
+        let mut dt = dt;
+        loop {
+            self.velocity += self.acceleration * PHYSICS_STEP;
+            if !self.velocity.is_finite() {
+                panic!("Invalid velocity from acceleration {}", self.acceleration);
+            }
+
+            //info!("updated velocity: {}", self.velocity);
+
+            transform.translation += self.velocity * PHYSICS_STEP;
+            if !transform.translation.is_finite() {
+                panic!("Invalid position from velocity {}", self.velocity);
+            }
+
+            self.acceleration = Vec3::default();
+
+            dt -= PHYSICS_STEP;
+            if dt < PHYSICS_STEP {
+                break;
+            }
         }
-
-        //info!("updated velocity: {}", self.velocity);
-
-        transform.translation += self.velocity * dt;
-        if !transform.translation.is_finite() {
-            panic!(
-                "Invalid position from velocity {} and at {}",
-                self.velocity, dt
-            );
-        }
-
-        self.acceleration = Vec3::default();
     }
 }
 
