@@ -21,42 +21,15 @@ pub fn physics_collisions(
     fluids: Query<(&Fluid, &Transform, &Collider)>,
 ) {
     for (transform, mut rigidbody, collider) in query.iter_mut() {
-        // apply friction
         for (surface, stransform, scollider) in surfaces.iter() {
             if collider.collides(transform, scollider, stransform) {
-                let magnitude = surface.c;
-                let direction = -rigidbody.velocity.normalize_or_zero();
-
-                let friction = direction * magnitude;
-                if !friction.is_finite() {
-                    panic!(
-                        "Invalid friction c: {}, direction: {}",
-                        surface.c, direction
-                    );
-                }
-
-                rigidbody.apply_force(friction.truncate(), "friction");
+                surface.update(&mut rigidbody);
             }
         }
 
-        // apply drag
         for (fluid, ftransform, fcollider) in fluids.iter() {
             if collider.collides(transform, fcollider, ftransform) {
-                let speed_squared = rigidbody.speed_squared();
-                let magnitude = 0.5 * fluid.density * speed_squared * rigidbody.drag;
-                let direction = -rigidbody.velocity.normalize_or_zero();
-
-                let drag = direction * magnitude;
-                if !drag.is_finite() {
-                    panic!(
-                        "Invalid drag p: {}, v2: {}, c: {}, direction: {}",
-                        fluid.density, speed_squared, rigidbody.drag, direction
-                    );
-                }
-
-                //info!("drag: {} for speed {}", drag, speed_squared);
-
-                rigidbody.apply_force(drag.truncate(), "drag");
+                fluid.update(&mut rigidbody);
             }
         }
     }

@@ -51,6 +51,10 @@ fn setup_debug(mut commands: Commands) {
 /// Application entry
 #[bevy_main]
 fn main() {
+    std::panic::set_hook(Box::new(|data| {
+        error!(%data, "Unexpected panic!");
+    }));
+
     App::build()
         .insert_resource(WindowDescriptor {
             title: "Ecosystem".to_owned(),

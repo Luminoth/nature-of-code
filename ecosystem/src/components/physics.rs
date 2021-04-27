@@ -1,12 +1,14 @@
 //! Physics components
 
 use bevy::prelude::*;
+use bevy::utils::tracing;
 
 /// Physics step rate
 /// 50hz, the same as Unity
 pub const PHYSICS_STEP: f32 = 0.02;
 
 /// Rigidbody state
+#[derive(Debug)]
 pub struct Rigidbody {
     pub acceleration: Vec3,
     pub velocity: Vec3,
@@ -51,9 +53,10 @@ impl Rigidbody {
 
     /// Wrap a rigidbody around bounds
     #[allow(dead_code)]
+    #[tracing::instrument]
     pub fn wrap(&mut self, transform: &mut Transform, minx: f32, maxx: f32, miny: f32, maxy: f32) {
         if !transform.translation.is_finite() {
-            panic!("Invalid transform {}", transform.translation);
+            panic!("Invalid transform");
         }
 
         if transform.translation.x < minx {
@@ -71,6 +74,7 @@ impl Rigidbody {
 
     /// Contain a rigidbody inside bounds
     #[allow(dead_code)]
+    #[tracing::instrument]
     pub fn contain(
         &mut self,
         transform: &mut Transform,
@@ -80,7 +84,7 @@ impl Rigidbody {
         maxy: f32,
     ) {
         if !transform.translation.is_finite() {
-            panic!("Invalid transform {}", transform.translation);
+            panic!("Invalid transform");
         }
 
         if transform.translation.x < minx {
@@ -98,6 +102,7 @@ impl Rigidbody {
 
     /// Bounce a rigidbody inside bounds
     #[allow(dead_code)]
+    #[tracing::instrument]
     pub fn bounce(
         &mut self,
         transform: &mut Transform,
@@ -107,7 +112,7 @@ impl Rigidbody {
         maxy: f32,
     ) {
         if !transform.translation.is_finite() {
-            panic!("Invalid transform {}", transform.translation);
+            panic!("Invalid transform");
         }
 
         if transform.translation.x < minx {
@@ -149,7 +154,8 @@ impl Rigidbody {
     }
 
     /// Applies a force to the rigidbody
-    pub fn apply_force(&mut self, force: Vec2, _name: impl AsRef<str>) {
+    #[tracing::instrument]
+    pub fn apply_force(&mut self, force: Vec2, _name: impl AsRef<str> + std::fmt::Debug) {
         let force = if self.mass > 0.0 {
             force / self.mass
         } else {
@@ -160,13 +166,14 @@ impl Rigidbody {
 
         self.acceleration += force.extend(0.0);
         if !self.acceleration.is_finite() {
-            panic!("Invalid acceleration from force {}", force);
+            panic!("Invalid acceleration from force");
         }
 
         //info!("updated acceleration: {}", self.acceleration);
     }
 
     /// Update a rigidbody
+    #[tracing::instrument]
     pub fn update(&mut self, transform: &mut Transform, dt: f32) {
         // in order to prevent hangs from causing large dts
         // and in turn causing large accelerations and velocities
@@ -177,14 +184,14 @@ impl Rigidbody {
         loop {
             self.velocity += self.acceleration * PHYSICS_STEP;
             if !self.velocity.is_finite() {
-                panic!("Invalid velocity from acceleration {}", self.acceleration);
+                panic!("Invalid velocity from acceleration");
             }
 
             //info!("updated velocity: {}", self.velocity);
 
             transform.translation += self.velocity * PHYSICS_STEP;
             if !transform.translation.is_finite() {
-                panic!("Invalid position from velocity {}", self.velocity);
+                panic!("Invalid position from velocity");
             }
 
             self.acceleration = Vec3::default();
@@ -206,6 +213,7 @@ pub enum CollisionLayer {
 }
 
 /// Colliders collide
+#[derive(Debug)]
 pub struct Collider {
     pub size: Vec2,
     pub layer: CollisionLayer,
@@ -230,6 +238,7 @@ impl Collider {
     }
 
     /// Check if a collider is colliding with another collider
+    #[tracing::instrument]
     pub fn collides(
         &self,
         _transform: &Transform,
@@ -242,7 +251,7 @@ impl Collider {
 }
 
 /// Surface state
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Surface {
     pub c: f32,
 }
@@ -252,10 +261,23 @@ impl Surface {
     pub fn new(c: f32) -> Self {
         Self { c }
     }
+
+    #[tracing::instrument]
+    pub fn update(&self, rigidbody: &mut Rigidbody) {
+        let magnitude = self.c;
+        let direction = -rigidbody.velocity.normalize_or_zero();
+
+        let friction = direction * magnitude;
+        if !friction.is_finite() {
+            panic!("Invalid friction");
+        }
+
+        rigidbody.apply_force(friction.truncate(), "friction");
+    }
 }
 
 /// Fluid state
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Fluid {
     pub density: f32,
 }
@@ -264,5 +286,21 @@ impl Fluid {
     /// Constructs a new fluid with the given drag coefficient
     pub fn new(density: f32) -> Self {
         Self { density }
+    }
+
+    #[tracing::instrument]
+    pub fn update(&self, rigidbody: &mut Rigidbody) {
+        let speed_squared = rigidbody.speed_squared();
+        let magnitude = 0.5 * self.density * speed_squared * rigidbody.drag;
+        let direction = -rigidbody.velocity.normalize_or_zero();
+
+        let drag = direction * magnitude;
+        if !drag.is_finite() {
+            panic!("Invalid drag");
+        }
+
+        //info!("drag: {} for speed {}", drag, speed_squared);
+
+        rigidbody.apply_force(drag.truncate(), "drag");
     }
 }
