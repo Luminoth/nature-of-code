@@ -15,3 +15,5 @@
 * Drag (water) on things in water (fish, snakes)
 * Drag (air) on things in air (flies)
 * Friction on ground section (snakes)
+* Wind (show force in UI)
+* Water flow (show force in UI)
