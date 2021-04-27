@@ -40,13 +40,13 @@ pub fn fly(
 pub fn fish(
     time: Res<Time>,
     mut random: ResMut<Random>,
-    _noise: Res<PerlinNoise>,
+    noise: Res<PerlinNoise>,
     mut query: Query<(&mut Rigidbody, &mut Fish)>,
 ) {
     for (mut rigidbody, mut fish) in query.iter_mut() {
         if !fish.swim_timer.finished() {
             rigidbody.apply_force(
-                fish.swim_direction * FISH_FORCE, /*noise.sample(&mut random, 10.0) as f32,*/
+                fish.swim_direction * FISH_FORCE * noise.sample(&mut random, 10.0) as f32,
                 "swim",
             );
         } else if fish.swim_timer.tick(time.delta()).just_finished() {
@@ -75,7 +75,7 @@ pub fn snake(
         }
 
         rigidbody.apply_force(
-            snake.direction * SNAKE_GROUND_FORCE * noise.sample(&mut random, 1.0) as f32,
+            snake.direction * SNAKE_GROUND_FORCE * noise.sample(&mut random, 2.0) as f32,
             "slither",
         );
     }

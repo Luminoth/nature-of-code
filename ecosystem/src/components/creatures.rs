@@ -5,7 +5,7 @@ use bevy_prototype_lyon::prelude::*;
 
 use crate::resources::*;
 
-use super::debug::*;
+//use super::debug::*;
 use super::physics::*;
 
 // NOTE: masses < 1 here can cause drag / friction to produce wildly oversized results
@@ -20,7 +20,9 @@ const FISH_COLOR: Color = Color::SALMON;
 const FISH_MASS: f32 = 1500.0; // 100x the mass of an actual koi (kg)
 const FISH_DRAG: f32 = 0.1;
 const FISH_SIZE: f32 = 10.0;
-pub const FISH_FORCE: f32 = FISH_MASS * 50.0;
+const FISH_SWIM_DURATION: f32 = 3.0;
+const FISH_COOLDOWN_DURATION: f32 = 3.0;
+pub const FISH_FORCE: f32 = FISH_MASS * 100.0;
 
 const SNAKE_COLOR: Color = Color::MAROON;
 const SNAKE_MASS: f32 = 15.0; // 100x the mass of an actual garter snake (kg)
@@ -120,6 +122,7 @@ impl Fish {
     pub fn spawn(
         commands: &mut Commands,
         _asset_server: &Res<AssetServer>,
+        random: &mut Random,
         id: u32,
         position: Vec2,
     ) {
@@ -130,7 +133,8 @@ impl Fish {
             ..Default::default()
         };
 
-        let fish = Fish::new(2.0, 2.0);
+        let mut fish = Fish::new(FISH_SWIM_DURATION, FISH_COOLDOWN_DURATION);
+        fish.swim_direction = random.direction();
 
         let _entity = commands
             .spawn_bundle(GeometryBuilder::build_as(
@@ -153,33 +157,33 @@ impl Fish {
             .insert(fish)
             .id();
 
-        commands
-            .spawn_bundle(TextBundle {
-                style: Style {
-                    align_self: AlignSelf::FlexEnd,
-                    position_type: PositionType::Absolute,
-                    position: Rect {
-                        top: Val::Px(30.0 + (15.0 * id as f32)),
-                        left: Val::Px(15.0),
-                        ..Default::default()
-                    },
+        /*commands
+        .spawn_bundle(TextBundle {
+            style: Style {
+                align_self: AlignSelf::FlexEnd,
+                position_type: PositionType::Absolute,
+                position: Rect {
+                    top: Val::Px(30.0 + (15.0 * id as f32)),
+                    left: Val::Px(15.0),
                     ..Default::default()
                 },
-                text: Text::with_section(
-                    "fish",
-                    TextStyle {
-                        font: _asset_server.load("fonts/Roboto-Regular.ttf"),
-                        font_size: 14.0,
-                        color: Color::WHITE,
-                    },
-                    TextAlignment::default(),
-                ),
                 ..Default::default()
-            })
-            .insert(PhysicsDebug {
-                name: format!("Fish {}", id),
-                entity: _entity,
-            });
+            },
+            text: Text::with_section(
+                "fish",
+                TextStyle {
+                    font: _asset_server.load("fonts/Roboto-Regular.ttf"),
+                    font_size: 14.0,
+                    color: Color::WHITE,
+                },
+                TextAlignment::default(),
+            ),
+            ..Default::default()
+        })
+        .insert(PhysicsDebug {
+            name: format!("Fish {}", id),
+            entity: _entity,
+        });*/
     }
 
     /// Construct a new fish that swims in a direction for the given duration
