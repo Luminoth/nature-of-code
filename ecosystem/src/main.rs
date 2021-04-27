@@ -6,6 +6,7 @@ mod resources;
 mod states;
 mod systems;
 
+use bevy::core::FixedTimestep;
 use bevy::diagnostic::*;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
@@ -74,42 +75,54 @@ fn main() {
             SystemSet::on_enter(GameState::Game).with_system(states::game::setup.system()),
         )
         .add_system_set(
+            // fixed (physics) update
             SystemSet::on_update(GameState::Game)
+                .with_run_criteria(FixedTimestep::step(0.02))
                 .with_system(
                     physics_collisions
                         .system()
-                        .label("physics_collisions")
-                        .before("physics_after"),
+                        .label(Physics)
+                        .label(PhysicsSystem::Collisions)
+                        .before(PhysicsSystem::Update),
                 )
-                .with_system(physics_after.system().label("physics_after"))
                 .with_system(
-                    physics_debug
+                    physics_update
                         .system()
-                        .after("physics_collisions")
-                        .before("physics_after"),
+                        .label(Physics)
+                        .label(PhysicsSystem::Update),
                 )
                 .with_system(
-                    creature_after
+                    creature_physics
                         .system()
-                        .label("creature_after")
-                        .before("physics_collisions"),
+                        .label(CreaturesSystem::Physics)
+                        .before(Physics),
                 )
                 .with_system(
-                    fly.system()
-                        .before("creature_after")
-                        .before("physics_collisions"),
-                )
-                .with_system(
-                    fish.system()
-                        .before("creature_after")
-                        .before("physics_collisions"),
-                )
-                .with_system(
-                    snake
+                    fly_physics
                         .system()
-                        .before("creature_after")
-                        .before("physics_collisions"),
+                        .label(CreaturesSystem::Physics)
+                        .before(Physics),
+                )
+                .with_system(
+                    fish_physics
+                        .system()
+                        .label(CreaturesSystem::Physics)
+                        .before(Physics),
+                )
+                .with_system(
+                    snake_physics
+                        .system()
+                        .label(CreaturesSystem::Physics)
+                        .before(Physics),
                 ),
+        )
+        .add_system_set(
+            // per-frame update
+            SystemSet::on_update(GameState::Game)
+                .with_system(physics_debug.system().label(PhysicsSystem::Debug))
+                .with_system(fly_update.system().label(CreaturesSystem::Creature))
+                .with_system(fish_update.system().label(CreaturesSystem::Creature))
+                .with_system(snake_update.system().label(CreaturesSystem::Creature)),
         )
         .add_system_set(
             SystemSet::on_exit(GameState::Game).with_system(states::game::teardown.system()),

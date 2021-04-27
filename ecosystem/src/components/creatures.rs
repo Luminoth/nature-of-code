@@ -14,7 +14,7 @@ const FLY_COLOR: Color = Color::WHITE;
 const FLY_MASS: f32 = 1.0; // 100x the mass of an actual housefly (g)
 const FLY_DRAG: f32 = 0.1;
 const FLY_SIZE: f32 = 2.0;
-pub const FLY_FORCE: f32 = FLY_MASS * 200.0;
+pub const FLY_FORCE: f32 = FLY_MASS * 20.0;
 
 const FISH_COLOR: Color = Color::SALMON;
 const FISH_MASS: f32 = 1500.0; // 100x the mass of an actual koi (kg)
@@ -22,14 +22,14 @@ const FISH_DRAG: f32 = 0.1;
 const FISH_SIZE: f32 = 10.0;
 const FISH_SWIM_DURATION: f32 = 3.0;
 const FISH_COOLDOWN_DURATION: f32 = 3.0;
-pub const FISH_FORCE: f32 = FISH_MASS * 100.0;
+pub const FISH_FORCE: f32 = FISH_MASS * 75.0;
 
 const SNAKE_COLOR: Color = Color::MAROON;
 const SNAKE_MASS: f32 = 15.0; // 100x the mass of an actual garter snake (kg)
 const SNAKE_DRAG: f32 = 0.2;
 const SNAKE_SIZE: f32 = 5.0;
 const SNAKE_DIRECTION_DURATION: f32 = 3.0;
-pub const SNAKE_GROUND_FORCE: f32 = SNAKE_MASS * 100.0;
+pub const SNAKE_GROUND_FORCE: f32 = SNAKE_MASS * 50.0;
 
 /// Shared creature component
 #[derive(Default)]

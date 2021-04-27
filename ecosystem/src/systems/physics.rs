@@ -4,6 +4,16 @@ use bevy::prelude::*;
 
 use crate::components::physics::*;
 
+#[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
+pub struct Physics;
+
+#[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
+pub enum PhysicsSystem {
+    Collisions,
+    Update,
+    Debug,
+}
+
 /// Handles physics collisions
 pub fn physics_collisions(
     mut query: Query<(&Transform, &mut Rigidbody, &Collider)>,
@@ -53,7 +63,7 @@ pub fn physics_collisions(
 }
 
 /// Updates rigidbodies and applies transform changes
-pub fn physics_after(time: Res<Time>, mut query: Query<(&mut Transform, &mut Rigidbody)>) {
+pub fn physics_update(time: Res<Time>, mut query: Query<(&mut Transform, &mut Rigidbody)>) {
     for (mut transform, mut rigidbody) in query.iter_mut() {
         rigidbody.update(&mut transform, time.delta_seconds());
     }
