@@ -68,7 +68,7 @@ pub fn fps_text_system(
     diagnostics: Res<Diagnostics>,
     mut query: Query<&mut Text, With<FpsText>>,
 ) {
-    for mut text in query.iter_mut() {
+    if let Ok(mut text) = query.single_mut() {
         let mut fps = 0.0;
         if let Some(fps_diagnostic) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
             if let Some(fps_avg) = fps_diagnostic.average() {
