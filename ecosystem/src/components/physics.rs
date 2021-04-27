@@ -131,6 +131,19 @@ impl Rigidbody {
         }
     }
 
+    /// Repel a rigidbody inside bounds
+    #[allow(dead_code)]
+    pub fn repel(
+        &mut self,
+        _transform: &mut Transform,
+        _minx: f32,
+        _maxx: f32,
+        _miny: f32,
+        _maxy: f32,
+    ) {
+        // TODO:
+    }
+
     /// Applies a force to the rigidbody
     pub fn apply_force(&mut self, force: Vec2, _name: impl AsRef<str>) {
         let force = if self.mass > 0.0 {

@@ -3,6 +3,8 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
+use crate::resources::*;
+
 use super::debug::*;
 use super::physics::*;
 
@@ -24,7 +26,8 @@ const SNAKE_COLOR: Color = Color::MAROON;
 const SNAKE_MASS: f32 = 15.0; // 100x the mass of an actual garter snake (kg)
 const SNAKE_DRAG: f32 = 0.2;
 const SNAKE_SIZE: f32 = 5.0;
-pub const SNAKE_GROUND_FORCE: f32 = SNAKE_MASS * 70.0;
+const SNAKE_DIRECTION_DURATION: f32 = 3.0;
+pub const SNAKE_GROUND_FORCE: f32 = SNAKE_MASS * 100.0;
 
 /// Shared creature component
 #[derive(Default)]
@@ -50,6 +53,8 @@ impl Fly {
             ..Default::default()
         };
 
+        let fly = Fly::default();
+
         let _entity = commands
             .spawn_bundle(GeometryBuilder::build_as(
                 &shape,
@@ -68,7 +73,7 @@ impl Fly {
                 shape.radii.y * 2.0,
             ))
             .insert(Creature::default())
-            .insert(Fly::default())
+            .insert(fly)
             .id();
 
         /*commands
@@ -125,6 +130,8 @@ impl Fish {
             ..Default::default()
         };
 
+        let fish = Fish::new(2.0, 2.0);
+
         let _entity = commands
             .spawn_bundle(GeometryBuilder::build_as(
                 &shape,
@@ -143,7 +150,7 @@ impl Fish {
                 shape.radii.y * 2.0,
             ))
             .insert(Creature::default())
-            .insert(Fish::new(2.0, 2.0))
+            .insert(fish)
             .id();
 
         commands
@@ -178,9 +185,9 @@ impl Fish {
     /// Construct a new fish that swims in a direction for the given duration
     pub fn new(swim_duration: f32, swim_cooldown: f32) -> Self {
         Self {
-            swim_direction: Vec2::default(),
             swim_timer: Timer::from_seconds(swim_duration, false),
             swim_cooldown: Timer::from_seconds(swim_cooldown, false),
+            ..Default::default()
         }
     }
 }
@@ -188,6 +195,7 @@ impl Fish {
 /// Snakes snek
 #[derive(Default)]
 pub struct Snake {
+    pub direction: Vec2,
     pub direction_timer: Timer,
 }
 
@@ -197,6 +205,7 @@ impl Snake {
     pub fn spawn(
         commands: &mut Commands,
         _asset_server: &Res<AssetServer>,
+        random: &mut Random,
         id: u32,
         position: Vec2,
     ) {
@@ -206,6 +215,9 @@ impl Snake {
             radii: Vec2::new(SNAKE_SIZE, SNAKE_SIZE),
             ..Default::default()
         };
+
+        let mut snake = Snake::new(SNAKE_DIRECTION_DURATION);
+        snake.direction = random.direction();
 
         let _entity = commands
             .spawn_bundle(GeometryBuilder::build_as(
@@ -225,42 +237,43 @@ impl Snake {
                 shape.radii.y * 2.0,
             ))
             .insert(Creature::default())
-            .insert(Snake::new(2.0))
+            .insert(snake)
             .id();
 
-        commands
-            .spawn_bundle(TextBundle {
-                style: Style {
-                    align_self: AlignSelf::FlexEnd,
-                    position_type: PositionType::Absolute,
-                    position: Rect {
-                        top: Val::Px(30.0 + (15.0 * id as f32)),
-                        left: Val::Px(15.0),
-                        ..Default::default()
-                    },
+        /*commands
+        .spawn_bundle(TextBundle {
+            style: Style {
+                align_self: AlignSelf::FlexEnd,
+                position_type: PositionType::Absolute,
+                position: Rect {
+                    top: Val::Px(30.0 + (15.0 * id as f32)),
+                    left: Val::Px(15.0),
                     ..Default::default()
                 },
-                text: Text::with_section(
-                    "snake",
-                    TextStyle {
-                        font: _asset_server.load("fonts/Roboto-Regular.ttf"),
-                        font_size: 14.0,
-                        color: Color::WHITE,
-                    },
-                    TextAlignment::default(),
-                ),
                 ..Default::default()
-            })
-            .insert(PhysicsDebug {
-                name: format!("Snake {}", id),
-                entity: _entity,
-            });
+            },
+            text: Text::with_section(
+                "snake",
+                TextStyle {
+                    font: _asset_server.load("fonts/Roboto-Regular.ttf"),
+                    font_size: 14.0,
+                    color: Color::WHITE,
+                },
+                TextAlignment::default(),
+            ),
+            ..Default::default()
+        })
+        .insert(PhysicsDebug {
+            name: format!("Snake {}", id),
+            entity: _entity,
+        });*/
     }
 
     /// Construct a new snake that slithers in a direction for the given duration
     pub fn new(direction_duration: f32) -> Self {
         Self {
             direction_timer: Timer::from_seconds(direction_duration, true),
+            ..Default::default()
         }
     }
 }

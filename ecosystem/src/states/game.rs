@@ -57,10 +57,10 @@ pub fn setup(
     }*/
 
     // snakes
-    /*for id in 0..random.normal_clamped::<f32>(2.0, 1.0, 1.0, 4.0) as u32 {
+    for id in 0..random.normal_clamped::<f32>(2.0, 1.0, 1.0, 4.0) as u32 {
         let position = random.vec2_range(qw + 5.0..hw - 5.0, -hh + 5.0..hh - 5.0);
-        Snake::spawn(&mut commands, &asset_server, id, position);
-    }*/
+        Snake::spawn(&mut commands, &asset_server, &mut random, id, position);
+    }
 }
 
 /// Game teardown
