@@ -27,10 +27,9 @@ where
 
         let now = Instant::now();
         draw(&mut screen, (Instant::now() - prev).as_secs_f64())?;
+        prev = now;
 
         screen.reveal()?;
-
-        prev = now;
     }
 }
 
