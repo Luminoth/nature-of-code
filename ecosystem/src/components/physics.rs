@@ -174,33 +174,27 @@ impl Rigidbody {
 
     /// Update a rigidbody
     #[tracing::instrument]
-    pub fn update(&mut self, transform: &mut Transform, dt: f32) {
-        // in order to prevent hangs from causing large dts
-        // and in turn causing large accelerations and velocities
-        // to accumulate, this runs as many fixed steps as it can
-        // with acceleration reset after the first step
-
-        let mut dt = dt;
-        loop {
-            self.velocity += self.acceleration * PHYSICS_STEP;
-            if !self.velocity.is_finite() {
-                panic!("Invalid velocity from acceleration");
-            }
-
-            //info!("updated velocity: {}", self.velocity);
-
-            transform.translation += self.velocity * PHYSICS_STEP;
-            if !transform.translation.is_finite() {
-                panic!("Invalid position from velocity");
-            }
-
-            self.acceleration = Vec3::default();
-
-            dt -= PHYSICS_STEP;
-            if dt < PHYSICS_STEP {
-                break;
-            }
+    pub fn update(&mut self, transform: &mut Transform, mut dt: f32) {
+        // this can happen over the first couple seconds of runtime, not really sure why
+        // for those frames tho, just treat it as a single step
+        if dt < PHYSICS_STEP - 0.05 || dt > PHYSICS_STEP + 0.05 {
+            info!("unexpected physics step, expected {}", PHYSICS_STEP);
+            dt = PHYSICS_STEP;
         }
+
+        self.velocity += self.acceleration * dt;
+        if !self.velocity.is_finite() {
+            panic!("Invalid velocity from acceleration");
+        }
+
+        //info!("updated velocity: {}", self.velocity);
+
+        transform.translation += self.velocity * dt;
+        if !transform.translation.is_finite() {
+            panic!("Invalid position from velocity");
+        }
+
+        self.acceleration = Vec3::default();
     }
 }
 

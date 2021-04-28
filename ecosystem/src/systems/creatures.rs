@@ -21,8 +21,9 @@ pub fn creature_physics(
     let hw = window.width() as f32 / 2.0;
     let hh = window.height() as f32 / 2.0;
 
+    let offset = 5.0;
+
     for (mut transform, mut rigidbody, collider) in query.iter_mut() {
-        let offset = 5.0;
         let minx = -hw + collider.size.x + offset;
         let maxx = hw - collider.size.x - offset;
         let miny = -hh + collider.size.y + offset;
