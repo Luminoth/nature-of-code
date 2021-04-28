@@ -6,6 +6,7 @@ use bevy::utils::tracing;
 /// Physics step rate
 /// 50hz, the same as Unity
 pub const PHYSICS_STEP: f32 = 0.02;
+const PHYSICS_STEP_MAX: f32 = PHYSICS_STEP * 4.0;
 
 /// Rigidbody state
 #[derive(Debug)]
@@ -175,12 +176,17 @@ impl Rigidbody {
     /// Update a rigidbody
     #[tracing::instrument]
     pub fn update(&mut self, transform: &mut Transform, mut dt: f32) {
-        // this can happen over the first couple seconds of runtime, not really sure why
-        // for those frames tho, just treat it as a single step
-        if dt < PHYSICS_STEP - 0.05 || dt > PHYSICS_STEP + 0.05 {
+        // during the first few seconds of runtime
+        // the dt can be wildly large,
+        // so to prevent weird things happening
+        // just treat them as single steps
+        if dt > PHYSICS_STEP_MAX {
             info!("unexpected physics step, expected {}", PHYSICS_STEP);
             dt = PHYSICS_STEP;
         }
+
+        // dts here can still be larger than a single step for some reason
+        // but they're sane enough we can treat them like normal
 
         self.velocity += self.acceleration * dt;
         if !self.velocity.is_finite() {
