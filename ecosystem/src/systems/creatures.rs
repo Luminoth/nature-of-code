@@ -15,37 +15,43 @@ pub enum CreaturesSystem {
 /// Common creature behavior
 pub fn creature_physics(
     windows: Res<Windows>,
-    mut query: Query<(&mut Transform, &mut Rigidbody), With<Creature>>,
+    mut query: Query<(&mut Transform, &mut Rigidbody, &Collider), With<Creature>>,
 ) {
     let window = windows.get_primary().unwrap();
     let hw = window.width() as f32 / 2.0;
     let hh = window.height() as f32 / 2.0;
 
-    for (mut transform, mut rigidbody) in query.iter_mut() {
-        //rigidbody.wrap(&mut transform, -hw, hw, -hh, hh);
-        //rigidbody.bounce(&mut transform, -hw, hw, -hh, hh);
-        rigidbody.contain(&mut transform, -hw, hw, -hh, hh);
+    for (mut transform, mut rigidbody, collider) in query.iter_mut() {
+        let offset = 5.0;
+        let minx = -hw + collider.size.x + offset;
+        let maxx = hw - collider.size.x - offset;
+        let miny = -hh + collider.size.y + offset;
+        let maxy = hh - collider.size.y - offset;
+
+        //rigidbody.wrap(&mut transform, minx, maxx, miny, maxy);
+        //rigidbody.bounce(&mut transform, minx, maxx, miny, maxy);
+        rigidbody.contain(&mut transform, minx, maxx, miny, maxy);
     }
 }
 
 /// Fly behavior
-pub fn fly_update(mut query: Query<&Fly>) {
+pub fn fly_update(mut query: Query<&mut Fly>) {
     for mut _fly in query.iter_mut() {}
 }
 
 /// Fly behavior
 pub fn fly_physics(
+    time: Res<Time>,
     mut random: ResMut<Random>,
     noise: Res<PerlinNoise>,
     mut query: Query<&mut Rigidbody, With<Fly>>,
 ) {
     for mut rigidbody in query.iter_mut() {
+        let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
+
         let direction = random.direction();
         //let direction = noise.direction(&mut random, 0.5);
-        rigidbody.apply_force(
-            direction * (FLY_FORCE * noise.sample(&mut random, 0.5) as f32),
-            "fly",
-        );
+        rigidbody.apply_force(direction * (FLY_FORCE * noise.get(t, 0.5) as f32), "fly");
     }
 }
 
@@ -72,14 +78,17 @@ pub fn fish_update(
 
 /// Fish behavior
 pub fn fish_physics(
+    time: Res<Time>,
     mut random: ResMut<Random>,
     noise: Res<PerlinNoise>,
     mut query: Query<(&mut Rigidbody, &Fish)>,
 ) {
     for (mut rigidbody, fish) in query.iter_mut() {
+        let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
+
         if !fish.swim_timer.finished() {
             rigidbody.apply_force(
-                fish.swim_direction * FISH_FORCE * noise.sample(&mut random, 0.5) as f32,
+                fish.swim_direction * FISH_FORCE * noise.get(t, 0.5) as f32,
                 "swim",
             );
         }
@@ -103,13 +112,16 @@ pub fn snake_update(
 
 /// Snake behavior
 pub fn snake_physics(
+    time: Res<Time>,
     mut random: ResMut<Random>,
     noise: Res<PerlinNoise>,
     mut query: Query<(&mut Rigidbody, &Snake)>,
 ) {
     for (mut rigidbody, snake) in query.iter_mut() {
+        let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
+
         rigidbody.apply_force(
-            snake.direction * SNAKE_GROUND_FORCE * noise.sample(&mut random, 0.5) as f32,
+            snake.direction * SNAKE_GROUND_FORCE * noise.get(t, 0.5) as f32,
             "slither",
         );
     }

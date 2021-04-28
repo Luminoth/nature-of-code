@@ -11,25 +11,25 @@ use super::physics::*;
 // NOTE: masses < 1 here can cause drag / friction to produce wildly oversized results
 
 const FLY_COLOR: Color = Color::WHITE;
-const FLY_MASS: f32 = 1.0; // 100x the mass of an actual housefly (g)
-const FLY_DRAG: f32 = 0.1;
+const FLY_MASS: f32 = 1.0; // completely made up mass to just make things work
+const FLY_DRAG: f32 = 0.01;
 const FLY_SIZE: f32 = 2.0;
-pub const FLY_FORCE: f32 = FLY_MASS * 20.0;
+pub const FLY_FORCE: f32 = FLY_MASS * 1500.0;
 
 const FISH_COLOR: Color = Color::SALMON;
 const FISH_MASS: f32 = 1500.0; // 100x the mass of an actual koi (kg)
-const FISH_DRAG: f32 = 0.1;
+const FISH_DRAG: f32 = 0.03;
 const FISH_SIZE: f32 = 10.0;
 const FISH_SWIM_DURATION: f32 = 3.0;
 const FISH_COOLDOWN_DURATION: f32 = 3.0;
-pub const FISH_FORCE: f32 = FISH_MASS * 75.0;
+pub const FISH_FORCE: f32 = FISH_MASS * 300.0;
 
 const SNAKE_COLOR: Color = Color::MAROON;
 const SNAKE_MASS: f32 = 15.0; // 100x the mass of an actual garter snake (kg)
-const SNAKE_DRAG: f32 = 0.2;
+const SNAKE_DRAG: f32 = 0.04;
 const SNAKE_SIZE: f32 = 5.0;
 const SNAKE_DIRECTION_DURATION: f32 = 3.0;
-pub const SNAKE_GROUND_FORCE: f32 = SNAKE_MASS * 50.0;
+pub const SNAKE_GROUND_FORCE: f32 = SNAKE_MASS * 200.0;
 
 /// Shared creature component
 #[derive(Default)]
@@ -134,7 +134,10 @@ impl Fish {
             ..Default::default()
         };
 
-        let mut fish = Fish::new(FISH_SWIM_DURATION, FISH_COOLDOWN_DURATION);
+        let mut fish = Fish::new(
+            FISH_SWIM_DURATION + random.random_range(-1.0..1.0),
+            FISH_COOLDOWN_DURATION + random.random_range(-1.0..1.0),
+        );
         fish.swim_direction = random.direction();
         //fish.swim_direction = _noise.direction(random, 0.5);
 
@@ -223,7 +226,7 @@ impl Snake {
             ..Default::default()
         };
 
-        let mut snake = Snake::new(SNAKE_DIRECTION_DURATION);
+        let mut snake = Snake::new(SNAKE_DIRECTION_DURATION + random.random_range(-0.5..0.5));
         snake.direction = random.direction();
         //snake.direction = _noise.direction(random, 0.5);
 
