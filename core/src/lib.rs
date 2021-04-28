@@ -8,7 +8,7 @@ use noise::{NoiseFn, Perlin, Seedable};
 use once_cell::sync::Lazy;
 use processing::errors::ProcessingErr;
 use processing::Screen;
-use rand::{random, Rng};
+use rand::random;
 
 use crate::math::*;
 
@@ -19,15 +19,18 @@ where
 {
     let mut screen = setup()?;
 
-    let mut timer = Instant::now();
+    let mut prev = Instant::now();
     loop {
         input::update(&mut screen);
 
         screen.reset_matrix();
-        draw(&mut screen, timer.elapsed().as_secs_f64())?;
-        timer = Instant::now();
+
+        let now = Instant::now();
+        draw(&mut screen, (Instant::now() - prev).as_secs_f64())?;
 
         screen.reveal()?;
+
+        prev = now;
     }
 }
 
@@ -85,30 +88,31 @@ pub fn fill_rgba(screen: &mut Screen, r: f32, g: f32, b: f32, a: f32) {
 
 /* noise */
 
-static PERLIN: Lazy<Perlin> = Lazy::new(|| Perlin::new().set_seed(random()));
+#[allow(dead_code)]
+static PERLIN_NOISE: Lazy<Perlin> = Lazy::new(|| Perlin::default().set_seed(random()));
 
 pub fn noise(point: f64, frequency: f64) -> f64 {
     let point = [point * frequency, 0.0];
-    map(PERLIN.get(point), -1.0, 1.0, 0.0, 1.0)
+    PERLIN_NOISE.get(point)
 }
 
-pub fn sample_noise(frequency: f64) -> f64 {
+/*pub fn sample_noise(frequency: f64) -> f64 {
     let mut rng = rand::thread_rng();
     noise(rng.gen_range(0.0..1.0), frequency)
-}
+}*/
 
 pub fn noise2d(point: [f64; 2], frequency: f64) -> f64 {
     let point = [point[0] * frequency, point[1] * frequency];
-    map(PERLIN.get(point), -1.0, 1.0, 0.0, 1.0)
+    PERLIN_NOISE.get(point)
 }
 
-pub fn sample_noise2d(frequency: f64) -> f64 {
+/*pub fn sample_noise2d(frequency: f64) -> f64 {
     let mut rng = rand::thread_rng();
     noise2d(
-        [rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0)],
+        [rng.gen_range(0.0..1.0), rng.gen_range(0.0..=1.0)],
         frequency,
     )
-}
+}*/
 
 pub fn noise3d(point: [f64; 3], frequency: f64) -> f64 {
     let point = [
@@ -116,10 +120,10 @@ pub fn noise3d(point: [f64; 3], frequency: f64) -> f64 {
         point[1] * frequency,
         point[2] * frequency,
     ];
-    map(PERLIN.get(point), -1.0, 1.0, 0.0, 1.0)
+    PERLIN_NOISE.get(point)
 }
 
-pub fn sample_noise3d(frequency: f64) -> f64 {
+/*pub fn sample_noise3d(frequency: f64) -> f64 {
     let mut rng = rand::thread_rng();
     noise3d(
         [
@@ -129,7 +133,7 @@ pub fn sample_noise3d(frequency: f64) -> f64 {
         ],
         frequency,
     )
-}
+}*/
 
 /* internal utils */
 

@@ -4,19 +4,19 @@ use std::rc::Rc;
 use glam::DVec2;
 use processing::errors::ProcessingErr;
 use processing::Screen;
+use rand::Rng;
 
 #[derive(Debug, Default)]
 struct Balloon {
     location: DVec2,
     velocity: DVec2,
     acceleration: DVec2,
-    topspeed: f64,
 }
 
 impl Balloon {
-    fn new(screen: &Screen) -> Self {
+    fn new(x: f64, y: f64) -> Self {
         Self {
-            location: DVec2::new(screen.width() as f64 / 2.0, screen.height() as f64),
+            location: DVec2::new(x, y),
             ..Default::default()
         }
     }
@@ -32,6 +32,7 @@ impl Balloon {
             self.location.y = screen.height() as f64;
         } else if self.location.y < 0.0 {
             self.location.y = 0.0;
+            self.velocity.y *= -0.2;
         }
     }
 
@@ -39,11 +40,9 @@ impl Balloon {
         self.acceleration += force;
     }
 
-    fn update(&mut self) {
-        self.velocity += self.acceleration;
-        self.velocity.y = core::math::clampf(self.velocity.y, -1.0, 1.0);
-
-        self.location += self.velocity;
+    fn update(&mut self, dt: f64) {
+        self.velocity += self.acceleration * dt;
+        self.location += self.velocity * dt;
 
         self.acceleration = DVec2::default();
     }
@@ -56,46 +55,75 @@ impl Balloon {
     }
 }
 
+#[derive(Debug, Default)]
+struct Wind {
+    accumulator: f64,
+}
+
 fn setup<'a>() -> Result<Screen<'a>, ProcessingErr> {
     core::create_canvas(640, 360)
 }
 
-fn draw(screen: &mut Screen, balloon: &mut Balloon) -> Result<(), ProcessingErr> {
+fn draw(
+    screen: &mut Screen,
+    dt: f64,
+    balloons: &mut impl AsMut<[Balloon]>,
+    wind: &mut Wind,
+) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 255.0);
 
-    // float
-    let balloon_force = DVec2::new(0.0, -0.005);
-    balloon.apply_force(balloon_force);
+    wind.accumulator += dt;
 
-    // wind
-    // TODO: this would be better if we accelerated for a while
-    // in a direction before changing directions
-    let wind_force = DVec2::new(
-        core::math::map(core::sample_noise2d(1.0), 0.0, 1.0, -1.0, 1.0),
-        0.0,
-    ) * 0.01;
-    balloon.apply_force(wind_force);
+    let balloon_force = DVec2::new(0.0, -10.0);
+    let wind_force = DVec2::new(core::noise(wind.accumulator, 0.5), 0.0) * 20.0;
 
-    balloon.update();
-    balloon.check_edges(screen);
-    balloon.display(screen)?;
+    for balloon in balloons.as_mut() {
+        balloon.apply_force(balloon_force);
+        balloon.apply_force(wind_force);
+
+        balloon.update(dt);
+        balloon.check_edges(screen);
+        balloon.display(screen)?;
+    }
 
     // stole this from dave - render the wind strength
-    core::shapes::rect(screen, 300.0, 20.0, wind_force.length() * 16.0, 32.0)?;
+    core::shapes::rect(screen, 300.0, 20.0, wind_force.x * 16.0, 32.0)?;
 
     Ok(())
 }
 
 fn main() -> Result<(), ProcessingErr> {
-    let balloon = Rc::new(RefCell::new(None));
+    let balloons = Rc::new(RefCell::new(None));
+    let wind = Rc::new(RefCell::new(None));
 
     core::run(
         || {
+            let mut rng = rand::thread_rng();
+
             let screen = setup()?;
-            *balloon.borrow_mut() = Some(Balloon::new(&screen));
+
+            let mut bs = vec![];
+            for _ in 0..20 {
+                let x = rng.gen_range(0..screen.width()) as f64;
+                bs.push(Balloon::new(
+                    x,
+                    screen.height() as f64 - rng.gen_range(0.0..10.0),
+                ));
+            }
+            *balloons.borrow_mut() = Some(bs);
+
+            *wind.borrow_mut() = Some(Wind::default());
+
             Ok(screen)
         },
-        |screen, _| draw(screen, balloon.borrow_mut().as_mut().unwrap()),
+        |screen, dt| {
+            draw(
+                screen,
+                dt,
+                balloons.borrow_mut().as_mut().unwrap(),
+                wind.borrow_mut().as_mut().unwrap(),
+            )
+        },
     )?;
 
     Ok(())

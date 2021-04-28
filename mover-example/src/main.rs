@@ -121,13 +121,11 @@ impl Mover {
     }
 
     #[allow(dead_code)]
-    fn apply_noise_force(&mut self, frequency: f64) {
+    fn apply_noise_force(&mut self, t: f64, frequency: f64) {
         let mut rng = rand::thread_rng();
 
         self.apply_force(
-            core::math::vector2_random()
-                * core::sample_noise2d(frequency)
-                * rng.gen_range(0.1..0.5),
+            core::math::vector2_random() * core::noise(t, frequency) * rng.gen_range(0.1..0.5),
         );
     }
 
@@ -139,9 +137,9 @@ impl Mover {
         self.apply_force(drag);
     }
 
-    fn update(&mut self) {
-        self.velocity += self.acceleration;
-        self.location += self.velocity;
+    fn update(&mut self, dt: f64) {
+        self.velocity += self.acceleration * dt;
+        self.location += self.velocity * dt;
 
         self.acceleration = DVec2::default();
     }
@@ -166,6 +164,7 @@ fn setup<'a>() -> Result<Screen<'a>, ProcessingErr> {
 
 fn draw(
     screen: &mut Screen,
+    dt: f64,
     movers: &mut impl AsMut<[Mover]>,
     liquid: &Liquid,
 ) -> Result<(), ProcessingErr> {
@@ -174,7 +173,7 @@ fn draw(
     liquid.display(screen)?;
 
     //let wind = Vector2::new(0.01, 0.0);
-    let gravity = DVec2::new(0.0, 0.1);
+    let gravity = DVec2::new(0.0, 100.0);
 
     //let c = 0.01;
 
@@ -189,7 +188,7 @@ fn draw(
         //mover.apply_force(wind);
         mover.apply_force(gravity * mover.mass);
 
-        mover.update();
+        mover.update(dt);
         mover.bounce_edges(screen);
         mover.display(screen)?;
     }
@@ -225,9 +224,10 @@ fn main() -> Result<(), ProcessingErr> {
 
             Ok(screen)
         },
-        |screen, _| {
+        |screen, dt| {
             draw(
                 screen,
+                dt,
                 movers.borrow_mut().as_mut().unwrap(),
                 liquid.borrow().as_ref().unwrap(),
             )

@@ -2,7 +2,7 @@ use glam::DVec2;
 use num_traits::Float;
 use rand::Rng;
 
-use crate::*;
+//use crate::*;
 
 pub fn clamp<T: Ord>(v: T, min: T, max: T) -> T {
     std::cmp::min(max, std::cmp::max(min, v))
@@ -13,8 +13,8 @@ pub fn clampf<F: Float>(v: F, min: F, max: F) -> F {
 }
 
 // https://www.arduino.cc/reference/en/language/functions/math/map/
-pub fn map<F: Float>(x: F, in_min: F, in_max: F, out_min: F, out_max: F) -> F {
-    (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+pub fn map<F: Float>(v: F, in_min: F, in_max: F, out_min: F, out_max: F) -> F {
+    (v - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 }
 
 pub fn vector2_random() -> DVec2 {
@@ -23,11 +23,7 @@ pub fn vector2_random() -> DVec2 {
     DVec2::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0)).normalize_or_zero()
 }
 
-pub fn vector2_perlin(frequency: f64) -> DVec2 {
+/*pub fn vector2_perlin(frequency: f64) -> DVec2 {
     // TODO: should we take 2 frequencies here (one for x, one for y) ?
-    DVec2::new(
-        map(sample_noise2d(frequency), 0.0, 1.0, -1.0, 1.0),
-        map(sample_noise2d(frequency), 0.0, 1.0, -1.0, 1.0),
-    )
-    .normalize_or_zero()
-}
+    DVec2::new(sample_noise2d(frequency), sample_noise2d(frequency)).normalize_or_zero()
+}*/
