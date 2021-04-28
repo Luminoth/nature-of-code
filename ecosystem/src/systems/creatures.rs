@@ -40,15 +40,22 @@ pub fn fly_physics(
     mut query: Query<&mut Rigidbody, With<Fly>>,
 ) {
     for mut rigidbody in query.iter_mut() {
+        let direction = random.direction();
+        //let direction = noise.direction(&mut random, 0.5);
         rigidbody.apply_force(
-            random.direction() * (FLY_FORCE * noise.sample(&mut random, 10.0) as f32),
+            direction * (FLY_FORCE * noise.sample(&mut random, 0.5) as f32),
             "fly",
         );
     }
 }
 
 /// Fish behavior
-pub fn fish_update(time: Res<Time>, mut random: ResMut<Random>, mut query: Query<&mut Fish>) {
+pub fn fish_update(
+    time: Res<Time>,
+    mut random: ResMut<Random>,
+    _noise: Res<PerlinNoise>,
+    mut query: Query<&mut Fish>,
+) {
     for mut fish in query.iter_mut() {
         if fish.swim_timer.tick(time.delta()).just_finished() {
             fish.swim_cooldown.reset();
@@ -56,6 +63,7 @@ pub fn fish_update(time: Res<Time>, mut random: ResMut<Random>, mut query: Query
 
         if fish.swim_cooldown.tick(time.delta()).just_finished() {
             fish.swim_direction = random.direction();
+            //fish.swim_direction = _noise.direction(&mut random, 0.5);
 
             fish.swim_timer.reset();
         }
@@ -71,7 +79,7 @@ pub fn fish_physics(
     for (mut rigidbody, fish) in query.iter_mut() {
         if !fish.swim_timer.finished() {
             rigidbody.apply_force(
-                fish.swim_direction * FISH_FORCE * noise.sample(&mut random, 10.0) as f32,
+                fish.swim_direction * FISH_FORCE * noise.sample(&mut random, 0.5) as f32,
                 "swim",
             );
         }
@@ -79,10 +87,16 @@ pub fn fish_physics(
 }
 
 /// Snake behavior
-pub fn snake_update(time: Res<Time>, mut random: ResMut<Random>, mut query: Query<&mut Snake>) {
+pub fn snake_update(
+    time: Res<Time>,
+    mut random: ResMut<Random>,
+    _noise: Res<PerlinNoise>,
+    mut query: Query<&mut Snake>,
+) {
     for mut snake in query.iter_mut() {
         if snake.direction_timer.tick(time.delta()).just_finished() {
             snake.direction = random.direction();
+            //snake.direction = _noise.direction(&mut random, 0.5);
         }
     }
 }
@@ -95,7 +109,7 @@ pub fn snake_physics(
 ) {
     for (mut rigidbody, snake) in query.iter_mut() {
         rigidbody.apply_force(
-            snake.direction * SNAKE_GROUND_FORCE * noise.sample(&mut random, 2.0) as f32,
+            snake.direction * SNAKE_GROUND_FORCE * noise.sample(&mut random, 0.5) as f32,
             "slither",
         );
     }

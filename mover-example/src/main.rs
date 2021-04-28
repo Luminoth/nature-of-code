@@ -110,6 +110,7 @@ impl Mover {
         }
     }
 
+    #[allow(dead_code)]
     fn apply_force(&mut self, force: DVec2) {
         let force = if self.mass > 0.0 {
             force / self.mass
@@ -120,11 +121,13 @@ impl Mover {
     }
 
     #[allow(dead_code)]
-    fn apply_noise_force(&mut self) {
+    fn apply_noise_force(&mut self, frequency: f64) {
         let mut rng = rand::thread_rng();
 
         self.apply_force(
-            core::math::vector2_random() * core::sample_noise2d() * rng.gen_range(0.1..0.5),
+            core::math::vector2_random()
+                * core::sample_noise2d(frequency)
+                * rng.gen_range(0.1..0.5),
         );
     }
 

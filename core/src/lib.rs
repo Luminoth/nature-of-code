@@ -87,35 +87,48 @@ pub fn fill_rgba(screen: &mut Screen, r: f32, g: f32, b: f32, a: f32) {
 
 static PERLIN: Lazy<Perlin> = Lazy::new(|| Perlin::new().set_seed(random()));
 
-pub fn noise(point: f64) -> f64 {
-    map(PERLIN.get([point, 0.0]), -1.0, 1.0, 0.0, 1.0)
-}
-
-pub fn sample_noise() -> f64 {
-    let mut rng = rand::thread_rng();
-    noise(rng.gen_range(0.0..1.0))
-}
-
-pub fn noise2d(point: [f64; 2]) -> f64 {
+pub fn noise(point: f64, frequency: f64) -> f64 {
+    let point = [point * frequency, 0.0];
     map(PERLIN.get(point), -1.0, 1.0, 0.0, 1.0)
 }
 
-pub fn sample_noise2d() -> f64 {
+pub fn sample_noise(frequency: f64) -> f64 {
     let mut rng = rand::thread_rng();
-    noise2d([rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0)])
+    noise(rng.gen_range(0.0..1.0), frequency)
 }
 
-pub fn noise3d(point: [f64; 3]) -> f64 {
+pub fn noise2d(point: [f64; 2], frequency: f64) -> f64 {
+    let point = [point[0] * frequency, point[1] * frequency];
     map(PERLIN.get(point), -1.0, 1.0, 0.0, 1.0)
 }
 
-pub fn sample_noise3d() -> f64 {
+pub fn sample_noise2d(frequency: f64) -> f64 {
     let mut rng = rand::thread_rng();
-    noise3d([
-        rng.gen_range(0.0..1.0),
-        rng.gen_range(0.0..1.0),
-        rng.gen_range(0.0..1.0),
-    ])
+    noise2d(
+        [rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0)],
+        frequency,
+    )
+}
+
+pub fn noise3d(point: [f64; 3], frequency: f64) -> f64 {
+    let point = [
+        point[0] * frequency,
+        point[1] * frequency,
+        point[2] * frequency,
+    ];
+    map(PERLIN.get(point), -1.0, 1.0, 0.0, 1.0)
+}
+
+pub fn sample_noise3d(frequency: f64) -> f64 {
+    let mut rng = rand::thread_rng();
+    noise3d(
+        [
+            rng.gen_range(0.0..1.0),
+            rng.gen_range(0.0..1.0),
+            rng.gen_range(0.0..1.0),
+        ],
+        frequency,
+    )
 }
 
 /* internal utils */

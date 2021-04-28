@@ -129,26 +129,27 @@ impl PerlinNoise {
     /// Result is in the range (-1..1)
     #[allow(dead_code)]
     pub fn sample(&self, random: &mut Random, frequency: f64) -> f64 {
-        self.perlin
-            .get([random.random_range(0.0..1.0), random.random_range(0.0..1.0)])
-            * frequency
+        self.perlin.get([
+            random.random_range(0.0..1.0) * frequency,
+            random.random_range(0.0..1.0) * frequency,
+        ])
     }
 
     /// Generates a noisey vector in the range ((-1..1), (-1..1))
     #[allow(dead_code)]
-    pub fn vec2(&self, random: &mut Random) -> Vec2 {
+    pub fn vec2(&self, random: &mut Random, frequency: f64) -> Vec2 {
         Vec2::new(
-            self.sample(random, 1.0) as f32,
-            self.sample(random, 1.0) as f32,
+            self.sample(random, frequency) as f32,
+            self.sample(random, frequency) as f32,
         )
     }
 
     /// Generates a uniform random direction vector, never 0 length
     #[allow(dead_code)]
-    pub fn direction(&self, random: &mut Random) -> Vec2 {
-        let mut direction = self.vec2(random).normalize();
+    pub fn direction(&self, random: &mut Random, frequency: f64) -> Vec2 {
+        let mut direction = self.vec2(random, frequency).normalize();
         while !direction.is_finite() {
-            direction = self.vec2(random).normalize();
+            direction = self.vec2(random, frequency).normalize();
         }
         direction
     }

@@ -64,21 +64,24 @@ fn draw(screen: &mut Screen, balloon: &mut Balloon) -> Result<(), ProcessingErr>
     core::background_grayscale(screen, 255.0);
 
     // float
-    balloon.apply_force(DVec2::new(0.0, -0.005));
+    let balloon_force = DVec2::new(0.0, -0.005);
+    balloon.apply_force(balloon_force);
 
     // wind
     // TODO: this would be better if we accelerated for a while
     // in a direction before changing directions
-    balloon.apply_force(
-        DVec2::new(
-            core::math::map(core::sample_noise2d(), 0.0, 1.0, -1.0, 1.0),
-            0.0,
-        ) * 0.01,
-    );
+    let wind_force = DVec2::new(
+        core::math::map(core::sample_noise2d(1.0), 0.0, 1.0, -1.0, 1.0),
+        0.0,
+    ) * 0.01;
+    balloon.apply_force(wind_force);
 
     balloon.update();
     balloon.check_edges(screen);
     balloon.display(screen)?;
+
+    // stole this from dave - render the wind strength
+    core::shapes::rect(screen, 300.0, 20.0, wind_force.length() * 16.0, 32.0)?;
 
     Ok(())
 }

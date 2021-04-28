@@ -23,10 +23,11 @@ pub fn vector2_random() -> DVec2 {
     DVec2::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0)).normalize_or_zero()
 }
 
-pub fn vector2_perlin() -> DVec2 {
+pub fn vector2_perlin(frequency: f64) -> DVec2 {
+    // TODO: should we take 2 frequencies here (one for x, one for y) ?
     DVec2::new(
-        map(sample_noise2d(), 0.0, 1.0, -1.0, 1.0),
-        map(sample_noise2d(), 0.0, 1.0, -1.0, 1.0),
+        map(sample_noise2d(frequency), 0.0, 1.0, -1.0, 1.0),
+        map(sample_noise2d(frequency), 0.0, 1.0, -1.0, 1.0),
     )
     .normalize_or_zero()
 }

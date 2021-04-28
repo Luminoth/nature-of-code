@@ -123,6 +123,7 @@ impl Fish {
         commands: &mut Commands,
         _asset_server: &Res<AssetServer>,
         random: &mut Random,
+        _noise: &PerlinNoise,
         id: u32,
         position: Vec2,
     ) {
@@ -135,6 +136,7 @@ impl Fish {
 
         let mut fish = Fish::new(FISH_SWIM_DURATION, FISH_COOLDOWN_DURATION);
         fish.swim_direction = random.direction();
+        //fish.swim_direction = _noise.direction(random, 0.5);
 
         let _entity = commands
             .spawn_bundle(GeometryBuilder::build_as(
@@ -210,6 +212,7 @@ impl Snake {
         commands: &mut Commands,
         _asset_server: &Res<AssetServer>,
         random: &mut Random,
+        _noise: &PerlinNoise,
         id: u32,
         position: Vec2,
     ) {
@@ -222,6 +225,7 @@ impl Snake {
 
         let mut snake = Snake::new(SNAKE_DIRECTION_DURATION);
         snake.direction = random.direction();
+        //snake.direction = _noise.direction(random, 0.5);
 
         let _entity = commands
             .spawn_bundle(GeometryBuilder::build_as(
