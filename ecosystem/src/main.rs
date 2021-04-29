@@ -35,9 +35,9 @@ pub fn clampf<F: Float>(v: F, min: F, max: F) -> F {
 }
 
 /// Misc setup
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
     #[cfg(debug_assertions)]
-    asset_server.watch_for_changes().unwrap();
+    _asset_server.watch_for_changes().unwrap();
 
     commands.insert_resource(Random::default());
     commands.insert_resource(PerlinNoise::default());

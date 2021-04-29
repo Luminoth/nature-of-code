@@ -6,7 +6,24 @@ use bevy::utils::tracing;
 /// Physics step rate
 /// 50hz, the same as Unity
 pub const PHYSICS_STEP: f32 = 0.02;
+
+const PHYSICS_STEP_MIN: f32 = PHYSICS_STEP / 4.0;
 const PHYSICS_STEP_MAX: f32 = PHYSICS_STEP * 4.0;
+
+#[derive(Debug, Default, Copy, Clone)]
+struct Derivative {
+    acceleration: Vec3,
+    velocity: Vec3,
+}
+
+impl Derivative {
+    fn evaluate(rigidbody: &Rigidbody, dt: f32, derivative: Self) -> Self {
+        Self {
+            velocity: rigidbody.velocity + derivative.acceleration * dt,
+            acceleration: rigidbody.acceleration,
+        }
+    }
+}
 
 /// Rigidbody state
 #[derive(Debug)]
@@ -41,7 +58,8 @@ impl Rigidbody {
         }
     }
 
-    /// Gets the rigidbody speed squaed
+    /// Gets the rigidbody speed squared
+    #[allow(dead_code)]
     pub fn speed_squared(&self) -> f32 {
         let speed_squared = self.velocity.length_squared();
         // TODO: this shouldn't be possible and yet it happens?
@@ -173,21 +191,38 @@ impl Rigidbody {
         //info!("updated acceleration: {}", self.acceleration);
     }
 
-    /// Update a rigidbody
+    /// RK4 integration: https://gafferongames.com/post/integration_basics/
+    #[allow(dead_code)]
     #[tracing::instrument]
-    pub fn update(&mut self, transform: &mut Transform, mut dt: f32) {
-        // during the first few seconds of runtime
-        // the dt can be wildly large,
-        // so to prevent weird things happening
-        // just treat them as single steps
-        if dt > PHYSICS_STEP_MAX {
-            info!("unexpected physics step, expected {}", PHYSICS_STEP);
-            dt = PHYSICS_STEP;
+    fn rk4_integrate(&mut self, transform: &mut Transform, dt: f32) {
+        // sample derivative at four points
+        let a = Derivative::evaluate(self, 0.0, Derivative::default());
+        let b = Derivative::evaluate(self, dt * 0.5, a);
+        let c = Derivative::evaluate(self, dt * 0.5, b);
+        let d = Derivative::evaluate(self, dt, c);
+
+        // taylor expansion weighted sum
+        let dvdt =
+            1.0 / 6.0 * (a.acceleration + 2.0 * (b.acceleration + c.acceleration) + d.acceleration);
+        let dxdt = 1.0 / 6.0 * (a.velocity + 2.0 * (b.velocity + c.velocity) + d.velocity);
+
+        self.velocity += dvdt * dt;
+        if !self.velocity.is_finite() {
+            panic!("Invalid velocity from acceleration");
         }
 
-        // dts here can still be larger than a single step for some reason
-        // but they're sane enough we can treat them like normal
+        //info!("updated velocity: {}", self.velocity);
 
+        transform.translation += dxdt * dt;
+        if !transform.translation.is_finite() {
+            panic!("Invalid position from velocity");
+        }
+    }
+
+    /// Semi-explicit Euler integration
+    #[allow(dead_code)]
+    #[tracing::instrument]
+    fn euler_integrate(&mut self, transform: &mut Transform, dt: f32) {
         self.velocity += self.acceleration * dt;
         if !self.velocity.is_finite() {
             panic!("Invalid velocity from acceleration");
@@ -199,6 +234,23 @@ impl Rigidbody {
         if !transform.translation.is_finite() {
             panic!("Invalid position from velocity");
         }
+    }
+
+    /// Update a rigidbody
+    #[tracing::instrument]
+    pub fn update(&mut self, transform: &mut Transform, mut dt: f32) {
+        // during the first few seconds of runtime the dt can be wildly large,
+        // so to prevent weird things happening just treat them as single steps
+        if dt < PHYSICS_STEP_MIN || dt > PHYSICS_STEP_MAX {
+            info!("unexpected physics step, expected {}", PHYSICS_STEP);
+            dt = PHYSICS_STEP;
+        }
+
+        // dts here can still be smaller / larger than a single step for some reason
+        // but they're (usually) sane enough we can treat them like normal
+
+        //self.euler_integrate(transform, dt);
+        self.rk4_integrate(transform, dt);
 
         self.acceleration = Vec3::default();
     }
