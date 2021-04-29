@@ -8,6 +8,7 @@ members = [
     "vector-example",
     "liquid-example",
     "attractor-example",
+    "mutual-attractor-example",
     "intro/example1",
     "intro/example2",
     "intro/example4",
