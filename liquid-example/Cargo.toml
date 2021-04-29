@@ -1,5 +1,5 @@
 [package]
-name = "mover-example"
+name = "liquid-example"
 version = "0.1.0"
 authors = ["Shane Lillie <ignignokterr@gmail.com>"]
 edition = "2018"

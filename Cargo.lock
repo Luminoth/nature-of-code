@@ -2491,6 +2491,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "liquid-example"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "glam 0.14.0",
+ "processing",
+ "rand 0.8.3",
+]
+
+[[package]]
 name = "lock_api"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2746,16 +2756,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b9f1c5b025cda876f66ef43a113f91ebc9f4ccef34843000e0adf6ebbab84e21"
 dependencies = [
  "winapi 0.3.9",
-]
-
-[[package]]
-name = "mover-example"
-version = "0.1.0"
-dependencies = [
- "core",
- "glam 0.14.0",
- "processing",
- "rand 0.8.3",
 ]
 
 [[package]]

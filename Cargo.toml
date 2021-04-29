@@ -6,7 +6,7 @@ members = [
     "example",
     "perlin-example",
     "vector-example",
-    "mover-example",
+    "liquid-example",
     "attractor-example",
     "intro/example1",
     "intro/example2",
