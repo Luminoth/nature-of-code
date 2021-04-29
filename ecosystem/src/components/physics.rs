@@ -7,9 +7,6 @@ use bevy::utils::tracing;
 /// 50hz, the same as Unity
 pub const PHYSICS_STEP: f32 = 0.02;
 
-const PHYSICS_STEP_MIN: f32 = PHYSICS_STEP / 4.0;
-const PHYSICS_STEP_MAX: f32 = PHYSICS_STEP * 4.0;
-
 #[derive(Debug, Default, Copy, Clone)]
 struct Derivative {
     acceleration: Vec3,
@@ -238,16 +235,9 @@ impl Rigidbody {
 
     /// Update a rigidbody
     #[tracing::instrument]
-    pub fn update(&mut self, transform: &mut Transform, mut dt: f32) {
-        // during the first few seconds of runtime the dt can be wildly large,
-        // so to prevent weird things happening just treat them as single steps
-        if dt < PHYSICS_STEP_MIN || dt > PHYSICS_STEP_MAX {
-            info!("unexpected physics step, expected {}", PHYSICS_STEP);
-            dt = PHYSICS_STEP;
-        }
-
-        // dts here can still be smaller / larger than a single step for some reason
-        // but they're (usually) sane enough we can treat them like normal
+    pub fn update(&mut self, transform: &mut Transform) {
+        // https://github.com/bevyengine/bevy/issues/2041
+        let dt = PHYSICS_STEP;
 
         //self.euler_integrate(transform, dt);
         self.rk4_integrate(transform, dt);
