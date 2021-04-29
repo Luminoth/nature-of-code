@@ -165,7 +165,7 @@ fn setup<'a>() -> Result<Screen<'a>, ProcessingErr> {
 fn draw(
     screen: &mut Screen,
     dt: f64,
-    movers: &mut impl AsMut<[Mover]>,
+    mut movers: impl AsMut<[Mover]>,
     liquid: &Liquid,
 ) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 255.0);

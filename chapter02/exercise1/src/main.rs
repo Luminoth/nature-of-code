@@ -67,7 +67,7 @@ fn setup<'a>() -> Result<Screen<'a>, ProcessingErr> {
 fn draw(
     screen: &mut Screen,
     dt: f64,
-    balloons: &mut impl AsMut<[Balloon]>,
+    mut balloons: impl AsMut<[Balloon]>,
     wind: &mut Wind,
 ) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 255.0);

@@ -219,6 +219,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e91831deabf0d6d7ec49552e489aed63b7456a7a3c46cff62adad428110b0af0"
 
 [[package]]
+name = "attractor-example"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "glam 0.14.0",
+ "processing",
+ "rand 0.8.3",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
