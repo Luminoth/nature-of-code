@@ -239,6 +239,10 @@ impl Rigidbody {
         // https://github.com/bevyengine/bevy/issues/2041
         let dt = PHYSICS_STEP;
 
+        // TODO: https://www.johndcook.com/blog/2020/09/12/symplectic-euler/
+        // this is what Box2D (and Unity) uses: https://gamedev.stackexchange.com/questions/79938/unitys-default-integration-method
+        // or maybe it's verlet? https://www.asc.ohio-state.edu/orban.14/processing_fall2016/roll.html
+
         //self.euler_integrate(transform, dt);
         self.rk4_integrate(transform, dt);
 
