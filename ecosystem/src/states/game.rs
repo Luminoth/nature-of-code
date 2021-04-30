@@ -11,7 +11,6 @@ pub fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut random: ResMut<Random>,
-    noise: Res<PerlinNoise>,
     windows: Res<Windows>,
 ) {
     // cameras
@@ -54,27 +53,13 @@ pub fn setup(
     // fish
     for id in 0..random.normal_clamped::<f32>(4.0, 3.0, 2.0, 8.0) as u32 {
         let position = random.vec2_range(-hw + 10.0..qw - 10.0, -hh + 10.0..hh - 10.0);
-        Fish::spawn(
-            &mut commands,
-            &asset_server,
-            &mut random,
-            &noise,
-            id,
-            position,
-        );
+        Fish::spawn(&mut commands, &asset_server, id, position);
     }
 
     // snakes
     for id in 0..random.normal_clamped::<f32>(2.0, 1.0, 1.0, 4.0) as u32 {
         let position = random.vec2_range(qw + 5.0..hw - 5.0, -hh + 5.0..hh - 5.0);
-        Snake::spawn(
-            &mut commands,
-            &asset_server,
-            &mut random,
-            &noise,
-            id,
-            position,
-        );
+        Snake::spawn(&mut commands, &asset_server, id, position);
     }
 }
 

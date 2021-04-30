@@ -41,44 +41,17 @@ pub fn fly_update(mut query: Query<&mut Fly>) {
 }
 
 /// Fly behavior
-pub fn fly_physics(
-    time: Res<Time>,
-    mut random: ResMut<Random>,
-    _noise: Res<PerlinNoise>,
-    mut query: Query<&mut Rigidbody, With<Fly>>,
-) {
+pub fn fly_physics(mut random: ResMut<Random>, mut query: Query<&mut Rigidbody, With<Fly>>) {
     for mut rigidbody in query.iter_mut() {
-        let _t = time.seconds_since_startup() + random.random_range(0.0..0.5);
-
         let direction = random.direction();
-        //let direction = _noise.direction(&mut random, 0.5);
-
         let modifier = random.random();
-        //let modifier = _noise.get(_t, 0.5);
-
         rigidbody.apply_force(direction * (FLY_FORCE * modifier as f32), "fly");
     }
 }
 
 /// Fish behavior
-pub fn fish_update(
-    time: Res<Time>,
-    mut random: ResMut<Random>,
-    _noise: Res<PerlinNoise>,
-    mut query: Query<&mut Fish>,
-) {
-    for mut fish in query.iter_mut() {
-        if fish.swim_timer.tick(time.delta()).just_finished() {
-            fish.swim_cooldown.reset();
-        }
-
-        if fish.swim_cooldown.tick(time.delta()).just_finished() {
-            fish.swim_direction = random.direction();
-            //fish.swim_direction = _noise.direction(&mut random, 0.5);
-
-            fish.swim_timer.reset();
-        }
-    }
+pub fn fish_update(mut query: Query<&mut Fish>) {
+    for mut _fish in query.iter_mut() {}
 }
 
 /// Fish behavior
@@ -86,33 +59,20 @@ pub fn fish_physics(
     time: Res<Time>,
     mut random: ResMut<Random>,
     noise: Res<PerlinNoise>,
-    mut query: Query<(&mut Rigidbody, &Fish)>,
+    mut query: Query<&mut Rigidbody, With<Fish>>,
 ) {
-    for (mut rigidbody, fish) in query.iter_mut() {
+    for mut rigidbody in query.iter_mut() {
         let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
 
-        if !fish.swim_timer.finished() {
-            rigidbody.apply_force(
-                fish.swim_direction * FISH_FORCE * noise.get(t, 0.5) as f32,
-                "swim",
-            );
-        }
+        let direction = random.direction();
+        let modifier = noise.get(t, 0.5);
+        rigidbody.apply_force(direction * FISH_FORCE * modifier as f32, "swim");
     }
 }
 
 /// Snake behavior
-pub fn snake_update(
-    time: Res<Time>,
-    mut random: ResMut<Random>,
-    _noise: Res<PerlinNoise>,
-    mut query: Query<&mut Snake>,
-) {
-    for mut snake in query.iter_mut() {
-        if snake.direction_timer.tick(time.delta()).just_finished() {
-            snake.direction = random.direction();
-            //snake.direction = _noise.direction(&mut random, 0.5);
-        }
-    }
+pub fn snake_update(mut query: Query<&mut Snake>) {
+    for mut _snake in query.iter_mut() {}
 }
 
 /// Snake behavior
@@ -120,14 +80,13 @@ pub fn snake_physics(
     time: Res<Time>,
     mut random: ResMut<Random>,
     noise: Res<PerlinNoise>,
-    mut query: Query<(&mut Rigidbody, &Snake)>,
+    mut query: Query<&mut Rigidbody, With<Snake>>,
 ) {
-    for (mut rigidbody, snake) in query.iter_mut() {
+    for mut rigidbody in query.iter_mut() {
         let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
 
-        rigidbody.apply_force(
-            snake.direction * SNAKE_GROUND_FORCE * noise.get(t, 0.5) as f32,
-            "slither",
-        );
+        let direction = random.direction();
+        let modifier = noise.get(t, 0.5);
+        rigidbody.apply_force(direction * SNAKE_GROUND_FORCE * modifier as f32, "slither");
     }
 }

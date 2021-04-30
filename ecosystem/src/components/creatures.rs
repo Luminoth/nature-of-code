@@ -3,8 +3,6 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
-use crate::resources::*;
-
 //use super::debug::*;
 use super::physics::*;
 
@@ -20,15 +18,12 @@ const FISH_COLOR: Color = Color::SALMON;
 const FISH_MASS: f32 = 1500.0; // 100x the mass of an actual koi (kg)
 const FISH_DRAG: f32 = 0.03;
 const FISH_SIZE: f32 = 10.0;
-const FISH_SWIM_DURATION: f32 = 3.0;
-const FISH_COOLDOWN_DURATION: f32 = 3.0;
 pub const FISH_FORCE: f32 = FISH_MASS * 300.0;
 
 const SNAKE_COLOR: Color = Color::MAROON;
 const SNAKE_MASS: f32 = 15.0; // 100x the mass of an actual garter snake (kg)
 const SNAKE_DRAG: f32 = 0.04;
 const SNAKE_SIZE: f32 = 5.0;
-const SNAKE_DIRECTION_DURATION: f32 = 3.0;
 pub const SNAKE_GROUND_FORCE: f32 = SNAKE_MASS * 200.0;
 
 /// Shared creature component
@@ -110,11 +105,7 @@ impl Fly {
 
 /// Fish swim
 #[derive(Default)]
-pub struct Fish {
-    pub swim_direction: Vec2,
-    pub swim_timer: Timer,
-    pub swim_cooldown: Timer,
-}
+pub struct Fish;
 
 impl Fish {
     /// Spawn a fish
@@ -122,8 +113,6 @@ impl Fish {
     pub fn spawn(
         commands: &mut Commands,
         _asset_server: &Res<AssetServer>,
-        random: &mut Random,
-        _noise: &PerlinNoise,
         id: u32,
         position: Vec2,
     ) {
@@ -134,12 +123,7 @@ impl Fish {
             ..Default::default()
         };
 
-        let mut fish = Fish::new(
-            FISH_SWIM_DURATION + random.random_range(-1.0..1.0),
-            FISH_COOLDOWN_DURATION + random.random_range(-1.0..1.0),
-        );
-        fish.swim_direction = random.direction();
-        //fish.swim_direction = _noise.direction(random, 0.5);
+        let fish = Fish::default();
 
         let _entity = commands
             .spawn_bundle(GeometryBuilder::build_as(
@@ -190,23 +174,11 @@ impl Fish {
             entity: _entity,
         });*/
     }
-
-    /// Construct a new fish that swims in a direction for the given duration
-    pub fn new(swim_duration: f32, swim_cooldown: f32) -> Self {
-        Self {
-            swim_timer: Timer::from_seconds(swim_duration, false),
-            swim_cooldown: Timer::from_seconds(swim_cooldown, false),
-            ..Default::default()
-        }
-    }
 }
 
 /// Snakes snek
 #[derive(Default)]
-pub struct Snake {
-    pub direction: Vec2,
-    pub direction_timer: Timer,
-}
+pub struct Snake;
 
 impl Snake {
     /// Spawn a snake
@@ -214,8 +186,6 @@ impl Snake {
     pub fn spawn(
         commands: &mut Commands,
         _asset_server: &Res<AssetServer>,
-        random: &mut Random,
-        _noise: &PerlinNoise,
         id: u32,
         position: Vec2,
     ) {
@@ -226,9 +196,7 @@ impl Snake {
             ..Default::default()
         };
 
-        let mut snake = Snake::new(SNAKE_DIRECTION_DURATION + random.random_range(-0.5..0.5));
-        snake.direction = random.direction();
-        //snake.direction = _noise.direction(random, 0.5);
+        let snake = Snake::default();
 
         let _entity = commands
             .spawn_bundle(GeometryBuilder::build_as(
@@ -278,13 +246,5 @@ impl Snake {
             name: format!("Snake {}", id),
             entity: _entity,
         });*/
-    }
-
-    /// Construct a new snake that slithers in a direction for the given duration
-    pub fn new(direction_duration: f32) -> Self {
-        Self {
-            direction_timer: Timer::from_seconds(direction_duration, true),
-            ..Default::default()
-        }
     }
 }
