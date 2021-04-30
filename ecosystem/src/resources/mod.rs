@@ -125,36 +125,44 @@ impl PerlinNoise {
         }
     }
 
+    #[allow(dead_code)]
     pub fn get(&self, point: f64, frequency: f64) -> f64 {
-        self.perlin.get([point * frequency, 0.0])
+        self.get2d([point, 0.0], frequency)
     }
 
-    /*/// Sample noise in the domain [0..1),[0..1) scaled by frequency
-    /// Result is in the range (-1..1)
     #[allow(dead_code)]
-    pub fn sample(&self, random: &mut Random, frequency: f64) -> f64 {
+    pub fn get2d(&self, point: [f64; 2], frequency: f64) -> f64 {
+        self.perlin
+            .get([point[0] * frequency, point[1] * frequency])
+    }
+
+    #[allow(dead_code)]
+    pub fn get3d(&self, point: [f64; 3], frequency: f64) -> f64 {
         self.perlin.get([
-            random.random_range(0.0..1.0) * frequency,
-            random.random_range(0.0..1.0) * frequency,
+            point[0] * frequency,
+            point[1] * frequency,
+            point[2] * frequency,
         ])
-    }*/
+    }
 
-    /*/// Generates a noisey vector in the range ((-1..1), (-1..1))
+    /// Generates a noisey vector using a random offset
+    /// Untested
     #[allow(dead_code)]
-    pub fn vec2(&self, random: &mut Random, frequency: f64) -> Vec2 {
-        Vec2::new(
-            self.sample(random, frequency) as f32,
-            self.sample(random, frequency) as f32,
-        )
-    }*/
+    pub fn vec2(&self, random: &mut Random, point: f64, frequency: f64) -> Vec2 {
+        let x = self.get(point, frequency) as f32;
+        let y = self.get(point + random.random(), frequency) as f32;
 
-    /*/// Generates a uniform random direction vector, never 0 length
+        Vec2::new(x, y)
+    }
+
+    /// Generates a noisey random direction vector, never 0 length
+    /// Untested
     #[allow(dead_code)]
-    pub fn direction(&self, random: &mut Random, frequency: f64) -> Vec2 {
-        let mut direction = self.vec2(random, frequency).normalize();
+    pub fn direction(&self, random: &mut Random, point: f64, frequency: f64) -> Vec2 {
+        let mut direction = self.vec2(random, point, frequency).normalize();
         while !direction.is_finite() {
-            direction = self.vec2(random, frequency).normalize();
+            direction = self.vec2(random, point, frequency).normalize();
         }
         direction
-    }*/
+    }
 }

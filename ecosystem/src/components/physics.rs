@@ -216,10 +216,27 @@ impl Rigidbody {
         }
     }
 
-    /// Semi-explicit Euler integration
+    /// Explicit Euler integration
     #[allow(dead_code)]
     #[tracing::instrument]
-    fn euler_integrate(&mut self, transform: &mut Transform, dt: f32) {
+    fn explicit_euler_integrate(&mut self, transform: &mut Transform, dt: f32) {
+        transform.translation += self.velocity * dt;
+        if !transform.translation.is_finite() {
+            panic!("Invalid position from velocity");
+        }
+
+        self.velocity += self.acceleration * dt;
+        if !self.velocity.is_finite() {
+            panic!("Invalid velocity from acceleration");
+        }
+
+        //info!("updated velocity: {}", self.velocity);
+    }
+
+    /// Semi-implicit Euler integration
+    #[allow(dead_code)]
+    #[tracing::instrument]
+    fn sympletic_euler_integrate(&mut self, transform: &mut Transform, dt: f32) {
         self.velocity += self.acceleration * dt;
         if !self.velocity.is_finite() {
             panic!("Invalid velocity from acceleration");
@@ -239,11 +256,7 @@ impl Rigidbody {
         // https://github.com/bevyengine/bevy/issues/2041
         let dt = PHYSICS_STEP;
 
-        // TODO: https://www.johndcook.com/blog/2020/09/12/symplectic-euler/
-        // this is what Box2D (and Unity) uses: https://gamedev.stackexchange.com/questions/79938/unitys-default-integration-method
-        // or maybe it's verlet? https://www.asc.ohio-state.edu/orban.14/processing_fall2016/roll.html
-
-        //self.euler_integrate(transform, dt);
+        //self.sympletic_euler_integrate(transform, dt);
         self.rk4_integrate(transform, dt);
 
         self.acceleration = Vec3::default();
