@@ -96,8 +96,9 @@ fn main() {
                         .label(Physics)
                         .label(PhysicsSystem::Update),
                 )
+                .with_system(border_contain.system().after(PhysicsSystem::Update))
                 .with_system(
-                    creature_physics
+                    border_repel
                         .system()
                         .label(CreaturesSystem::Physics)
                         .before(Physics),

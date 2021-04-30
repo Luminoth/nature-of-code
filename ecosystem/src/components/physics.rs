@@ -2,10 +2,13 @@
 
 use bevy::prelude::*;
 use bevy::utils::tracing;
+use num_traits::Float;
 
 /// Physics step rate
 /// 50hz, the same as Unity
 pub const PHYSICS_STEP: f32 = 0.02;
+
+const WINDOW_REPEL_FORCE: f32 = 300.0;
 
 #[derive(Debug, Default, Copy, Clone)]
 struct Derivative {
@@ -67,27 +70,6 @@ impl Rigidbody {
         }
     }
 
-    /// Wrap a rigidbody around bounds
-    #[allow(dead_code)]
-    #[tracing::instrument]
-    pub fn wrap(&mut self, transform: &mut Transform, minx: f32, maxx: f32, miny: f32, maxy: f32) {
-        if !transform.translation.is_finite() {
-            panic!("Invalid transform");
-        }
-
-        if transform.translation.x < minx {
-            transform.translation.x = maxx;
-        } else if transform.translation.x > maxx {
-            transform.translation.x = minx;
-        }
-
-        if transform.translation.y < miny {
-            transform.translation.y = maxy;
-        } else if transform.translation.y > maxy {
-            transform.translation.y = miny;
-        }
-    }
-
     /// Contain a rigidbody inside bounds
     #[allow(dead_code)]
     #[tracing::instrument]
@@ -116,57 +98,34 @@ impl Rigidbody {
         }
     }
 
-    /// Bounce a rigidbody inside bounds
-    #[allow(dead_code)]
-    #[tracing::instrument]
-    pub fn bounce(
-        &mut self,
-        transform: &mut Transform,
-        minx: f32,
-        maxx: f32,
-        miny: f32,
-        maxy: f32,
-    ) {
-        if !transform.translation.is_finite() {
-            panic!("Invalid transform");
-        }
+    fn repel_direction(&self, x: f32, y: f32) -> Vec2 {
+        let ab = Vec2::new(x, y);
+        let distance = Float::max(0.1, ab.length());
+        let direction = ab.normalize_or_zero();
+        let magnitude = (WINDOW_REPEL_FORCE * self.mass) / (distance * distance);
 
-        if transform.translation.x < minx {
-            transform.translation.x = minx;
-
-            self.acceleration.x *= -1.0;
-            self.velocity.x *= -1.0;
-        } else if transform.translation.x > maxx {
-            transform.translation.x = maxx;
-
-            self.acceleration.x *= -1.0;
-            self.velocity.x *= -1.0;
-        }
-
-        if transform.translation.y < miny {
-            transform.translation.y = miny;
-
-            self.acceleration.y *= -1.0;
-            self.velocity.y *= -1.0;
-        } else if transform.translation.y > maxy {
-            transform.translation.y = maxy;
-
-            self.acceleration.y *= -1.0;
-            self.velocity.y *= -1.0;
-        }
+        direction * magnitude
     }
 
     /// Repel a rigidbody inside bounds
     #[allow(dead_code)]
-    pub fn repel(
-        &mut self,
-        _transform: &mut Transform,
-        _minx: f32,
-        _maxx: f32,
-        _miny: f32,
-        _maxy: f32,
-    ) {
-        // TODO:
+    #[tracing::instrument]
+    pub fn repel(&mut self, transform: &mut Transform, minx: f32, maxx: f32, miny: f32, maxy: f32) {
+        if !transform.translation.is_finite() {
+            panic!("Invalid transform");
+        }
+
+        let force = self.repel_direction(transform.translation.x - minx, 0.0);
+        self.apply_force(force, "repel_min_x");
+
+        let force = self.repel_direction(transform.translation.x - maxx, 0.0);
+        self.apply_force(force, "repel_max_x");
+
+        let force = self.repel_direction(0.0, transform.translation.y - miny);
+        self.apply_force(force, "repel_min_y");
+
+        let force = self.repel_direction(0.0, transform.translation.y - maxy);
+        self.apply_force(force, "repel_max_y");
     }
 
     /// Applies a force to the rigidbody
