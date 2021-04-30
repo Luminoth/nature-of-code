@@ -44,15 +44,19 @@ pub fn fly_update(mut query: Query<&mut Fly>) {
 pub fn fly_physics(
     time: Res<Time>,
     mut random: ResMut<Random>,
-    noise: Res<PerlinNoise>,
+    _noise: Res<PerlinNoise>,
     mut query: Query<&mut Rigidbody, With<Fly>>,
 ) {
     for mut rigidbody in query.iter_mut() {
-        let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
+        let _t = time.seconds_since_startup() + random.random_range(0.0..0.5);
 
         let direction = random.direction();
-        //let direction = noise.direction(&mut random, 0.5);
-        rigidbody.apply_force(direction * (FLY_FORCE * noise.get(t, 0.5) as f32), "fly");
+        //let direction = _noise.direction(&mut random, 0.5);
+
+        let modifier = random.random();
+        //let modifier = _noise.get(_t, 0.5);
+
+        rigidbody.apply_force(direction * (FLY_FORCE * modifier as f32), "fly");
     }
 }
 
