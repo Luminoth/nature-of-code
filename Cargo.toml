@@ -26,6 +26,7 @@ members = [
     "intro/exercise5",
     "chapter02/exercise1",
     "chapter03/example1",
+    "chapter03/exercise4",
 
     # final project
     "ecosystem",

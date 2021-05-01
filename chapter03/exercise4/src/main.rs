@@ -7,9 +7,9 @@ fn setup<'a>() -> Result<Screen<'a>, ProcessingErr> {
     Ok(screen)
 }
 
-fn draw(screen: &mut Screen, r: f64, theta: &mut f64) -> Result<(), ProcessingErr> {
-    let x = r * theta.cos();
-    let y = r * theta.sin();
+fn draw(screen: &mut Screen, r: &mut f64, theta: &mut f64) -> Result<(), ProcessingErr> {
+    let x = *r * theta.cos();
+    let y = *r * theta.sin();
 
     screen.stroke_off();
     core::fill_grayscale(screen, 0.0);
@@ -22,16 +22,17 @@ fn draw(screen: &mut Screen, r: f64, theta: &mut f64) -> Result<(), ProcessingEr
         16.0,
     )?;
 
+    *r += 0.05;
     *theta += 0.01;
 
     Ok(())
 }
 
 fn main() -> Result<(), ProcessingErr> {
-    let r = 75.0;
+    let mut r = 0.0;
     let mut theta = 0.0;
 
-    core::run(setup, |screen, _| draw(screen, r, &mut theta))?;
+    core::run(setup, |screen, _| draw(screen, &mut r, &mut theta))?;
 
     Ok(())
 }

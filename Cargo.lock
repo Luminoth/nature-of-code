@@ -962,6 +962,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "chapter03-exercise4"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "processing",
+]
+
+[[package]]
 name = "chrono"
 version = "0.4.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
