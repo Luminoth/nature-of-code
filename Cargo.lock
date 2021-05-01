@@ -3829,6 +3829,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "spaceship-example"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "glam 0.14.0",
+ "processing",
+]
+
+[[package]]
 name = "spirv-reflect"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
