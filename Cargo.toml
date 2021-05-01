@@ -1,6 +1,8 @@
 [workspace]
 
 members = [
+    "processing-rs-example",
+
     "core",
 
     # usage / basic examples
