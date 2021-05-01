@@ -81,6 +81,11 @@ fn main() {
         )
         .add_system_set(
             // fixed (physics) update
+            // 1) all CreaturesSystem::Physics (before Physics)
+            // 2) PhysicsSystem::Collisions (friction, drag, etc)
+            // 3) PhysicsSystem::Update (move rigidbodies)
+            // 4) PhysicsSystem::Contain (rewind updates at borders)
+            // 5) PhysicsSystem::Repel (repel creatures from borders)
             SystemSet::on_update(GameState::Game)
                 .with_run_criteria(FixedTimestep::step(PHYSICS_STEP as f64))
                 .with_system(
@@ -96,13 +101,21 @@ fn main() {
                         .label(Physics)
                         .label(PhysicsSystem::Update),
                 )
-                .with_system(border_contain.system().after(PhysicsSystem::Update))
                 .with_system(
-                    border_repel
+                    window_contain
                         .system()
-                        .label(CreaturesSystem::Physics)
-                        .before(Physics),
+                        .label(Physics)
+                        .label(PhysicsSystem::Contain)
+                        .after(PhysicsSystem::Update),
                 )
+                .with_system(
+                    window_repel
+                        .system()
+                        .label(Physics)
+                        .label(PhysicsSystem::Repel)
+                        .after(PhysicsSystem::Contain),
+                )
+                // creaturue behaviors
                 .with_system(
                     fly_physics
                         .system()
@@ -126,9 +139,9 @@ fn main() {
             // per-frame update
             SystemSet::on_update(GameState::Game)
                 .with_system(physics_debug.system().label(PhysicsSystem::Debug))
-                .with_system(fly_update.system().label(CreaturesSystem::Creature))
-                .with_system(fish_update.system().label(CreaturesSystem::Creature))
-                .with_system(snake_update.system().label(CreaturesSystem::Creature)),
+                .with_system(fly_update.system().label(CreaturesSystem::Update))
+                .with_system(fish_update.system().label(CreaturesSystem::Update))
+                .with_system(snake_update.system().label(CreaturesSystem::Update)),
         )
         .add_system_set(
             SystemSet::on_exit(GameState::Game).with_system(states::game::teardown.system()),

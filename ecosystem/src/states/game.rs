@@ -43,6 +43,7 @@ pub fn setup(
     Air::spawn(&mut commands, Vec2::new(window.width(), window.height()));
 
     // creatures
+    // TODO: read the creature counts from a resource that we supply in main for easier debugging
 
     // flies
     for id in 0..random.normal_clamped::<f32>(10.0, 3.0, 3.0, 20.0) as u32 {

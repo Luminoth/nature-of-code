@@ -8,7 +8,8 @@ use num_traits::Float;
 /// 50hz, the same as Unity
 pub const PHYSICS_STEP: f32 = 0.02;
 
-const WINDOW_REPEL_FORCE: f32 = 300.0;
+const WINDOW_REPEL_MIN_DISTANCE: f32 = 0.1;
+const WINDOW_REPEL_FORCE: f32 = 10.0;
 
 #[derive(Debug, Default, Copy, Clone)]
 struct Derivative {
@@ -28,6 +29,8 @@ impl Derivative {
 /// Rigidbody state
 #[derive(Debug)]
 pub struct Rigidbody {
+    pub(crate) previous_position: Vec3,
+
     pub acceleration: Vec3,
     pub velocity: Vec3,
     pub mass: f32,
@@ -37,6 +40,8 @@ pub struct Rigidbody {
 impl Default for Rigidbody {
     fn default() -> Self {
         Self {
+            previous_position: Vec3::default(),
+
             acceleration: Vec3::default(),
             velocity: Vec3::default(),
             mass: 1.0,
@@ -85,22 +90,45 @@ impl Rigidbody {
             panic!("Invalid transform");
         }
 
-        if transform.translation.x < minx {
-            transform.translation.x = minx;
-        } else if transform.translation.x > maxx {
-            transform.translation.x = maxx;
+        // unwind to our previous position, if we can
+        // otherwise clamp to the min / max minus a little fudge
+
+        if transform.translation.x <= minx {
+            transform.translation.x = if self.previous_position.x <= minx {
+                minx + WINDOW_REPEL_MIN_DISTANCE
+            } else {
+                self.previous_position.x
+            };
+            self.velocity.x = 0.0;
+        } else if transform.translation.x >= maxx {
+            transform.translation.x = if self.previous_position.x >= maxx {
+                maxx - WINDOW_REPEL_MIN_DISTANCE
+            } else {
+                self.previous_position.x
+            };
+            self.velocity.x = 0.0;
         }
 
-        if transform.translation.y < miny {
-            transform.translation.y = miny;
-        } else if transform.translation.y > maxy {
-            transform.translation.y = maxy;
+        if transform.translation.y <= miny {
+            transform.translation.y = if self.previous_position.y <= miny {
+                miny + WINDOW_REPEL_MIN_DISTANCE
+            } else {
+                self.previous_position.y
+            };
+            self.velocity.y = 0.0;
+        } else if transform.translation.y >= maxy {
+            transform.translation.y = if self.previous_position.y >= maxy {
+                maxy - WINDOW_REPEL_MIN_DISTANCE
+            } else {
+                self.previous_position.y
+            };
+            self.velocity.y = 0.0;
         }
     }
 
     fn repel_direction(&self, x: f32, y: f32) -> Vec2 {
         let ab = Vec2::new(x, y);
-        let distance = Float::max(0.1, ab.length());
+        let distance = Float::max(WINDOW_REPEL_MIN_DISTANCE, ab.length());
         let direction = ab.normalize_or_zero();
         let magnitude = (WINDOW_REPEL_FORCE * self.mass) / (distance * distance);
 
@@ -116,16 +144,16 @@ impl Rigidbody {
         }
 
         let force = self.repel_direction(transform.translation.x - minx, 0.0);
-        self.apply_force(force, "repel_min_x");
+        self.apply_force(force * self.mass, "repel_min_x");
 
         let force = self.repel_direction(transform.translation.x - maxx, 0.0);
-        self.apply_force(force, "repel_max_x");
+        self.apply_force(force * self.mass, "repel_max_x");
 
         let force = self.repel_direction(0.0, transform.translation.y - miny);
-        self.apply_force(force, "repel_min_y");
+        self.apply_force(force * self.mass, "repel_min_y");
 
         let force = self.repel_direction(0.0, transform.translation.y - maxy);
-        self.apply_force(force, "repel_max_y");
+        self.apply_force(force * self.mass, "repel_max_y");
     }
 
     /// Applies a force to the rigidbody
@@ -214,6 +242,9 @@ impl Rigidbody {
     pub fn update(&mut self, transform: &mut Transform) {
         // https://github.com/bevyengine/bevy/issues/2041
         let dt = PHYSICS_STEP;
+
+        // save our current position in case we need to unwind
+        self.previous_position = transform.translation;
 
         //self.sympletic_euler_integrate(transform, dt);
         self.rk4_integrate(transform, dt);

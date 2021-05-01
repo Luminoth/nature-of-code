@@ -8,51 +8,8 @@ use crate::resources::*;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
 pub enum CreaturesSystem {
-    Creature,
+    Update,
     Physics,
-}
-
-fn window_bounds(hw: f32, hh: f32, offset: f32, collider: &Collider) -> (f32, f32, f32, f32) {
-    let minx = -hw + collider.size.x + offset;
-    let maxx = hw - collider.size.x - offset;
-    let miny = -hh + collider.size.y + offset;
-    let maxy = hh - collider.size.y - offset;
-
-    (minx, maxx, miny, maxy)
-}
-
-/// Repel creatures from the window border
-pub fn border_repel(
-    windows: Res<Windows>,
-    mut query: Query<(&mut Transform, &mut Rigidbody, &Collider), With<Creature>>,
-) {
-    let window = windows.get_primary().unwrap();
-    let hw = window.width() as f32 / 2.0;
-    let hh = window.height() as f32 / 2.0;
-
-    let offset = 5.0;
-
-    for (mut transform, mut rigidbody, collider) in query.iter_mut() {
-        let (minx, maxx, miny, maxy) = window_bounds(hw, hh, offset, collider);
-        rigidbody.repel(&mut transform, minx, maxx, miny, maxy);
-    }
-}
-
-/// Contains creatures inside the window
-pub fn border_contain(
-    windows: Res<Windows>,
-    mut query: Query<(&mut Transform, &mut Rigidbody, &Collider), With<Creature>>,
-) {
-    let window = windows.get_primary().unwrap();
-    let hw = window.width() as f32 / 2.0;
-    let hh = window.height() as f32 / 2.0;
-
-    let offset = 5.0;
-
-    for (mut transform, mut rigidbody, collider) in query.iter_mut() {
-        let (minx, maxx, miny, maxy) = window_bounds(hw, hh, offset, collider);
-        rigidbody.contain(&mut transform, minx, maxx, miny, maxy);
-    }
 }
 
 /// Fly behavior
