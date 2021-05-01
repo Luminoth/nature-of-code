@@ -20,7 +20,6 @@ impl Spaceship {
         Self {
             location: DVec2::new(x, y),
             mass,
-            angle: std::f64::consts::FRAC_PI_2,
             ..Default::default()
         }
     }
