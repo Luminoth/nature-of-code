@@ -13,6 +13,8 @@ pub enum CreaturesSystem {
     Bounds,
 }
 
+const BOUNDS_OFFSET: f32 = 5.0;
+
 /// Fly behavior
 pub fn fly_update(mut query: Query<&mut Fly>) {
     for mut _fly in query.iter_mut() {}
@@ -37,10 +39,9 @@ pub fn fly_bounds(
     let hw = window.width() as f32 / 2.0;
     let hh = window.height() as f32 / 2.0;
 
-    let offset = 5.0;
-
     for (mut transform, mut rigidbody, collider) in query.iter_mut() {
-        let (minx, maxx, miny, maxy) = collider.calculate_bounds(hw, hh, offset);
+        let (minx, maxx, miny, maxy) =
+            collider.adjust_container_bounds(-hw, hw, -hh, hh, BOUNDS_OFFSET);
         rigidbody.contain(&mut transform, minx, maxx, miny, maxy);
         rigidbody.repel(&mut transform, minx, maxx, miny, maxy);
     }
@@ -65,6 +66,31 @@ pub fn fish_physics(
         let modifier = noise.get(t, 0.5) as f32;
         let magnitude = FISH_ACCEL * rigidbody.mass * modifier;
         rigidbody.apply_force(direction * magnitude, "swim");
+    }
+}
+
+/// Keep fish inside the water
+pub fn fish_bounds(
+    mut query: Query<(&mut Transform, &mut Rigidbody, &Collider), With<Fish>>,
+    fluids: Query<(&Transform, &Collider), (With<Fluid>, Without<Fish>)>,
+) {
+    for (mut transform, mut rigidbody, collider) in query.iter_mut() {
+        for (ftransform, fcollider) in fluids.iter() {
+            if collider.collides(&transform, fcollider, ftransform) {
+                let hw = fcollider.size.x / 2.0;
+                let hh = fcollider.size.y / 2.0;
+
+                let minx = ftransform.translation.x - hw;
+                let maxx = ftransform.translation.x + hw;
+                let miny = ftransform.translation.y - hh;
+                let maxy = ftransform.translation.y + hh;
+
+                let (minx, maxx, miny, maxy) =
+                    collider.adjust_container_bounds(minx, maxx, miny, maxy, BOUNDS_OFFSET);
+                rigidbody.contain(&mut transform, minx, maxx, miny, maxy);
+                rigidbody.repel(&mut transform, minx, maxx, miny, maxy);
+            }
+        }
     }
 }
 

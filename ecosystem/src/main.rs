@@ -135,6 +135,12 @@ fn main() {
                         .before(Physics),
                 )
                 .with_system(
+                    fish_bounds
+                        .system()
+                        .label(CreaturesSystem::Bounds)
+                        .after(Physics),
+                )
+                .with_system(
                     snake_physics
                         .system()
                         .label(CreaturesSystem::Physics)

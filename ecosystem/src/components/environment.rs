@@ -10,8 +10,7 @@ const AIR_DENSITY: f32 = 1.0;
 const WATER_COLOR: Color = Color::rgba(0.18, 0.55, 0.34, 0.5);
 const WATER_DENSITY: f32 = 1000.0;
 
-// TODO: temporarily transparent because fish can swim under it
-const GROUND_COLOR: Color = Color::rgba(0.0, 0.5, 0.0, 0.5); //Color::DARK_GREEN;
+const GROUND_COLOR: Color = Color::DARK_GREEN;
 const GROUND_FRICTION: f32 = 15.0;
 
 /// Ground
