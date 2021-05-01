@@ -297,6 +297,16 @@ impl Collider {
         // TODO: also check overlapping bounds
         self.layer == other.layer
     }
+
+    /// Calculate the bounds that should contain this collider
+    pub fn calculate_bounds(&self, hw: f32, hh: f32, offset: f32) -> (f32, f32, f32, f32) {
+        let minx = -hw + self.size.x + offset;
+        let maxx = hw - self.size.x - offset;
+        let miny = -hh + self.size.y + offset;
+        let maxy = hh - self.size.y - offset;
+
+        (minx, maxx, miny, maxy)
+    }
 }
 
 /// Surface state

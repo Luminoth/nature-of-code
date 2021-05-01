@@ -10,6 +10,7 @@ use crate::resources::*;
 pub enum CreaturesSystem {
     Update,
     Physics,
+    Bounds,
 }
 
 /// Fly behavior
@@ -24,6 +25,24 @@ pub fn fly_physics(mut random: ResMut<Random>, mut query: Query<&mut Rigidbody, 
         let modifier = random.random() as f32;
         let magnitude = FLY_ACCEL * rigidbody.mass * modifier;
         rigidbody.apply_force(direction * magnitude, "fly");
+    }
+}
+
+/// Keep flies inside the window
+pub fn fly_bounds(
+    windows: Res<Windows>,
+    mut query: Query<(&mut Transform, &mut Rigidbody, &Collider), With<Fly>>,
+) {
+    let window = windows.get_primary().unwrap();
+    let hw = window.width() as f32 / 2.0;
+    let hh = window.height() as f32 / 2.0;
+
+    let offset = 5.0;
+
+    for (mut transform, mut rigidbody, collider) in query.iter_mut() {
+        let (minx, maxx, miny, maxy) = collider.calculate_bounds(hw, hh, offset);
+        rigidbody.contain(&mut transform, minx, maxx, miny, maxy);
+        rigidbody.repel(&mut transform, minx, maxx, miny, maxy);
     }
 }
 

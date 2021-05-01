@@ -16,19 +16,13 @@ pub enum PhysicsSystem {
     Debug,
 }
 
-fn window_bounds(hw: f32, hh: f32, offset: f32, collider: &Collider) -> (f32, f32, f32, f32) {
-    let minx = -hw + collider.size.x + offset;
-    let maxx = hw - collider.size.x - offset;
-    let miny = -hh + collider.size.y + offset;
-    let maxy = hh - collider.size.y - offset;
-
-    (minx, maxx, miny, maxy)
-}
-
 /// Repel bodies from the window border
 pub fn window_repel(
     windows: Res<Windows>,
-    mut query: Query<(&mut Transform, &mut Rigidbody, &Collider)>,
+    mut query: Query<
+        (&mut Transform, &mut Rigidbody, &Collider),
+        Without<crate::components::creatures::Fly>,
+    >,
 ) {
     let window = windows.get_primary().unwrap();
     let hw = window.width() as f32 / 2.0;
@@ -37,7 +31,7 @@ pub fn window_repel(
     let offset = 5.0;
 
     for (mut transform, mut rigidbody, collider) in query.iter_mut() {
-        let (minx, maxx, miny, maxy) = window_bounds(hw, hh, offset, collider);
+        let (minx, maxx, miny, maxy) = collider.calculate_bounds(hw, hh, offset);
         rigidbody.repel(&mut transform, minx, maxx, miny, maxy);
     }
 }
@@ -45,7 +39,10 @@ pub fn window_repel(
 /// Contains bodies inside the window
 pub fn window_contain(
     windows: Res<Windows>,
-    mut query: Query<(&mut Transform, &mut Rigidbody, &Collider)>,
+    mut query: Query<
+        (&mut Transform, &mut Rigidbody, &Collider),
+        Without<crate::components::creatures::Fly>,
+    >,
 ) {
     let window = windows.get_primary().unwrap();
     let hw = window.width() as f32 / 2.0;
@@ -54,7 +51,7 @@ pub fn window_contain(
     let offset = 5.0;
 
     for (mut transform, mut rigidbody, collider) in query.iter_mut() {
-        let (minx, maxx, miny, maxy) = window_bounds(hw, hh, offset, collider);
+        let (minx, maxx, miny, maxy) = collider.calculate_bounds(hw, hh, offset);
         rigidbody.contain(&mut transform, minx, maxx, miny, maxy);
     }
 }
