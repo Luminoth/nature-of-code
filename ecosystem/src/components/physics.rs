@@ -7,7 +7,7 @@ use num_traits::Float;
 /// 50hz, the same as Unity
 pub const PHYSICS_STEP: f32 = 0.02;
 
-const REPEL_MIN_DISTANCE: f32 = 0.1;
+const ATTRACT_REPEL_MIN_DISTANCE: f32 = 0.1;
 
 #[derive(Debug, Default, Copy, Clone)]
 struct Derivative {
@@ -76,14 +76,14 @@ impl Rigidbody {
 
         if transform.translation.x <= minx {
             transform.translation.x = if self.previous_position.x <= minx {
-                minx + REPEL_MIN_DISTANCE
+                minx + ATTRACT_REPEL_MIN_DISTANCE
             } else {
                 self.previous_position.x
             };
             self.velocity.x = 0.0;
         } else if transform.translation.x >= maxx {
             transform.translation.x = if self.previous_position.x >= maxx {
-                maxx - REPEL_MIN_DISTANCE
+                maxx - ATTRACT_REPEL_MIN_DISTANCE
             } else {
                 self.previous_position.x
             };
@@ -92,14 +92,14 @@ impl Rigidbody {
 
         if transform.translation.y <= miny {
             transform.translation.y = if self.previous_position.y <= miny {
-                miny + REPEL_MIN_DISTANCE
+                miny + ATTRACT_REPEL_MIN_DISTANCE
             } else {
                 self.previous_position.y
             };
             self.velocity.y = 0.0;
         } else if transform.translation.y >= maxy {
             transform.translation.y = if self.previous_position.y >= maxy {
-                maxy - REPEL_MIN_DISTANCE
+                maxy - ATTRACT_REPEL_MIN_DISTANCE
             } else {
                 self.previous_position.y
             };
@@ -107,8 +107,8 @@ impl Rigidbody {
         }
     }
 
-    fn repel_force(&self, ab: Vec2, acceleration: f32) -> Vec2 {
-        let distance = Float::max(REPEL_MIN_DISTANCE, ab.length());
+    fn attract_repel_force(&self, ab: Vec2, acceleration: f32) -> Vec2 {
+        let distance = Float::max(ATTRACT_REPEL_MIN_DISTANCE, ab.length());
         let direction = ab.normalize_or_zero();
         let magnitude = (acceleration * self.mass) / (distance * distance);
 
@@ -126,23 +126,36 @@ impl Rigidbody {
         maxy: f32,
         acceleration: f32,
     ) {
-        let force = self.repel_force(Vec2::new(transform.translation.x - minx, 0.0), acceleration);
+        let force =
+            self.attract_repel_force(Vec2::new(transform.translation.x - minx, 0.0), acceleration);
         self.apply_force(force, "repel_min_x");
 
-        let force = self.repel_force(Vec2::new(transform.translation.x - maxx, 0.0), acceleration);
+        let force =
+            self.attract_repel_force(Vec2::new(transform.translation.x - maxx, 0.0), acceleration);
         self.apply_force(force, "repel_max_x");
 
-        let force = self.repel_force(Vec2::new(0.0, transform.translation.y - miny), acceleration);
+        let force =
+            self.attract_repel_force(Vec2::new(0.0, transform.translation.y - miny), acceleration);
         self.apply_force(force, "repel_min_y");
 
-        let force = self.repel_force(Vec2::new(0.0, transform.translation.y - maxy), acceleration);
+        let force =
+            self.attract_repel_force(Vec2::new(0.0, transform.translation.y - maxy), acceleration);
         self.apply_force(force, "repel_max_y");
     }
 
     /// Repel a a rigidbody away from a point
     #[allow(dead_code)]
     pub fn repel(&mut self, transform: &Transform, point: Vec2, acceleration: f32) {
-        let force = self.repel_force(transform.translation.truncate() - point, acceleration);
+        let force =
+            self.attract_repel_force(transform.translation.truncate() - point, acceleration);
+        self.apply_force(force, "repel");
+    }
+
+    /// Attact a a rigidbody toward a point
+    #[allow(dead_code)]
+    pub fn atract(&mut self, transform: &Transform, point: Vec2, acceleration: f32) {
+        let force =
+            self.attract_repel_force(point - transform.translation.truncate(), acceleration);
         self.apply_force(force, "repel");
     }
 
