@@ -5,6 +5,9 @@ use bevy_prototype_lyon::prelude::*;
 
 use super::physics::*;
 
+// TODO: move all of these constants to the simulation params
+// except maybe the colors
+
 const AIR_DENSITY: f32 = 1.0;
 
 const WATER_COLOR: Color = Color::rgba(0.18, 0.55, 0.34, 0.5);

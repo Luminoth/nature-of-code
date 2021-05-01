@@ -42,8 +42,17 @@ fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
     #[cfg(debug_assertions)]
     _asset_server.watch_for_changes().unwrap();
 
-    commands.insert_resource(Random::default());
+    let mut random = Random::default();
+
+    let simulation = SimulationParams {
+        fly_count: random.normal_clamped::<f32>(10.0, 3.0, 3.0, 20.0) as usize,
+        fish_count: random.normal_clamped::<f32>(4.0, 3.0, 2.0, 8.0) as usize,
+        snake_count: random.normal_clamped::<f32>(2.0, 1.0, 1.0, 4.0) as usize,
+    };
+
+    commands.insert_resource(random);
     commands.insert_resource(PerlinNoise::default());
+    commands.insert_resource(simulation);
 }
 
 /// Debug setup

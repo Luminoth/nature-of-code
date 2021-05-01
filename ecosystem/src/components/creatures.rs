@@ -6,30 +6,30 @@ use bevy_prototype_lyon::prelude::*;
 //use super::debug::*;
 use super::physics::*;
 
-// TODO: make the accel constants here non-public
-// and put them into the components
+// TODO: move all of these constants to the simulation params
+// except maybe the colors
 
 const FLY_COLOR: Color = Color::WHITE;
 const FLY_MASS: f32 = 1.2; // 100000x the mass of an actual house fly (kg)
 const FLY_DRAG: f32 = 0.01;
 const FLY_SIZE: f32 = 2.0;
 const FLY_REPEL_ACCEL: f32 = 1.0;
-pub const FLY_ACCEL: f32 = 1500.0;
+const FLY_ACCEL: f32 = 1500.0;
 
 const FISH_COLOR: Color = Color::SALMON;
 const FISH_MASS: f32 = 1500.0; // 100x the mass of an actual koi (kg)
 const FISH_DRAG: f32 = 0.03;
 const FISH_SIZE: f32 = 10.0;
 const FISH_REPEL_ACCEL: f32 = 5.0;
-pub const FISH_ACCEL: f32 = 300.0;
+const FISH_ACCEL: f32 = 300.0;
 
 const SNAKE_COLOR: Color = Color::MAROON;
 const SNAKE_MASS: f32 = 15.0; // 100x the mass of an actual garter snake (kg)
 const SNAKE_DRAG: f32 = 0.04;
 const SNAKE_SIZE: f32 = 5.0;
 const SNAKE_REPEL_ACCEL: f32 = 10.0;
-pub const SNAKE_GROUND_ACCEL: f32 = 400.0;
-//pub const SNAKE_WATER_ACCEL: f32 = 300.0;
+const SNAKE_GROUND_ACCEL: f32 = 400.0;
+//const SNAKE_WATER_ACCEL: f32 = 300.0;
 
 /// Shared creature component
 #[derive(Default)]
@@ -38,6 +38,7 @@ pub struct Creature;
 /// Flies fly
 #[derive(Default)]
 pub struct Fly {
+    pub acceleration: f32,
     pub repel_acceleration: f32,
 }
 
@@ -47,10 +48,10 @@ impl Fly {
     pub fn spawn(
         commands: &mut Commands,
         _asset_server: &Res<AssetServer>,
-        id: u32,
+        i: usize,
         position: Vec2,
     ) {
-        info!("spawning fly {} at {}", id, position);
+        info!("spawning fly {} at {}", i, position);
 
         let shape = shapes::Ellipse {
             radii: Vec2::new(FLY_SIZE, FLY_SIZE),
@@ -58,8 +59,8 @@ impl Fly {
         };
 
         let fly = Fly {
+            acceleration: FLY_ACCEL,
             repel_acceleration: FLY_REPEL_ACCEL,
-            ..Default::default()
         };
 
         let _entity = commands
@@ -116,6 +117,7 @@ impl Fly {
 /// Fish swim
 #[derive(Default)]
 pub struct Fish {
+    pub acceleration: f32,
     pub repel_acceleration: f32,
 }
 
@@ -125,10 +127,10 @@ impl Fish {
     pub fn spawn(
         commands: &mut Commands,
         _asset_server: &Res<AssetServer>,
-        id: u32,
+        i: usize,
         position: Vec2,
     ) {
-        info!("spawning fish {} at {}", id, position);
+        info!("spawning fish {} at {}", i, position);
 
         let shape = shapes::Ellipse {
             radii: Vec2::new(FISH_SIZE, FISH_SIZE),
@@ -136,8 +138,8 @@ impl Fish {
         };
 
         let fish = Fish {
+            acceleration: FISH_ACCEL,
             repel_acceleration: FISH_REPEL_ACCEL,
-            ..Default::default()
         };
 
         let _entity = commands
@@ -194,6 +196,7 @@ impl Fish {
 /// Snakes snek
 #[derive(Default)]
 pub struct Snake {
+    pub ground_acceleration: f32,
     pub repel_acceleration: f32,
 }
 
@@ -203,10 +206,10 @@ impl Snake {
     pub fn spawn(
         commands: &mut Commands,
         _asset_server: &Res<AssetServer>,
-        id: u32,
+        i: usize,
         position: Vec2,
     ) {
-        info!("spawning snake {} at {}", id, position);
+        info!("spawning snake {} at {}", i, position);
 
         let shape = shapes::Ellipse {
             radii: Vec2::new(SNAKE_SIZE, SNAKE_SIZE),
@@ -214,8 +217,8 @@ impl Snake {
         };
 
         let snake = Snake {
+            ground_acceleration: SNAKE_GROUND_ACCEL,
             repel_acceleration: SNAKE_REPEL_ACCEL,
-            ..Default::default()
         };
 
         let _entity = commands

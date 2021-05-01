@@ -13,6 +13,7 @@ pub enum CreaturesSystem {
     Bounds,
 }
 
+// TODO: move these to SimulationParams
 const BOUNDS_OFFSET: f32 = 5.0;
 const BOUNDS_REPEL_ACCEL: f32 = 10.0;
 
@@ -22,11 +23,11 @@ pub fn fly_update(mut query: Query<&mut Fly>) {
 }
 
 /// Fly behavior
-pub fn fly_physics(mut random: ResMut<Random>, mut query: Query<&mut Rigidbody, With<Fly>>) {
-    for mut rigidbody in query.iter_mut() {
+pub fn fly_physics(mut random: ResMut<Random>, mut query: Query<(&mut Rigidbody, &Fly)>) {
+    for (mut rigidbody, fly) in query.iter_mut() {
         let direction = random.direction();
         let modifier = random.random() as f32;
-        let magnitude = FLY_ACCEL * rigidbody.mass * modifier;
+        let magnitude = fly.acceleration * rigidbody.mass * modifier;
         rigidbody.apply_force(direction * magnitude);
     }
 }
@@ -78,14 +79,14 @@ pub fn fish_physics(
     time: Res<Time>,
     mut random: ResMut<Random>,
     noise: Res<PerlinNoise>,
-    mut query: Query<&mut Rigidbody, With<Fish>>,
+    mut query: Query<(&mut Rigidbody, &Fish)>,
 ) {
-    for mut rigidbody in query.iter_mut() {
+    for (mut rigidbody, fish) in query.iter_mut() {
         let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
 
         let direction = random.direction();
         let modifier = noise.get(t, 0.5) as f32;
-        let magnitude = FISH_ACCEL * rigidbody.mass * modifier;
+        let magnitude = fish.acceleration * rigidbody.mass * modifier;
         rigidbody.apply_force(direction * magnitude);
     }
 }
@@ -145,14 +146,14 @@ pub fn snake_physics(
     time: Res<Time>,
     mut random: ResMut<Random>,
     noise: Res<PerlinNoise>,
-    mut query: Query<&mut Rigidbody, With<Snake>>,
+    mut query: Query<(&mut Rigidbody, &Snake)>,
 ) {
-    for mut rigidbody in query.iter_mut() {
+    for (mut rigidbody, snake) in query.iter_mut() {
         let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
 
         let direction = random.direction();
         let modifier = noise.get(t, 0.5) as f32;
-        let magnitude = SNAKE_GROUND_ACCEL * rigidbody.mass * modifier;
+        let magnitude = snake.ground_acceleration * rigidbody.mass * modifier;
         rigidbody.apply_force(direction * magnitude);
     }
 }

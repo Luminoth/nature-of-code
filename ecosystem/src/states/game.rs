@@ -12,6 +12,7 @@ pub fn setup(
     asset_server: Res<AssetServer>,
     mut random: ResMut<Random>,
     windows: Res<Windows>,
+    simulation: Res<SimulationParams>,
 ) {
     // cameras
     commands.insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)));
@@ -43,24 +44,23 @@ pub fn setup(
     Air::spawn(&mut commands, Vec2::new(window.width(), window.height()));
 
     // creatures
-    // TODO: read the creature counts from a resource that we supply in main for easier debugging
 
     // flies
-    for id in 0..random.normal_clamped::<f32>(10.0, 3.0, 3.0, 20.0) as u32 {
+    for i in 0..simulation.fly_count {
         let position = random.vec2_range(-hw + 5.0..hw - 5.0, -hh + 5.0..hh - 5.0);
-        Fly::spawn(&mut commands, &asset_server, id, position);
+        Fly::spawn(&mut commands, &asset_server, i, position);
     }
 
     // fish
-    for id in 0..random.normal_clamped::<f32>(4.0, 3.0, 2.0, 8.0) as u32 {
+    for i in 0..simulation.fish_count {
         let position = random.vec2_range(-hw + 10.0..qw - 10.0, -hh + 10.0..hh - 10.0);
-        Fish::spawn(&mut commands, &asset_server, id, position);
+        Fish::spawn(&mut commands, &asset_server, i, position);
     }
 
     // snakes
-    for id in 0..random.normal_clamped::<f32>(2.0, 1.0, 1.0, 4.0) as u32 {
+    for i in 0..simulation.snake_count {
         let position = random.vec2_range(qw + 5.0..hw - 5.0, -hh + 5.0..hh - 5.0);
-        Snake::spawn(&mut commands, &asset_server, id, position);
+        Snake::spawn(&mut commands, &asset_server, i, position);
     }
 }
 

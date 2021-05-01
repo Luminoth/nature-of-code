@@ -11,6 +11,13 @@ use rand_distr::{Normal, StandardNormal};
 
 use crate::clampf;
 
+/// Simulation parameters
+pub struct SimulationParams {
+    pub fly_count: usize,
+    pub fish_count: usize,
+    pub snake_count: usize,
+}
+
 /// Random wrapper
 pub struct Random {
     // TODO: would SmallRng be better here? we don't need a secure rng
