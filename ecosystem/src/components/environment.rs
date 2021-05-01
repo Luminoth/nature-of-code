@@ -27,7 +27,7 @@ impl Ground {
                 &shapes::Rectangle {
                     width: size.x,
                     height: size.y,
-                    origin: shapes::RectangleOrigin::TopLeft,
+                    origin: shapes::RectangleOrigin::Center,
                 },
                 ShapeColors::new(GROUND_COLOR),
                 DrawMode::Fill(FillOptions::default()),
@@ -52,7 +52,7 @@ impl Water {
                 &shapes::Rectangle {
                     width: size.x,
                     height: size.y,
-                    origin: shapes::RectangleOrigin::TopLeft,
+                    origin: shapes::RectangleOrigin::Center,
                 },
                 ShapeColors::new(WATER_COLOR),
                 DrawMode::Fill(FillOptions::default()),
