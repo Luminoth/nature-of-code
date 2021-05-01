@@ -32,20 +32,26 @@ impl Mover {
         }
     }
 
+    fn size(&self) -> f64 {
+        self.mass * 16.0
+    }
+
     fn bounce_edges(&mut self, screen: &Screen) {
-        if self.location.x > screen.width() as f64 {
-            self.location.x = screen.width() as f64;
+        let hs = self.size() / 2.0;
+
+        if (self.location.x + hs) > screen.width() as f64 {
+            self.location.x = screen.width() as f64 - hs;
             self.velocity.x *= -1.0;
-        } else if self.location.x < 0.0 {
-            self.location.x = 0.0;
+        } else if self.location.x < hs {
+            self.location.x = hs;
             self.velocity.x *= -1.0;
         }
 
-        if self.location.y > screen.height() as f64 {
-            self.location.y = screen.height() as f64;
+        if (self.location.y + hs) > screen.height() as f64 {
+            self.location.y = screen.height() as f64 - hs;
             self.velocity.y *= -1.0;
-        } else if self.location.y < 0.0 {
-            self.location.y = 0.0;
+        } else if self.location.y < hs {
+            self.location.y = hs;
             self.velocity.y *= -1.0;
         }
     }
@@ -85,13 +91,8 @@ impl Mover {
         core::translate(screen, self.location.x, self.location.y);
         core::rotate(screen, self.angle);
 
-        core::shapes::rect(
-            screen,
-            self.location.x,
-            self.location.y,
-            self.mass * 16.0,
-            self.mass * 16.0,
-        )?;
+        screen.rect_mode(&core::shapes::RectMode::Center.to_string());
+        core::shapes::rect(screen, 0.0, 0.0, self.size(), self.size())?;
 
         screen.pop_matrix();
 
