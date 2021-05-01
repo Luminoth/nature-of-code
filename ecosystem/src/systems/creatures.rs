@@ -27,7 +27,7 @@ pub fn fly_physics(mut random: ResMut<Random>, mut query: Query<&mut Rigidbody, 
         let direction = random.direction();
         let modifier = random.random() as f32;
         let magnitude = FLY_ACCEL * rigidbody.mass * modifier;
-        rigidbody.apply_force(direction * magnitude, "fly");
+        rigidbody.apply_force(direction * magnitude);
     }
 }
 
@@ -86,7 +86,7 @@ pub fn fish_physics(
         let direction = random.direction();
         let modifier = noise.get(t, 0.5) as f32;
         let magnitude = FISH_ACCEL * rigidbody.mass * modifier;
-        rigidbody.apply_force(direction * magnitude, "swim");
+        rigidbody.apply_force(direction * magnitude);
     }
 }
 
@@ -153,7 +153,7 @@ pub fn snake_physics(
         let direction = random.direction();
         let modifier = noise.get(t, 0.5) as f32;
         let magnitude = SNAKE_GROUND_ACCEL * rigidbody.mass * modifier;
-        rigidbody.apply_force(direction * magnitude, "slither");
+        rigidbody.apply_force(direction * magnitude);
     }
 }
 

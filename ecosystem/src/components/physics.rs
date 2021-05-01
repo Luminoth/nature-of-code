@@ -128,19 +128,19 @@ impl Rigidbody {
     ) {
         let force =
             self.attract_repel_force(Vec2::new(transform.translation.x - minx, 0.0), acceleration);
-        self.apply_force(force, "repel_min_x");
+        self.apply_force(force);
 
         let force =
             self.attract_repel_force(Vec2::new(transform.translation.x - maxx, 0.0), acceleration);
-        self.apply_force(force, "repel_max_x");
+        self.apply_force(force);
 
         let force =
             self.attract_repel_force(Vec2::new(0.0, transform.translation.y - miny), acceleration);
-        self.apply_force(force, "repel_min_y");
+        self.apply_force(force);
 
         let force =
             self.attract_repel_force(Vec2::new(0.0, transform.translation.y - maxy), acceleration);
-        self.apply_force(force, "repel_max_y");
+        self.apply_force(force);
     }
 
     /// Repel a a rigidbody away from a point
@@ -148,7 +148,7 @@ impl Rigidbody {
     pub fn repel(&mut self, transform: &Transform, point: Vec2, acceleration: f32) {
         let force =
             self.attract_repel_force(transform.translation.truncate() - point, acceleration);
-        self.apply_force(force, "repel");
+        self.apply_force(force);
     }
 
     /// Attact a a rigidbody toward a point
@@ -156,11 +156,11 @@ impl Rigidbody {
     pub fn atract(&mut self, transform: &Transform, point: Vec2, acceleration: f32) {
         let force =
             self.attract_repel_force(point - transform.translation.truncate(), acceleration);
-        self.apply_force(force, "repel");
+        self.apply_force(force);
     }
 
     /// Applies a force to the rigidbody
-    pub fn apply_force(&mut self, force: Vec2, _name: impl AsRef<str> + std::fmt::Debug) {
+    pub fn apply_force(&mut self, force: Vec2) {
         let force = if self.mass > 0.0 {
             force / self.mass
         } else {
@@ -297,7 +297,7 @@ impl Surface {
 
         let friction = direction * magnitude;
 
-        rigidbody.apply_force(friction.truncate(), "friction");
+        rigidbody.apply_force(friction.truncate());
     }
 }
 
@@ -320,6 +320,6 @@ impl Fluid {
 
         let drag = direction * magnitude;
 
-        rigidbody.apply_force(drag.truncate(), "drag");
+        rigidbody.apply_force(drag.truncate());
     }
 }
