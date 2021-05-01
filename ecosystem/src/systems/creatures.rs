@@ -115,3 +115,28 @@ pub fn snake_physics(
         rigidbody.apply_force(direction * magnitude, "slither");
     }
 }
+
+/// Keep snakes on the ground (for now)
+pub fn snake_bounds(
+    mut query: Query<(&mut Transform, &mut Rigidbody, &Collider), With<Snake>>,
+    surfaces: Query<(&Transform, &Collider), (With<Surface>, Without<Snake>)>,
+) {
+    for (mut transform, mut rigidbody, collider) in query.iter_mut() {
+        for (stransform, scollider) in surfaces.iter() {
+            if collider.collides(&transform, scollider, stransform) {
+                let hw = scollider.size.x / 2.0;
+                let hh = scollider.size.y / 2.0;
+
+                let minx = stransform.translation.x - hw;
+                let maxx = stransform.translation.x + hw;
+                let miny = stransform.translation.y - hh;
+                let maxy = stransform.translation.y + hh;
+
+                let (minx, maxx, miny, maxy) =
+                    collider.adjust_container_bounds(minx, maxx, miny, maxy, BOUNDS_OFFSET);
+                rigidbody.contain(&mut transform, minx, maxx, miny, maxy);
+                rigidbody.repel(&mut transform, minx, maxx, miny, maxy);
+            }
+        }
+    }
+}

@@ -101,20 +101,6 @@ fn main() {
                         .label(Physics)
                         .label(PhysicsSystem::Update),
                 )
-                .with_system(
-                    window_contain
-                        .system()
-                        .label(Physics)
-                        .label(PhysicsSystem::Contain)
-                        .after(PhysicsSystem::Update),
-                )
-                .with_system(
-                    window_repel
-                        .system()
-                        .label(Physics)
-                        .label(PhysicsSystem::Repel)
-                        .after(PhysicsSystem::Contain),
-                )
                 // creaturue behaviors
                 .with_system(
                     fly_physics
@@ -145,6 +131,12 @@ fn main() {
                         .system()
                         .label(CreaturesSystem::Physics)
                         .before(Physics),
+                )
+                .with_system(
+                    snake_bounds
+                        .system()
+                        .label(CreaturesSystem::Bounds)
+                        .after(Physics),
                 ),
         )
         .add_system_set(
