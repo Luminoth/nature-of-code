@@ -7,6 +7,7 @@ use num_traits::Float;
 /// 50hz, the same as Unity
 pub const PHYSICS_STEP: f32 = 0.02;
 
+// TODO: for creates this should be their radius
 const ATTRACT_REPEL_MIN_DISTANCE: f32 = 0.1;
 
 #[derive(Debug, Default, Copy, Clone)]
