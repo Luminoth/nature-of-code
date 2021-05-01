@@ -131,7 +131,7 @@ fn draw(
 
 fn main() -> Result<(), ProcessingErr> {
     let movers = Rc::new(RefCell::new(None));
-    let wind = Rc::new(RefCell::new(None));
+    let mut wind = Wind::default();
 
     core::run(
         || {
@@ -146,18 +146,9 @@ fn main() -> Result<(), ProcessingErr> {
             }
             *movers.borrow_mut() = Some(mvrs);
 
-            *wind.borrow_mut() = Some(Wind::default());
-
             Ok(screen)
         },
-        |screen, dt| {
-            draw(
-                screen,
-                dt,
-                movers.borrow_mut().as_mut().unwrap(),
-                wind.borrow_mut().as_mut().unwrap(),
-            )
-        },
+        |screen, dt| draw(screen, dt, movers.borrow_mut().as_mut().unwrap(), &mut wind),
     )?;
 
     Ok(())

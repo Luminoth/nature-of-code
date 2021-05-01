@@ -1,6 +1,3 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-
 use processing::errors::ProcessingErr;
 use processing::Screen;
 use rand::Rng;
@@ -34,11 +31,9 @@ fn draw(screen: &mut Screen, random_counts: &mut Vec<u32>) -> Result<(), Process
 }
 
 fn main() -> Result<(), ProcessingErr> {
-    let random_counts = Rc::new(RefCell::new(vec![0; 20]));
+    let mut random_counts = vec![0; 20];
 
-    core::run(setup, |screen, _| {
-        draw(screen, random_counts.borrow_mut().as_mut())
-    })?;
+    core::run(setup, |screen, _| draw(screen, &mut random_counts))?;
 
     Ok(())
 }

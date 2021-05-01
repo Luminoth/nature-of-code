@@ -94,7 +94,7 @@ fn draw(
 
 fn main() -> Result<(), ProcessingErr> {
     let balloons = Rc::new(RefCell::new(None));
-    let wind = Rc::new(RefCell::new(None));
+    let mut wind = Wind::default();
 
     core::run(
         || {
@@ -112,8 +112,6 @@ fn main() -> Result<(), ProcessingErr> {
             }
             *balloons.borrow_mut() = Some(bs);
 
-            *wind.borrow_mut() = Some(Wind::default());
-
             Ok(screen)
         },
         |screen, dt| {
@@ -121,7 +119,7 @@ fn main() -> Result<(), ProcessingErr> {
                 screen,
                 dt,
                 balloons.borrow_mut().as_mut().unwrap(),
-                wind.borrow_mut().as_mut().unwrap(),
+                &mut wind,
             )
         },
     )?;
