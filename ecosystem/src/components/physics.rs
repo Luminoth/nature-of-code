@@ -138,7 +138,7 @@ impl Rigidbody {
     /// Repel a rigidbody inside bounds
     #[allow(dead_code)]
     #[tracing::instrument]
-    pub fn repel(&mut self, transform: &mut Transform, minx: f32, maxx: f32, miny: f32, maxy: f32) {
+    pub fn repel(&mut self, transform: &Transform, minx: f32, maxx: f32, miny: f32, maxy: f32) {
         if !transform.translation.is_finite() {
             panic!("Invalid transform");
         }

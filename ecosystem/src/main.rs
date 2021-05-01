@@ -1,5 +1,8 @@
 //! Nature of Code Ecosystem Project
 
+// bevy queries can produce a lot of this
+#![allow(clippy::type_complexity)]
+
 mod components;
 mod events;
 mod resources;
@@ -81,11 +84,10 @@ fn main() {
         )
         .add_system_set(
             // fixed (physics) update
-            // 1) all CreaturesSystem::Physics (before Physics)
+            // 1) all CreaturesSystem::Physics (before Physics, including repel)
             // 2) PhysicsSystem::Collisions (friction, drag, etc)
             // 3) PhysicsSystem::Update (move rigidbodies)
-            // 4) PhysicsSystem::Contain (rewind updates at borders)
-            // 5) PhysicsSystem::Repel (repel creatures from borders)
+            // 4) CreaturesSystem::Bounds (rewind updates at borders, border repel)
             SystemSet::on_update(GameState::Game)
                 .with_run_criteria(FixedTimestep::step(PHYSICS_STEP as f64))
                 .with_system(
@@ -102,6 +104,12 @@ fn main() {
                         .label(PhysicsSystem::Update),
                 )
                 // creaturue behaviors
+                .with_system(
+                    creature_repel
+                        .system()
+                        .label(CreaturesSystem::Physics)
+                        .before(Physics),
+                )
                 .with_system(
                     fly_physics
                         .system()

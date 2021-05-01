@@ -15,6 +15,14 @@ pub enum CreaturesSystem {
 
 const BOUNDS_OFFSET: f32 = 5.0;
 
+pub fn creature_repel(
+    mut query: Query<(&mut Transform, &mut Rigidbody, &Collider), With<Creature>>,
+) {
+    for (mut _transform, mut _rigidbody, _collider) in query.iter_mut() {
+        // TODO: how do we check everything vs everything else?
+    }
+}
+
 /// Fly behavior
 pub fn fly_update(mut query: Query<&mut Fly>) {
     for mut _fly in query.iter_mut() {}
@@ -43,7 +51,7 @@ pub fn fly_bounds(
         let (minx, maxx, miny, maxy) =
             collider.adjust_container_bounds(-hw, hw, -hh, hh, BOUNDS_OFFSET);
         rigidbody.contain(&mut transform, minx, maxx, miny, maxy);
-        rigidbody.repel(&mut transform, minx, maxx, miny, maxy);
+        rigidbody.repel(&transform, minx, maxx, miny, maxy);
     }
 }
 
@@ -88,7 +96,7 @@ pub fn fish_bounds(
                 let (minx, maxx, miny, maxy) =
                     collider.adjust_container_bounds(minx, maxx, miny, maxy, BOUNDS_OFFSET);
                 rigidbody.contain(&mut transform, minx, maxx, miny, maxy);
-                rigidbody.repel(&mut transform, minx, maxx, miny, maxy);
+                rigidbody.repel(&transform, minx, maxx, miny, maxy);
             }
         }
     }
@@ -135,7 +143,7 @@ pub fn snake_bounds(
                 let (minx, maxx, miny, maxy) =
                     collider.adjust_container_bounds(minx, maxx, miny, maxy, BOUNDS_OFFSET);
                 rigidbody.contain(&mut transform, minx, maxx, miny, maxy);
-                rigidbody.repel(&mut transform, minx, maxx, miny, maxy);
+                rigidbody.repel(&transform, minx, maxx, miny, maxy);
             }
         }
     }
