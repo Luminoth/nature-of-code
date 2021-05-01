@@ -9,7 +9,7 @@ use num_traits::Float;
 pub const PHYSICS_STEP: f32 = 0.02;
 
 const WINDOW_REPEL_MIN_DISTANCE: f32 = 0.1;
-const WINDOW_REPEL_FORCE: f32 = 10.0;
+const WINDOW_REPEL_ACCEL: f32 = 10.0;
 
 #[derive(Debug, Default, Copy, Clone)]
 struct Derivative {
@@ -130,7 +130,7 @@ impl Rigidbody {
         let ab = Vec2::new(x, y);
         let distance = Float::max(WINDOW_REPEL_MIN_DISTANCE, ab.length());
         let direction = ab.normalize_or_zero();
-        let magnitude = (WINDOW_REPEL_FORCE * self.mass) / (distance * distance);
+        let magnitude = (WINDOW_REPEL_ACCEL * self.mass) / (distance * distance);
 
         direction * magnitude
     }
@@ -144,16 +144,16 @@ impl Rigidbody {
         }
 
         let force = self.repel_direction(transform.translation.x - minx, 0.0);
-        self.apply_force(force * self.mass, "repel_min_x");
+        self.apply_force(force, "repel_min_x");
 
         let force = self.repel_direction(transform.translation.x - maxx, 0.0);
-        self.apply_force(force * self.mass, "repel_max_x");
+        self.apply_force(force, "repel_max_x");
 
         let force = self.repel_direction(0.0, transform.translation.y - miny);
-        self.apply_force(force * self.mass, "repel_min_y");
+        self.apply_force(force, "repel_min_y");
 
         let force = self.repel_direction(0.0, transform.translation.y - maxy);
-        self.apply_force(force * self.mass, "repel_max_y");
+        self.apply_force(force, "repel_max_y");
     }
 
     /// Applies a force to the rigidbody

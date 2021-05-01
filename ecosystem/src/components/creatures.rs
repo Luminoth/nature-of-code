@@ -9,22 +9,23 @@ use super::physics::*;
 // NOTE: masses < 1 here can cause drag / friction to produce wildly oversized results
 
 const FLY_COLOR: Color = Color::WHITE;
-const FLY_MASS: f32 = 1.0; // completely made up mass to just make things work
+const FLY_MASS: f32 = 1.2; // 100000x the mass of an actual house fly (kg)
 const FLY_DRAG: f32 = 0.01;
 const FLY_SIZE: f32 = 2.0;
-pub const FLY_FORCE: f32 = FLY_MASS * 1500.0;
+pub const FLY_ACCEL: f32 = 1500.0;
 
 const FISH_COLOR: Color = Color::SALMON;
 const FISH_MASS: f32 = 1500.0; // 100x the mass of an actual koi (kg)
 const FISH_DRAG: f32 = 0.03;
 const FISH_SIZE: f32 = 10.0;
-pub const FISH_FORCE: f32 = FISH_MASS * 300.0;
+pub const FISH_ACCEL: f32 = 300.0;
 
 const SNAKE_COLOR: Color = Color::MAROON;
 const SNAKE_MASS: f32 = 15.0; // 100x the mass of an actual garter snake (kg)
 const SNAKE_DRAG: f32 = 0.04;
 const SNAKE_SIZE: f32 = 5.0;
-pub const SNAKE_GROUND_FORCE: f32 = SNAKE_MASS * 200.0;
+pub const SNAKE_GROUND_ACCEL: f32 = 400.0;
+//pub const SNAKE_WATER_ACCEL: f32 = 300.0;
 
 /// Shared creature component
 #[derive(Default)]
