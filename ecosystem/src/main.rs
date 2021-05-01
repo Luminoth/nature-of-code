@@ -105,12 +105,6 @@ fn main() {
                 )
                 // creaturue behaviors
                 .with_system(
-                    creature_repel
-                        .system()
-                        .label(CreaturesSystem::Physics)
-                        .before(Physics),
-                )
-                .with_system(
                     fly_physics
                         .system()
                         .label(CreaturesSystem::Physics)
@@ -129,6 +123,12 @@ fn main() {
                         .before(Physics),
                 )
                 .with_system(
+                    fish_repel
+                        .system()
+                        .label(CreaturesSystem::Physics)
+                        .before(Physics),
+                )
+                .with_system(
                     fish_bounds
                         .system()
                         .label(CreaturesSystem::Bounds)
@@ -136,6 +136,12 @@ fn main() {
                 )
                 .with_system(
                     snake_physics
+                        .system()
+                        .label(CreaturesSystem::Physics)
+                        .before(Physics),
+                )
+                .with_system(
+                    snake_repel
                         .system()
                         .label(CreaturesSystem::Physics)
                         .before(Physics),

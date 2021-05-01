@@ -14,14 +14,7 @@ pub enum CreaturesSystem {
 }
 
 const BOUNDS_OFFSET: f32 = 5.0;
-
-pub fn creature_repel(
-    mut query: Query<(&mut Transform, &mut Rigidbody, &Collider), With<Creature>>,
-) {
-    for (mut _transform, mut _rigidbody, _collider) in query.iter_mut() {
-        // TODO: how do we check everything vs everything else?
-    }
-}
+const BOUNDS_REPEL_ACCEL: f32 = 10.0;
 
 /// Fly behavior
 pub fn fly_update(mut query: Query<&mut Fly>) {
@@ -51,7 +44,7 @@ pub fn fly_bounds(
         let (minx, maxx, miny, maxy) =
             collider.adjust_container_bounds(-hw, hw, -hh, hh, BOUNDS_OFFSET);
         rigidbody.contain(&mut transform, minx, maxx, miny, maxy);
-        rigidbody.repel(&transform, minx, maxx, miny, maxy);
+        rigidbody.bounds_repel(&transform, minx, maxx, miny, maxy, BOUNDS_REPEL_ACCEL);
     }
 }
 
@@ -77,6 +70,26 @@ pub fn fish_physics(
     }
 }
 
+/// Fish repel each other
+pub fn fish_repel(
+    query: Query<(Entity, &Transform, &Fish)>,
+    mut fquery: Query<(Entity, &Transform, &mut Rigidbody), With<Fish>>,
+) {
+    for (entity, transform, fish) in query.iter() {
+        for (fentity, ftransform, mut frigidbody) in fquery.iter_mut() {
+            if entity == fentity {
+                continue;
+            }
+
+            frigidbody.repel(
+                transform,
+                ftransform.translation.truncate(),
+                fish.repel_acceleration,
+            );
+        }
+    }
+}
+
 /// Keep fish inside the water
 pub fn fish_bounds(
     mut query: Query<(&mut Transform, &mut Rigidbody, &Collider), With<Fish>>,
@@ -96,7 +109,7 @@ pub fn fish_bounds(
                 let (minx, maxx, miny, maxy) =
                     collider.adjust_container_bounds(minx, maxx, miny, maxy, BOUNDS_OFFSET);
                 rigidbody.contain(&mut transform, minx, maxx, miny, maxy);
-                rigidbody.repel(&transform, minx, maxx, miny, maxy);
+                rigidbody.bounds_repel(&transform, minx, maxx, miny, maxy, BOUNDS_REPEL_ACCEL);
             }
         }
     }
@@ -143,8 +156,28 @@ pub fn snake_bounds(
                 let (minx, maxx, miny, maxy) =
                     collider.adjust_container_bounds(minx, maxx, miny, maxy, BOUNDS_OFFSET);
                 rigidbody.contain(&mut transform, minx, maxx, miny, maxy);
-                rigidbody.repel(&transform, minx, maxx, miny, maxy);
+                rigidbody.bounds_repel(&transform, minx, maxx, miny, maxy, BOUNDS_REPEL_ACCEL);
             }
+        }
+    }
+}
+
+/// Snakes repel each other
+pub fn snake_repel(
+    query: Query<(Entity, &Transform, &Snake)>,
+    mut squery: Query<(Entity, &Transform, &mut Rigidbody), With<Snake>>,
+) {
+    for (entity, transform, fish) in query.iter() {
+        for (sentity, stransform, mut srigidbody) in squery.iter_mut() {
+            if entity == sentity {
+                continue;
+            }
+
+            srigidbody.repel(
+                transform,
+                stransform.translation.truncate(),
+                fish.repel_acceleration,
+            );
         }
     }
 }

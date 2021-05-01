@@ -1,15 +1,13 @@
 //! Physics components
 
 use bevy::prelude::*;
-use bevy::utils::tracing;
 use num_traits::Float;
 
 /// Physics step rate
 /// 50hz, the same as Unity
 pub const PHYSICS_STEP: f32 = 0.02;
 
-const WINDOW_REPEL_MIN_DISTANCE: f32 = 0.1;
-const WINDOW_REPEL_ACCEL: f32 = 10.0;
+const REPEL_MIN_DISTANCE: f32 = 0.1;
 
 #[derive(Debug, Default, Copy, Clone)]
 struct Derivative {
@@ -54,30 +52,17 @@ impl Rigidbody {
     /// Gets the rigidbody speed
     #[allow(dead_code)]
     pub fn speed(&self) -> f32 {
-        let speed = self.velocity.length();
-        // TODO: this shouldn't be possible and yet it happens?
-        if !speed.is_finite() {
-            0.0
-        } else {
-            speed
-        }
+        self.velocity.length()
     }
 
     /// Gets the rigidbody speed squared
     #[allow(dead_code)]
     pub fn speed_squared(&self) -> f32 {
-        let speed_squared = self.velocity.length_squared();
-        // TODO: this shouldn't be possible and yet it happens?
-        if !speed_squared.is_finite() {
-            0.0
-        } else {
-            speed_squared
-        }
+        self.velocity.length_squared()
     }
 
     /// Contain a rigidbody inside bounds
     #[allow(dead_code)]
-    #[tracing::instrument]
     pub fn contain(
         &mut self,
         transform: &mut Transform,
@@ -86,23 +71,19 @@ impl Rigidbody {
         miny: f32,
         maxy: f32,
     ) {
-        if !transform.translation.is_finite() {
-            panic!("Invalid transform");
-        }
-
         // unwind to our previous position, if we can
         // otherwise clamp to the min / max minus a little fudge
 
         if transform.translation.x <= minx {
             transform.translation.x = if self.previous_position.x <= minx {
-                minx + WINDOW_REPEL_MIN_DISTANCE
+                minx + REPEL_MIN_DISTANCE
             } else {
                 self.previous_position.x
             };
             self.velocity.x = 0.0;
         } else if transform.translation.x >= maxx {
             transform.translation.x = if self.previous_position.x >= maxx {
-                maxx - WINDOW_REPEL_MIN_DISTANCE
+                maxx - REPEL_MIN_DISTANCE
             } else {
                 self.previous_position.x
             };
@@ -111,14 +92,14 @@ impl Rigidbody {
 
         if transform.translation.y <= miny {
             transform.translation.y = if self.previous_position.y <= miny {
-                miny + WINDOW_REPEL_MIN_DISTANCE
+                miny + REPEL_MIN_DISTANCE
             } else {
                 self.previous_position.y
             };
             self.velocity.y = 0.0;
         } else if transform.translation.y >= maxy {
             transform.translation.y = if self.previous_position.y >= maxy {
-                maxy - WINDOW_REPEL_MIN_DISTANCE
+                maxy - REPEL_MIN_DISTANCE
             } else {
                 self.previous_position.y
             };
@@ -126,38 +107,46 @@ impl Rigidbody {
         }
     }
 
-    fn repel_direction(&self, x: f32, y: f32) -> Vec2 {
-        let ab = Vec2::new(x, y);
-        let distance = Float::max(WINDOW_REPEL_MIN_DISTANCE, ab.length());
+    fn repel_force(&self, ab: Vec2, acceleration: f32) -> Vec2 {
+        let distance = Float::max(REPEL_MIN_DISTANCE, ab.length());
         let direction = ab.normalize_or_zero();
-        let magnitude = (WINDOW_REPEL_ACCEL * self.mass) / (distance * distance);
+        let magnitude = (acceleration * self.mass) / (distance * distance);
 
         direction * magnitude
     }
 
     /// Repel a rigidbody inside bounds
     #[allow(dead_code)]
-    #[tracing::instrument]
-    pub fn repel(&mut self, transform: &Transform, minx: f32, maxx: f32, miny: f32, maxy: f32) {
-        if !transform.translation.is_finite() {
-            panic!("Invalid transform");
-        }
-
-        let force = self.repel_direction(transform.translation.x - minx, 0.0);
+    pub fn bounds_repel(
+        &mut self,
+        transform: &Transform,
+        minx: f32,
+        maxx: f32,
+        miny: f32,
+        maxy: f32,
+        acceleration: f32,
+    ) {
+        let force = self.repel_force(Vec2::new(transform.translation.x - minx, 0.0), acceleration);
         self.apply_force(force, "repel_min_x");
 
-        let force = self.repel_direction(transform.translation.x - maxx, 0.0);
+        let force = self.repel_force(Vec2::new(transform.translation.x - maxx, 0.0), acceleration);
         self.apply_force(force, "repel_max_x");
 
-        let force = self.repel_direction(0.0, transform.translation.y - miny);
+        let force = self.repel_force(Vec2::new(0.0, transform.translation.y - miny), acceleration);
         self.apply_force(force, "repel_min_y");
 
-        let force = self.repel_direction(0.0, transform.translation.y - maxy);
+        let force = self.repel_force(Vec2::new(0.0, transform.translation.y - maxy), acceleration);
         self.apply_force(force, "repel_max_y");
     }
 
+    /// Repel a a rigidbody away from a point
+    #[allow(dead_code)]
+    pub fn repel(&mut self, transform: &Transform, point: Vec2, acceleration: f32) {
+        let force = self.repel_force(transform.translation.truncate() - point, acceleration);
+        self.apply_force(force, "repel");
+    }
+
     /// Applies a force to the rigidbody
-    #[tracing::instrument]
     pub fn apply_force(&mut self, force: Vec2, _name: impl AsRef<str> + std::fmt::Debug) {
         let force = if self.mass > 0.0 {
             force / self.mass
@@ -165,19 +154,11 @@ impl Rigidbody {
             force
         };
 
-        //info!("applying force '{}': {}", _name.as_ref(), force);
-
         self.acceleration += force.extend(0.0);
-        if !self.acceleration.is_finite() {
-            panic!("Invalid acceleration from force");
-        }
-
-        //info!("updated acceleration: {}", self.acceleration);
     }
 
     /// RK4 integration: https://gafferongames.com/post/integration_basics/
     #[allow(dead_code)]
-    #[tracing::instrument]
     fn rk4_integrate(&mut self, transform: &mut Transform, dt: f32) {
         // sample derivative at four points
         let a = Derivative::evaluate(self, 0.0, Derivative::default());
@@ -191,54 +172,24 @@ impl Rigidbody {
         let dxdt = 1.0 / 6.0 * (a.velocity + 2.0 * (b.velocity + c.velocity) + d.velocity);
 
         self.velocity += dvdt * dt;
-        if !self.velocity.is_finite() {
-            panic!("Invalid velocity from acceleration");
-        }
-
-        //info!("updated velocity: {}", self.velocity);
-
         transform.translation += dxdt * dt;
-        if !transform.translation.is_finite() {
-            panic!("Invalid position from velocity");
-        }
     }
 
     /// Explicit Euler integration
     #[allow(dead_code)]
-    #[tracing::instrument]
     fn explicit_euler_integrate(&mut self, transform: &mut Transform, dt: f32) {
         transform.translation += self.velocity * dt;
-        if !transform.translation.is_finite() {
-            panic!("Invalid position from velocity");
-        }
-
         self.velocity += self.acceleration * dt;
-        if !self.velocity.is_finite() {
-            panic!("Invalid velocity from acceleration");
-        }
-
-        //info!("updated velocity: {}", self.velocity);
     }
 
     /// Semi-implicit Euler integration
     #[allow(dead_code)]
-    #[tracing::instrument]
     fn sympletic_euler_integrate(&mut self, transform: &mut Transform, dt: f32) {
         self.velocity += self.acceleration * dt;
-        if !self.velocity.is_finite() {
-            panic!("Invalid velocity from acceleration");
-        }
-
-        //info!("updated velocity: {}", self.velocity);
-
         transform.translation += self.velocity * dt;
-        if !transform.translation.is_finite() {
-            panic!("Invalid position from velocity");
-        }
     }
 
     /// Update a rigidbody
-    #[tracing::instrument]
     pub fn update(&mut self, transform: &mut Transform) {
         // https://github.com/bevyengine/bevy/issues/2041
         let dt = PHYSICS_STEP;
@@ -287,7 +238,6 @@ impl Collider {
     }
 
     /// Check if a collider is colliding with another collider
-    #[tracing::instrument]
     pub fn collides(
         &self,
         _transform: &Transform,
@@ -328,15 +278,11 @@ impl Surface {
         Self { c }
     }
 
-    #[tracing::instrument]
     pub fn update(&self, rigidbody: &mut Rigidbody) {
         let magnitude = self.c;
         let direction = -rigidbody.velocity.normalize_or_zero();
 
         let friction = direction * magnitude;
-        if !friction.is_finite() {
-            panic!("Invalid friction");
-        }
 
         rigidbody.apply_force(friction.truncate(), "friction");
     }
@@ -354,18 +300,12 @@ impl Fluid {
         Self { density }
     }
 
-    #[tracing::instrument]
     pub fn update(&self, rigidbody: &mut Rigidbody) {
         let speed_squared = rigidbody.speed_squared();
         let magnitude = 0.5 * self.density * speed_squared * rigidbody.drag;
         let direction = -rigidbody.velocity.normalize_or_zero();
 
         let drag = direction * magnitude;
-        if !drag.is_finite() {
-            panic!("Invalid drag");
-        }
-
-        //info!("drag: {} for speed {}", drag, speed_squared);
 
         rigidbody.apply_force(drag.truncate(), "drag");
     }

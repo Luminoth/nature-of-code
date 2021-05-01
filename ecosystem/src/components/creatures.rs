@@ -6,7 +6,8 @@ use bevy_prototype_lyon::prelude::*;
 //use super::debug::*;
 use super::physics::*;
 
-// NOTE: masses < 1 here can cause drag / friction to produce wildly oversized results
+// TODO: make the accel constants here non-public
+// and put them into the components
 
 const FLY_COLOR: Color = Color::WHITE;
 const FLY_MASS: f32 = 1.2; // 100000x the mass of an actual house fly (kg)
@@ -18,12 +19,14 @@ const FISH_COLOR: Color = Color::SALMON;
 const FISH_MASS: f32 = 1500.0; // 100x the mass of an actual koi (kg)
 const FISH_DRAG: f32 = 0.03;
 const FISH_SIZE: f32 = 10.0;
+const FISH_REPEL_ACCEL: f32 = 5.0;
 pub const FISH_ACCEL: f32 = 300.0;
 
 const SNAKE_COLOR: Color = Color::MAROON;
 const SNAKE_MASS: f32 = 15.0; // 100x the mass of an actual garter snake (kg)
 const SNAKE_DRAG: f32 = 0.04;
 const SNAKE_SIZE: f32 = 5.0;
+const SNAKE_REPEL_ACCEL: f32 = 10.0;
 pub const SNAKE_GROUND_ACCEL: f32 = 400.0;
 //pub const SNAKE_WATER_ACCEL: f32 = 300.0;
 
@@ -106,7 +109,9 @@ impl Fly {
 
 /// Fish swim
 #[derive(Default)]
-pub struct Fish;
+pub struct Fish {
+    pub repel_acceleration: f32,
+}
 
 impl Fish {
     /// Spawn a fish
@@ -124,7 +129,10 @@ impl Fish {
             ..Default::default()
         };
 
-        let fish = Fish::default();
+        let fish = Fish {
+            repel_acceleration: FISH_REPEL_ACCEL,
+            ..Default::default()
+        };
 
         let _entity = commands
             .spawn_bundle(GeometryBuilder::build_as(
@@ -179,7 +187,9 @@ impl Fish {
 
 /// Snakes snek
 #[derive(Default)]
-pub struct Snake;
+pub struct Snake {
+    pub repel_acceleration: f32,
+}
 
 impl Snake {
     /// Spawn a snake
@@ -197,7 +207,10 @@ impl Snake {
             ..Default::default()
         };
 
-        let snake = Snake::default();
+        let snake = Snake {
+            repel_acceleration: SNAKE_REPEL_ACCEL,
+            ..Default::default()
+        };
 
         let _entity = commands
             .spawn_bundle(GeometryBuilder::build_as(
