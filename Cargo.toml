@@ -2,13 +2,19 @@
 
 members = [
     "core",
-    "ecosystem",
+
+    # usage / basic examples
     "example",
-    "perlin-example",
     "vector-example",
+    "perlin-example",
+
+    # mover examples
     "liquid-example",
     "attractor-example",
     "mutual-attractor-example",
+    "angular-example",
+
+    # chapters
     "intro/example1",
     "intro/example2",
     "intro/example4",
@@ -17,4 +23,7 @@ members = [
     "intro/exercise5",
     "chapter02/exercise1",
     "chapter03/example1",
+
+    # final project
+    "ecosystem",
 ]

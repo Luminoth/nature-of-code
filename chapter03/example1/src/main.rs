@@ -7,9 +7,9 @@ fn setup<'a>() -> Result<Screen<'a>, ProcessingErr> {
 
 fn draw(
     screen: &mut Screen,
-    angle: &mut f32,
-    avelocity: &mut f32,
-    aacceleration: &mut f32,
+    angle: &mut f64,
+    avelocity: &mut f64,
+    aacceleration: &mut f64,
 ) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 255.0);
 
@@ -19,8 +19,8 @@ fn draw(
 
     core::translate(
         screen,
-        screen.width() as f32 / 2.0,
-        screen.height() as f32 / 2.0,
+        screen.width() as f64 / 2.0,
+        screen.height() as f64 / 2.0,
     );
     core::rotate(screen, *angle);
 

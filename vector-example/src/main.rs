@@ -17,7 +17,7 @@ fn draw(screen: &mut Screen, _: f64) -> Result<(), ProcessingErr> {
     core::fill_grayscale(screen, 0.0);
     core::shapes::rect(screen, 0.0, 0.0, m, 10.0)?;
 
-    core::translate(screen, center.x as f32, center.y as f32);
+    core::translate(screen, center.x, center.y);
     core::shapes::line(screen, 0.0, 0.0, mouse.x, mouse.y)?;
 
     Ok(())
