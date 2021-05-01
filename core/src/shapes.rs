@@ -1,3 +1,5 @@
+use std::fmt;
+
 use processing::errors::ProcessingErr;
 use processing::shapes::ellipse::Ellipse;
 use processing::shapes::line::Line;
@@ -6,6 +8,22 @@ use processing::shapes::rect::Rect;
 use processing::Screen;
 
 use crate::{h_to_screen, w_to_screen, x_to_screen, y_to_screen};
+
+pub enum RectMode {
+    Center,
+    Radius,
+    Corner,
+}
+
+impl fmt::Display for RectMode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Center => write!(f, "CENTER"),
+            Self::Radius => write!(f, "RADIUS"),
+            Self::Corner => write!(f, "CORNERS"),
+        }
+    }
+}
 
 pub fn line(screen: &mut Screen, x1: f64, y1: f64, x2: f64, y2: f64) -> Result<(), ProcessingErr> {
     let line = Line::new(

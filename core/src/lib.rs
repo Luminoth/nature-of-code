@@ -39,12 +39,16 @@ pub fn create_canvas<'a>(width: u32, height: u32) -> Result<Screen<'a>, Processi
     Ok(screen)
 }
 
-pub fn translate(screen: &mut Screen, x: f64, y: f64) {
+pub fn translate(screen: &mut Screen, x: f32, y: f32) {
     screen.translate(
-        1.0 + x_to_screen(screen, x) as f32,
-        -1.0 + y_to_screen(screen, y) as f32,
+        1.0 + x_to_screen(screen, x as f64) as f32,
+        -1.0 + y_to_screen(screen, y as f64) as f32,
         0.0,
     );
+}
+
+pub fn rotate(screen: &mut Screen, angle: f32) {
+    screen.rotate_z(angle);
 }
 
 /* background */
