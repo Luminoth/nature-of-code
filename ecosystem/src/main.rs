@@ -111,6 +111,12 @@ fn main() {
                         .before(Physics),
                 )
                 .with_system(
+                    fly_repel
+                        .system()
+                        .label(CreaturesSystem::Physics)
+                        .before(Physics),
+                )
+                .with_system(
                     fly_bounds
                         .system()
                         .label(CreaturesSystem::Bounds)

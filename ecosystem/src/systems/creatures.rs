@@ -48,6 +48,26 @@ pub fn fly_bounds(
     }
 }
 
+/// Flies repel each other
+pub fn fly_repel(
+    query: Query<(Entity, &Transform, &Fly)>,
+    mut fquery: Query<(Entity, &Transform, &mut Rigidbody), With<Fly>>,
+) {
+    for (entity, transform, fish) in query.iter() {
+        for (fentity, ftransform, mut frigidbody) in fquery.iter_mut() {
+            if entity == fentity {
+                continue;
+            }
+
+            frigidbody.repel(
+                transform,
+                ftransform.translation.truncate(),
+                fish.repel_acceleration,
+            );
+        }
+    }
+}
+
 /// Fish behavior
 pub fn fish_update(mut query: Query<&mut Fish>) {
     for mut _fish in query.iter_mut() {}

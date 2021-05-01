@@ -13,6 +13,7 @@ const FLY_COLOR: Color = Color::WHITE;
 const FLY_MASS: f32 = 1.2; // 100000x the mass of an actual house fly (kg)
 const FLY_DRAG: f32 = 0.01;
 const FLY_SIZE: f32 = 2.0;
+const FLY_REPEL_ACCEL: f32 = 1.0;
 pub const FLY_ACCEL: f32 = 1500.0;
 
 const FISH_COLOR: Color = Color::SALMON;
@@ -36,7 +37,9 @@ pub struct Creature;
 
 /// Flies fly
 #[derive(Default)]
-pub struct Fly;
+pub struct Fly {
+    pub repel_acceleration: f32,
+}
 
 impl Fly {
     /// Spawn a fly
@@ -54,7 +57,10 @@ impl Fly {
             ..Default::default()
         };
 
-        let fly = Fly::default();
+        let fly = Fly {
+            repel_acceleration: FLY_REPEL_ACCEL,
+            ..Default::default()
+        };
 
         let _entity = commands
             .spawn_bundle(GeometryBuilder::build_as(
