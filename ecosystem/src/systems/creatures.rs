@@ -17,6 +17,21 @@ pub enum CreaturesSystem {
 const BOUNDS_OFFSET: f32 = 5.0;
 const BOUNDS_REPEL_ACCEL: f32 = 10.0;
 
+/// Creature facing
+pub fn creature_facing(
+    time: Res<Time>,
+    mut query: Query<(&mut Transform, &Rigidbody), With<Creature>>,
+) {
+    for (mut transform, rigidbody) in query.iter_mut() {
+        if rigidbody.velocity.length_squared() != 0.0 {
+            transform.rotation = transform.rotation.slerp(
+                Quat::from_rotation_z(rigidbody.velocity.angle_between(Vec3::Y)),
+                time.delta_seconds(),
+            );
+        }
+    }
+}
+
 /// Fly behavior
 pub fn fly_update(mut query: Query<&mut Fly>) {
     for mut _fly in query.iter_mut() {}

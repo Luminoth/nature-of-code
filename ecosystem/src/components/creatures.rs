@@ -12,21 +12,23 @@ use super::physics::*;
 const FLY_COLOR: Color = Color::WHITE;
 const FLY_MASS: f32 = 1.2; // 100000x the mass of an actual house fly (kg)
 const FLY_DRAG: f32 = 0.01;
-const FLY_SIZE: f32 = 2.0;
+const FLY_SIZE: f32 = 1.0;
 const FLY_REPEL_ACCEL: f32 = 1.0;
 const FLY_ACCEL: f32 = 1500.0;
 
 const FISH_COLOR: Color = Color::SALMON;
 const FISH_MASS: f32 = 1500.0; // 100x the mass of an actual koi (kg)
 const FISH_DRAG: f32 = 0.03;
-const FISH_SIZE: f32 = 10.0;
+const FISH_WIDTH: f32 = 10.0;
+const FISH_LENGTH: f32 = 35.0;
 const FISH_REPEL_ACCEL: f32 = 5.0;
 const FISH_ACCEL: f32 = 300.0;
 
 const SNAKE_COLOR: Color = Color::MAROON;
 const SNAKE_MASS: f32 = 15.0; // 100x the mass of an actual garter snake (kg)
 const SNAKE_DRAG: f32 = 0.04;
-const SNAKE_SIZE: f32 = 5.0;
+const SNAKE_WIDTH: f32 = 5.0;
+const SNAKE_LENGTH: f32 = 60.0;
 const SNAKE_REPEL_ACCEL: f32 = 10.0;
 const SNAKE_GROUND_ACCEL: f32 = 400.0;
 //const SNAKE_WATER_ACCEL: f32 = 300.0;
@@ -53,14 +55,20 @@ impl Fly {
     ) {
         info!("spawning fly {} at {}", i, position);
 
-        let shape = shapes::Ellipse {
-            radii: Vec2::new(FLY_SIZE, FLY_SIZE),
-            ..Default::default()
-        };
-
         let fly = Fly {
             acceleration: FLY_ACCEL,
             repel_acceleration: FLY_REPEL_ACCEL,
+        };
+
+        let rigidbody = Rigidbody {
+            mass: FLY_MASS,
+            drag: FLY_DRAG,
+            ..Default::default()
+        };
+
+        let shape = shapes::Ellipse {
+            radii: Vec2::new(FLY_SIZE, FLY_SIZE) * rigidbody.mass,
+            ..Default::default()
         };
 
         let _entity = commands
@@ -70,11 +78,7 @@ impl Fly {
                 DrawMode::Fill(FillOptions::default()),
                 Transform::from_translation(position.extend(100.0)),
             ))
-            .insert(Rigidbody {
-                mass: FLY_MASS,
-                drag: FLY_DRAG,
-                ..Default::default()
-            })
+            .insert(rigidbody)
             .insert(Collider::new(
                 CollisionLayer::Air,
                 shape.radii.x * 2.0,
@@ -132,14 +136,21 @@ impl Fish {
     ) {
         info!("spawning fish {} at {}", i, position);
 
-        let shape = shapes::Ellipse {
-            radii: Vec2::new(FISH_SIZE, FISH_SIZE),
-            ..Default::default()
-        };
-
         let fish = Fish {
             acceleration: FISH_ACCEL,
             repel_acceleration: FISH_REPEL_ACCEL,
+        };
+
+        let rigidbody = Rigidbody {
+            mass: FISH_MASS,
+            drag: FISH_DRAG,
+            ..Default::default()
+        };
+
+        let shape = shapes::Rectangle {
+            width: FISH_WIDTH * rigidbody.mass * 0.001,
+            height: FISH_LENGTH * rigidbody.mass * 0.001,
+            origin: shapes::RectangleOrigin::Center,
         };
 
         let _entity = commands
@@ -149,15 +160,11 @@ impl Fish {
                 DrawMode::Fill(FillOptions::default()),
                 Transform::from_translation(position.extend(0.0)),
             ))
-            .insert(Rigidbody {
-                mass: FISH_MASS,
-                drag: FISH_DRAG,
-                ..Default::default()
-            })
+            .insert(rigidbody)
             .insert(Collider::new(
                 CollisionLayer::Water,
-                shape.radii.x * 2.0,
-                shape.radii.y * 2.0,
+                shape.width,
+                shape.height,
             ))
             .insert(Creature::default())
             .insert(fish)
@@ -211,14 +218,21 @@ impl Snake {
     ) {
         info!("spawning snake {} at {}", i, position);
 
-        let shape = shapes::Ellipse {
-            radii: Vec2::new(SNAKE_SIZE, SNAKE_SIZE),
-            ..Default::default()
-        };
-
         let snake = Snake {
             ground_acceleration: SNAKE_GROUND_ACCEL,
             repel_acceleration: SNAKE_REPEL_ACCEL,
+        };
+
+        let rigidbody = Rigidbody {
+            mass: SNAKE_MASS,
+            drag: SNAKE_DRAG,
+            ..Default::default()
+        };
+
+        let shape = shapes::Rectangle {
+            width: SNAKE_WIDTH * rigidbody.mass * 0.1,
+            height: SNAKE_LENGTH * rigidbody.mass * 0.1,
+            origin: shapes::RectangleOrigin::Center,
         };
 
         let _entity = commands
@@ -228,15 +242,11 @@ impl Snake {
                 DrawMode::Fill(FillOptions::default()),
                 Transform::from_translation(position.extend(20.0)),
             ))
-            .insert(Rigidbody {
-                mass: SNAKE_MASS,
-                drag: SNAKE_DRAG,
-                ..Default::default()
-            })
+            .insert(rigidbody)
             .insert(Collider::new(
                 CollisionLayer::Ground,
-                shape.radii.x * 2.0,
-                shape.radii.y * 2.0,
+                shape.width,
+                shape.height,
             ))
             .insert(Creature::default())
             .insert(snake)

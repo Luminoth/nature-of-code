@@ -173,6 +173,7 @@ fn main() {
             // per-frame update
             SystemSet::on_update(GameState::Game)
                 .with_system(physics_debug.system().label(PhysicsSystem::Debug))
+                .with_system(creature_facing.system().label(CreaturesSystem::Update))
                 .with_system(fly_update.system().label(CreaturesSystem::Update))
                 .with_system(fish_update.system().label(CreaturesSystem::Update))
                 .with_system(snake_update.system().label(CreaturesSystem::Update)),
