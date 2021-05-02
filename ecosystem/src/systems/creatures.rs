@@ -9,6 +9,7 @@ use crate::resources::*;
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
 pub enum CreaturesSystem {
     Update,
+    UpdateAfter,
     Physics,
     Bounds,
 }
