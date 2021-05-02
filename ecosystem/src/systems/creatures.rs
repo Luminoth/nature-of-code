@@ -24,11 +24,11 @@ pub fn creature_facing(
     mut query: Query<(&mut Transform, &Rigidbody), With<Creature>>,
 ) {
     for (mut transform, rigidbody) in query.iter_mut() {
+        let angle = -rigidbody.velocity.truncate().angle_between(Vec2::Y);
         if rigidbody.velocity.length_squared() != 0.0 {
-            transform.rotation = transform.rotation.slerp(
-                Quat::from_rotation_z(rigidbody.velocity.angle_between(Vec3::Y)),
-                time.delta_seconds(),
-            );
+            transform.rotation = transform
+                .rotation
+                .slerp(Quat::from_rotation_z(angle), time.delta_seconds());
         }
     }
 }
@@ -41,8 +41,9 @@ pub fn fly_update(mut query: Query<&mut Fly>) {
 /// Fly behavior
 pub fn fly_physics(mut random: ResMut<Random>, mut query: Query<(&mut Rigidbody, &Fly)>) {
     for (mut rigidbody, fly) in query.iter_mut() {
-        let direction = random.direction();
         let modifier = random.random() as f32;
+
+        let direction = random.direction();
         let magnitude = fly.acceleration * rigidbody.mass * modifier;
         rigidbody.apply_force(direction * magnitude);
     }
@@ -99,9 +100,17 @@ pub fn fish_physics(
 ) {
     for (mut rigidbody, fish) in query.iter_mut() {
         let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
-
-        let direction = random.direction();
         let modifier = noise.get(t, 0.5) as f32;
+
+        let direction = if rigidbody.velocity.length_squared() == 0.0 {
+            random.direction()
+        } else {
+            rigidbody
+                .velocity
+                .truncate()
+                .lerp(random.direction(), PHYSICS_STEP * modifier)
+                .normalize()
+        };
         let magnitude = fish.acceleration * rigidbody.mass * modifier;
         rigidbody.apply_force(direction * magnitude);
     }
@@ -166,9 +175,17 @@ pub fn snake_physics(
 ) {
     for (mut rigidbody, snake) in query.iter_mut() {
         let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
-
-        let direction = random.direction();
         let modifier = noise.get(t, 0.5) as f32;
+
+        let direction = if rigidbody.velocity.length_squared() == 0.0 {
+            random.direction()
+        } else {
+            rigidbody
+                .velocity
+                .truncate()
+                .lerp(random.direction(), PHYSICS_STEP * modifier)
+                .normalize()
+        };
         let magnitude = snake.ground_acceleration * rigidbody.mass * modifier;
         rigidbody.apply_force(direction * magnitude);
     }
