@@ -3,7 +3,6 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
-//use super::debug::*;
 use super::physics::*;
 
 // TODO: move all of these constants to the simulation params
@@ -12,11 +11,12 @@ use super::physics::*;
 const FLY_COLOR: Color = Color::WHITE;
 const FLY_MASS: f32 = 1.2; // 100000x the mass of an actual house fly (kg)
 const FLY_DRAG: f32 = 0.01;
-const FLY_SIZE: f32 = 1.0;
+const FLY_SIZE: f32 = 2.0;
 const FLY_REPEL_ACCEL: f32 = 1.0;
 const FLY_ACCEL: f32 = 1500.0;
 
-const FISH_COLOR: Color = Color::SALMON;
+const FISH_BODY_COLOR: Color = Color::SILVER;
+const FISH_HEAD_COLOR: Color = Color::SALMON;
 const FISH_MASS: f32 = 1500.0; // 100x the mass of an actual koi (kg)
 const FISH_DRAG: f32 = 0.03;
 const FISH_WIDTH: f32 = 10.0;
@@ -24,7 +24,8 @@ const FISH_LENGTH: f32 = 35.0;
 const FISH_REPEL_ACCEL: f32 = 5.0;
 const FISH_ACCEL: f32 = 300.0;
 
-const SNAKE_COLOR: Color = Color::MAROON;
+const SNAKE_BODY_COLOR: Color = Color::MAROON;
+const SNAKE_HEAD_COLOR: Color = Color::ORANGE_RED;
 const SNAKE_MASS: f32 = 15.0; // 100x the mass of an actual garter snake (kg)
 const SNAKE_DRAG: f32 = 0.04;
 const SNAKE_WIDTH: f32 = 5.0;
@@ -55,66 +56,30 @@ impl Fly {
     ) {
         info!("spawning fly {} at {}", i, position);
 
-        let fly = Fly {
-            acceleration: FLY_ACCEL,
-            repel_acceleration: FLY_REPEL_ACCEL,
-        };
+        let mass = FLY_MASS;
+        let size = Vec2::new(FLY_SIZE, FLY_SIZE) * mass;
 
-        let rigidbody = Rigidbody {
-            mass: FLY_MASS,
-            drag: FLY_DRAG,
-            ..Default::default()
-        };
-
-        let shape = shapes::Ellipse {
-            radii: Vec2::new(FLY_SIZE, FLY_SIZE) * rigidbody.mass,
-            ..Default::default()
-        };
-
-        let _entity = commands
+        commands
             .spawn_bundle(GeometryBuilder::build_as(
-                &shape,
+                &shapes::Ellipse {
+                    radii: size / 2.0,
+                    ..Default::default()
+                },
                 ShapeColors::new(FLY_COLOR),
                 DrawMode::Fill(FillOptions::default()),
                 Transform::from_translation(position.extend(100.0)),
             ))
-            .insert(rigidbody)
-            .insert(Collider::new(
-                CollisionLayer::Air,
-                shape.radii.x * 2.0,
-                shape.radii.y * 2.0,
-            ))
-            .insert(Creature::default())
-            .insert(fly)
-            .id();
-
-        /*commands
-        .spawn_bundle(TextBundle {
-            style: Style {
-                align_self: AlignSelf::FlexEnd,
-                position_type: PositionType::Absolute,
-                position: Rect {
-                    top: Val::Px(30.0 + (15.0 * id as f32)),
-                    left: Val::Px(15.0),
-                    ..Default::default()
-                },
+            .insert(Rigidbody {
+                mass,
+                drag: FLY_DRAG,
                 ..Default::default()
-            },
-            text: Text::with_section(
-                "fly",
-                TextStyle {
-                    font: _asset_server.load("fonts/Roboto-Regular.ttf"),
-                    font_size: 14.0,
-                    color: Color::WHITE,
-                },
-                TextAlignment::default(),
-            ),
-            ..Default::default()
-        })
-        .insert(PhysicsDebug {
-            name: format!("Fly {}", id),
-            entity: _entity,
-        });*/
+            })
+            .insert(Collider::new(CollisionLayer::Air, size.x, size.y))
+            .insert(Creature::default())
+            .insert(Fly {
+                acceleration: FLY_ACCEL,
+                repel_acceleration: FLY_REPEL_ACCEL,
+            });
     }
 }
 
@@ -136,67 +101,43 @@ impl Fish {
     ) {
         info!("spawning fish {} at {}", i, position);
 
-        let fish = Fish {
-            acceleration: FISH_ACCEL,
-            repel_acceleration: FISH_REPEL_ACCEL,
-        };
+        let mass = FISH_MASS;
+        let size = Vec2::new(FISH_WIDTH, FISH_LENGTH) * mass * 0.001;
 
-        let rigidbody = Rigidbody {
-            mass: FISH_MASS,
-            drag: FISH_DRAG,
-            ..Default::default()
-        };
-
-        let shape = shapes::Rectangle {
-            width: FISH_WIDTH * rigidbody.mass * 0.001,
-            height: FISH_LENGTH * rigidbody.mass * 0.001,
-            origin: shapes::RectangleOrigin::Center,
-        };
-
-        let _entity = commands
+        commands
             .spawn_bundle(GeometryBuilder::build_as(
-                &shape,
-                ShapeColors::new(FISH_COLOR),
+                &shapes::Rectangle {
+                    width: size.x,
+                    height: size.y,
+                    origin: shapes::RectangleOrigin::Center,
+                },
+                ShapeColors::new(FISH_BODY_COLOR),
                 DrawMode::Fill(FillOptions::default()),
                 Transform::from_translation(position.extend(0.0)),
             ))
-            .insert(rigidbody)
-            .insert(Collider::new(
-                CollisionLayer::Water,
-                shape.width,
-                shape.height,
-            ))
-            .insert(Creature::default())
-            .insert(fish)
-            .id();
-
-        /*commands
-        .spawn_bundle(TextBundle {
-            style: Style {
-                align_self: AlignSelf::FlexEnd,
-                position_type: PositionType::Absolute,
-                position: Rect {
-                    top: Val::Px(30.0 + (15.0 * id as f32)),
-                    left: Val::Px(15.0),
-                    ..Default::default()
-                },
+            .insert(Rigidbody {
+                mass,
+                drag: FISH_DRAG,
                 ..Default::default()
-            },
-            text: Text::with_section(
-                "fish",
-                TextStyle {
-                    font: _asset_server.load("fonts/Roboto-Regular.ttf"),
-                    font_size: 14.0,
-                    color: Color::WHITE,
-                },
-                TextAlignment::default(),
-            ),
-            ..Default::default()
-        })
-        .insert(PhysicsDebug {
-            name: format!("Fish {}", id),
-            entity: _entity,
-        });*/
+            })
+            .insert(Collider::new(CollisionLayer::Water, size.x, size.y))
+            .insert(Creature::default())
+            .insert(Fish {
+                acceleration: FISH_ACCEL,
+                repel_acceleration: FISH_REPEL_ACCEL,
+            })
+            .with_children(|parent| {
+                parent.spawn_bundle(GeometryBuilder::build_as(
+                    &shapes::Rectangle {
+                        width: size.x,
+                        height: size.x,
+                        origin: shapes::RectangleOrigin::Center,
+                    },
+                    ShapeColors::new(FISH_HEAD_COLOR),
+                    DrawMode::Fill(FillOptions::default()),
+                    Transform::from_translation(Vec3::new(0.0, size.y * 0.5, 1.0)),
+                ));
+            });
     }
 }
 
@@ -218,66 +159,42 @@ impl Snake {
     ) {
         info!("spawning snake {} at {}", i, position);
 
-        let snake = Snake {
-            ground_acceleration: SNAKE_GROUND_ACCEL,
-            repel_acceleration: SNAKE_REPEL_ACCEL,
-        };
+        let mass = SNAKE_MASS;
+        let size = Vec2::new(SNAKE_WIDTH, SNAKE_LENGTH) * mass * 0.1;
 
-        let rigidbody = Rigidbody {
-            mass: SNAKE_MASS,
-            drag: SNAKE_DRAG,
-            ..Default::default()
-        };
-
-        let shape = shapes::Rectangle {
-            width: SNAKE_WIDTH * rigidbody.mass * 0.1,
-            height: SNAKE_LENGTH * rigidbody.mass * 0.1,
-            origin: shapes::RectangleOrigin::Center,
-        };
-
-        let _entity = commands
+        commands
             .spawn_bundle(GeometryBuilder::build_as(
-                &shape,
-                ShapeColors::new(SNAKE_COLOR),
+                &shapes::Rectangle {
+                    width: size.x,
+                    height: size.y,
+                    origin: shapes::RectangleOrigin::Center,
+                },
+                ShapeColors::new(SNAKE_BODY_COLOR),
                 DrawMode::Fill(FillOptions::default()),
                 Transform::from_translation(position.extend(20.0)),
             ))
-            .insert(rigidbody)
-            .insert(Collider::new(
-                CollisionLayer::Ground,
-                shape.width,
-                shape.height,
-            ))
-            .insert(Creature::default())
-            .insert(snake)
-            .id();
-
-        /*commands
-        .spawn_bundle(TextBundle {
-            style: Style {
-                align_self: AlignSelf::FlexEnd,
-                position_type: PositionType::Absolute,
-                position: Rect {
-                    top: Val::Px(30.0 + (15.0 * id as f32)),
-                    left: Val::Px(15.0),
-                    ..Default::default()
-                },
+            .insert(Rigidbody {
+                mass,
+                drag: SNAKE_DRAG,
                 ..Default::default()
-            },
-            text: Text::with_section(
-                "snake",
-                TextStyle {
-                    font: _asset_server.load("fonts/Roboto-Regular.ttf"),
-                    font_size: 14.0,
-                    color: Color::WHITE,
-                },
-                TextAlignment::default(),
-            ),
-            ..Default::default()
-        })
-        .insert(PhysicsDebug {
-            name: format!("Snake {}", id),
-            entity: _entity,
-        });*/
+            })
+            .insert(Collider::new(CollisionLayer::Ground, size.x, size.y))
+            .insert(Creature::default())
+            .insert(Snake {
+                ground_acceleration: SNAKE_GROUND_ACCEL,
+                repel_acceleration: SNAKE_REPEL_ACCEL,
+            })
+            .with_children(|parent| {
+                parent.spawn_bundle(GeometryBuilder::build_as(
+                    &shapes::Rectangle {
+                        width: size.x,
+                        height: size.x,
+                        origin: shapes::RectangleOrigin::Center,
+                    },
+                    ShapeColors::new(SNAKE_HEAD_COLOR),
+                    DrawMode::Fill(FillOptions::default()),
+                    Transform::from_translation(Vec3::new(0.0, size.y * 0.5, 1.0)),
+                ));
+            });
     }
 }
