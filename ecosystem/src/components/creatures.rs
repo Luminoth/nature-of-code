@@ -3,6 +3,9 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 
+use crate::bundles::creatures::*;
+use crate::bundles::physics::*;
+
 use super::physics::*;
 
 // TODO: move all of these constants to the simulation params
@@ -60,28 +63,36 @@ impl Fly {
         let size = Vec2::new(FLY_SIZE, FLY_SIZE) * mass;
 
         commands
-            .spawn_bundle(GeometryBuilder::build_as(
-                &shapes::Ellipse {
-                    radii: size * 0.5,
+            .spawn_bundle(FlyBundle {
+                fly: Fly {
+                    acceleration: FLY_ACCEL,
+                    repel_acceleration: FLY_REPEL_ACCEL,
+                },
+                physical: PhysicalBundle {
+                    rigidbody: Rigidbody {
+                        mass,
+                        drag: FLY_DRAG,
+                        ..Default::default()
+                    },
+                    collider: Collider {
+                        size,
+                        layer: CollisionLayer::Air,
+                    },
+                    transform: Transform::from_translation(position.extend(0.0)),
                     ..Default::default()
                 },
-                ShapeColors::new(FLY_COLOR),
-                DrawMode::Fill(FillOptions::default()),
-                Transform::from_translation(position.extend(100.0)),
-            ))
-            .insert(Rigidbody {
-                mass,
-                drag: FLY_DRAG,
                 ..Default::default()
             })
-            .insert(Collider {
-                size,
-                layer: CollisionLayer::Air,
-            })
-            .insert(Creature::default())
-            .insert(Fly {
-                acceleration: FLY_ACCEL,
-                repel_acceleration: FLY_REPEL_ACCEL,
+            .with_children(|parent| {
+                parent.spawn_bundle(GeometryBuilder::build_as(
+                    &shapes::Ellipse {
+                        radii: size * 0.5,
+                        ..Default::default()
+                    },
+                    ShapeColors::new(FLY_COLOR),
+                    DrawMode::Fill(FillOptions::default()),
+                    Transform::default(),
+                ));
             });
     }
 }
@@ -109,43 +120,52 @@ impl Fish {
         let head_size = Vec2::new(size.x * 0.5, size.y * 0.25);
 
         commands
-            .spawn_bundle(GeometryBuilder::build_as(
-                &shapes::Ellipse {
-                    radii: size * 0.5,
-                    ..Default::default()
+            .spawn_bundle(FishBundle {
+                fish: Fish {
+                    acceleration: FISH_ACCEL,
+                    repel_acceleration: FISH_REPEL_ACCEL,
                 },
-                ShapeColors::new(FISH_BODY_COLOR),
-                DrawMode::Fill(FillOptions::default()),
-                Transform::from_translation(position.extend(0.0)),
-            ))
-            .insert(Rigidbody {
-                mass,
-                drag: FISH_DRAG,
-                ..Default::default()
-            })
-            .insert(Collider {
-                size,
-                layer: CollisionLayer::Water,
-            })
-            .insert(Creature::default())
-            .insert(Fish {
-                acceleration: FISH_ACCEL,
-                repel_acceleration: FISH_REPEL_ACCEL,
-            })
-            .with_children(|parent| {
-                parent.spawn_bundle(GeometryBuilder::build_as(
-                    &shapes::Ellipse {
-                        radii: head_size * 0.5,
+                physical: PhysicalBundle {
+                    rigidbody: Rigidbody {
+                        mass,
+                        drag: FISH_DRAG,
                         ..Default::default()
                     },
-                    ShapeColors::new(FISH_HEAD_COLOR),
-                    DrawMode::Fill(FillOptions::default()),
-                    Transform::from_translation(Vec3::new(
-                        0.0,
-                        size.y * 0.5 - head_size.y * 0.5,
-                        1.0,
-                    )),
-                ));
+                    collider: Collider {
+                        size,
+                        layer: CollisionLayer::Water,
+                    },
+                    transform: Transform::from_translation(position.extend(0.0)),
+                    ..Default::default()
+                },
+                ..Default::default()
+            })
+            .with_children(|parent| {
+                parent
+                    .spawn_bundle(GeometryBuilder::build_as(
+                        &shapes::Ellipse {
+                            radii: size * 0.5,
+                            ..Default::default()
+                        },
+                        ShapeColors::new(FISH_BODY_COLOR),
+                        DrawMode::Fill(FillOptions::default()),
+                        Transform::default(),
+                    ))
+                    .with_children(|parent| {
+                        parent.spawn_bundle(GeometryBuilder::build_as(
+                            &shapes::Ellipse {
+                                radii: head_size * 0.5,
+                                ..Default::default()
+                            },
+                            ShapeColors::new(FISH_HEAD_COLOR),
+                            DrawMode::Fill(FillOptions::default()),
+                            Transform::from_translation(Vec3::new(
+                                0.0,
+                                size.y * 0.5 - head_size.y * 0.5,
+                                1.0,
+                            )),
+                        ));
+                    });
             });
     }
 }
@@ -173,43 +193,52 @@ impl Snake {
         let head_size = Vec2::splat(size.x * 0.5);
 
         commands
-            .spawn_bundle(GeometryBuilder::build_as(
-                &shapes::Ellipse {
-                    radii: size * 0.5,
-                    ..Default::default()
+            .spawn_bundle(SnakeBundle {
+                snake: Snake {
+                    ground_acceleration: SNAKE_GROUND_ACCEL,
+                    repel_acceleration: SNAKE_REPEL_ACCEL,
                 },
-                ShapeColors::new(SNAKE_BODY_COLOR),
-                DrawMode::Fill(FillOptions::default()),
-                Transform::from_translation(position.extend(20.0)),
-            ))
-            .insert(Rigidbody {
-                mass,
-                drag: SNAKE_DRAG,
-                ..Default::default()
-            })
-            .insert(Collider {
-                size,
-                layer: CollisionLayer::Ground,
-            })
-            .insert(Creature::default())
-            .insert(Snake {
-                ground_acceleration: SNAKE_GROUND_ACCEL,
-                repel_acceleration: SNAKE_REPEL_ACCEL,
-            })
-            .with_children(|parent| {
-                parent.spawn_bundle(GeometryBuilder::build_as(
-                    &shapes::Ellipse {
-                        radii: head_size * 0.5,
+                physical: PhysicalBundle {
+                    rigidbody: Rigidbody {
+                        mass,
+                        drag: SNAKE_DRAG,
                         ..Default::default()
                     },
-                    ShapeColors::new(SNAKE_HEAD_COLOR),
-                    DrawMode::Fill(FillOptions::default()),
-                    Transform::from_translation(Vec3::new(
-                        0.0,
-                        size.y * 0.5 - head_size.y * 0.5,
-                        1.0,
-                    )),
-                ));
+                    collider: Collider {
+                        size,
+                        layer: CollisionLayer::Ground,
+                    },
+                    transform: Transform::from_translation(position.extend(20.0)),
+                    ..Default::default()
+                },
+                ..Default::default()
+            })
+            .with_children(|parent| {
+                parent
+                    .spawn_bundle(GeometryBuilder::build_as(
+                        &shapes::Ellipse {
+                            radii: size * 0.5,
+                            ..Default::default()
+                        },
+                        ShapeColors::new(SNAKE_BODY_COLOR),
+                        DrawMode::Fill(FillOptions::default()),
+                        Transform::default(),
+                    ))
+                    .with_children(|parent| {
+                        parent.spawn_bundle(GeometryBuilder::build_as(
+                            &shapes::Ellipse {
+                                radii: head_size * 0.5,
+                                ..Default::default()
+                            },
+                            ShapeColors::new(SNAKE_HEAD_COLOR),
+                            DrawMode::Fill(FillOptions::default()),
+                            Transform::from_translation(Vec3::new(
+                                0.0,
+                                size.y * 0.5 - head_size.y * 0.5,
+                                1.0,
+                            )),
+                        ));
+                    });
             });
     }
 }

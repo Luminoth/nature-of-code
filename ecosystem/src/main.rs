@@ -3,6 +3,7 @@
 // bevy queries can produce a lot of this
 #![allow(clippy::type_complexity)]
 
+mod bundles;
 mod components;
 mod events;
 mod resources;
