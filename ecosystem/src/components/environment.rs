@@ -35,8 +35,11 @@ impl Ground {
                 DrawMode::Fill(FillOptions::default()),
                 Transform::from_translation(position.extend(10.0)),
             ))
-            .insert(Surface::new(GROUND_FRICTION))
-            .insert(Collider::new(CollisionLayer::Ground, size.x, size.y))
+            .insert(Surface { c: GROUND_FRICTION })
+            .insert(Collider {
+                size,
+                layer: CollisionLayer::Ground,
+            })
             .insert(Ground::default());
     }
 }
@@ -60,8 +63,13 @@ impl Water {
                 DrawMode::Fill(FillOptions::default()),
                 Transform::from_translation(position.extend(5.0)),
             ))
-            .insert(Fluid::new(WATER_DENSITY))
-            .insert(Collider::new(CollisionLayer::Water, size.x, size.y))
+            .insert(Fluid {
+                density: WATER_DENSITY,
+            })
+            .insert(Collider {
+                size,
+                layer: CollisionLayer::Water,
+            })
             .insert(Water::default());
     }
 }
@@ -77,8 +85,13 @@ impl Air {
         commands
             .spawn()
             .insert(Transform::default())
-            .insert(Fluid::new(AIR_DENSITY))
-            .insert(Collider::new(CollisionLayer::Air, size.x, size.y))
+            .insert(Fluid {
+                density: AIR_DENSITY,
+            })
+            .insert(Collider {
+                size,
+                layer: CollisionLayer::Air,
+            })
             .insert(Air::default());
     }
 }

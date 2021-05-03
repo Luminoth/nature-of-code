@@ -243,14 +243,6 @@ impl Default for Collider {
 }
 
 impl Collider {
-    /// Constructs a new collider
-    pub fn new(layer: CollisionLayer, width: f32, height: f32) -> Self {
-        Self {
-            size: Vec2::new(width, height),
-            layer,
-        }
-    }
-
     /// Check if a collider is colliding with another collider
     pub fn collides(
         &self,
@@ -287,11 +279,6 @@ pub struct Surface {
 }
 
 impl Surface {
-    /// Constructs a new surface with the given coefficient of friction
-    pub fn new(c: f32) -> Self {
-        Self { c }
-    }
-
     pub fn update(&self, rigidbody: &mut Rigidbody) {
         let magnitude = self.c;
         let direction = -rigidbody.velocity.normalize_or_zero();
@@ -309,11 +296,6 @@ pub struct Fluid {
 }
 
 impl Fluid {
-    /// Constructs a new fluid with the given drag coefficient
-    pub fn new(density: f32) -> Self {
-        Self { density }
-    }
-
     pub fn update(&self, rigidbody: &mut Rigidbody) {
         let speed_squared = rigidbody.speed_squared();
         let magnitude = 0.5 * self.density * speed_squared * rigidbody.drag;

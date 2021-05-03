@@ -19,8 +19,8 @@ const FISH_BODY_COLOR: Color = Color::SILVER;
 const FISH_HEAD_COLOR: Color = Color::SALMON;
 const FISH_MASS: f32 = 1500.0; // 100x the mass of an actual koi (kg)
 const FISH_DRAG: f32 = 0.03;
-const FISH_WIDTH: f32 = 5.0;
-const FISH_LENGTH: f32 = 15.0;
+const FISH_WIDTH: f32 = 10.0;
+const FISH_LENGTH: f32 = 30.0;
 const FISH_REPEL_ACCEL: f32 = 5.0;
 const FISH_ACCEL: f32 = 300.0;
 
@@ -29,7 +29,7 @@ const SNAKE_HEAD_COLOR: Color = Color::ORANGE_RED;
 const SNAKE_MASS: f32 = 15.0; // 100x the mass of an actual garter snake (kg)
 const SNAKE_DRAG: f32 = 0.04;
 const SNAKE_WIDTH: f32 = 5.0;
-const SNAKE_LENGTH: f32 = 30.0;
+const SNAKE_LENGTH: f32 = 40.0;
 const SNAKE_REPEL_ACCEL: f32 = 10.0;
 const SNAKE_GROUND_ACCEL: f32 = 400.0;
 //const SNAKE_WATER_ACCEL: f32 = 300.0;
@@ -62,7 +62,7 @@ impl Fly {
         commands
             .spawn_bundle(GeometryBuilder::build_as(
                 &shapes::Ellipse {
-                    radii: size / 2.0,
+                    radii: size * 0.5,
                     ..Default::default()
                 },
                 ShapeColors::new(FLY_COLOR),
@@ -74,7 +74,10 @@ impl Fly {
                 drag: FLY_DRAG,
                 ..Default::default()
             })
-            .insert(Collider::new(CollisionLayer::Air, size.x, size.y))
+            .insert(Collider {
+                size,
+                layer: CollisionLayer::Air,
+            })
             .insert(Creature::default())
             .insert(Fly {
                 acceleration: FLY_ACCEL,
@@ -103,13 +106,13 @@ impl Fish {
 
         let mass = FISH_MASS;
         let size = Vec2::new(FISH_WIDTH, FISH_LENGTH) * mass * 0.001;
+        let head_size = Vec2::new(size.x * 0.5, size.y * 0.25);
 
         commands
             .spawn_bundle(GeometryBuilder::build_as(
-                &shapes::Rectangle {
-                    width: size.x,
-                    height: size.y,
-                    origin: shapes::RectangleOrigin::Center,
+                &shapes::Ellipse {
+                    radii: size * 0.5,
+                    ..Default::default()
                 },
                 ShapeColors::new(FISH_BODY_COLOR),
                 DrawMode::Fill(FillOptions::default()),
@@ -120,7 +123,10 @@ impl Fish {
                 drag: FISH_DRAG,
                 ..Default::default()
             })
-            .insert(Collider::new(CollisionLayer::Water, size.x, size.y))
+            .insert(Collider {
+                size,
+                layer: CollisionLayer::Water,
+            })
             .insert(Creature::default())
             .insert(Fish {
                 acceleration: FISH_ACCEL,
@@ -128,14 +134,17 @@ impl Fish {
             })
             .with_children(|parent| {
                 parent.spawn_bundle(GeometryBuilder::build_as(
-                    &shapes::Rectangle {
-                        width: size.x,
-                        height: size.x,
-                        origin: shapes::RectangleOrigin::Center,
+                    &shapes::Ellipse {
+                        radii: head_size * 0.5,
+                        ..Default::default()
                     },
                     ShapeColors::new(FISH_HEAD_COLOR),
                     DrawMode::Fill(FillOptions::default()),
-                    Transform::from_translation(Vec3::new(0.0, size.y * 0.5, 1.0)),
+                    Transform::from_translation(Vec3::new(
+                        0.0,
+                        size.y * 0.5 - head_size.y * 0.5,
+                        1.0,
+                    )),
                 ));
             });
     }
@@ -161,13 +170,13 @@ impl Snake {
 
         let mass = SNAKE_MASS;
         let size = Vec2::new(SNAKE_WIDTH, SNAKE_LENGTH) * mass * 0.1;
+        let head_size = Vec2::splat(size.x * 0.5);
 
         commands
             .spawn_bundle(GeometryBuilder::build_as(
-                &shapes::Rectangle {
-                    width: size.x,
-                    height: size.y,
-                    origin: shapes::RectangleOrigin::Center,
+                &shapes::Ellipse {
+                    radii: size * 0.5,
+                    ..Default::default()
                 },
                 ShapeColors::new(SNAKE_BODY_COLOR),
                 DrawMode::Fill(FillOptions::default()),
@@ -178,7 +187,10 @@ impl Snake {
                 drag: SNAKE_DRAG,
                 ..Default::default()
             })
-            .insert(Collider::new(CollisionLayer::Ground, size.x, size.y))
+            .insert(Collider {
+                size,
+                layer: CollisionLayer::Ground,
+            })
             .insert(Creature::default())
             .insert(Snake {
                 ground_acceleration: SNAKE_GROUND_ACCEL,
@@ -186,14 +198,17 @@ impl Snake {
             })
             .with_children(|parent| {
                 parent.spawn_bundle(GeometryBuilder::build_as(
-                    &shapes::Rectangle {
-                        width: size.x,
-                        height: size.x,
-                        origin: shapes::RectangleOrigin::Center,
+                    &shapes::Ellipse {
+                        radii: head_size * 0.5,
+                        ..Default::default()
                     },
                     ShapeColors::new(SNAKE_HEAD_COLOR),
                     DrawMode::Fill(FillOptions::default()),
-                    Transform::from_translation(Vec3::new(0.0, size.y * 0.5, 1.0)),
+                    Transform::from_translation(Vec3::new(
+                        0.0,
+                        size.y * 0.5 - head_size.y * 0.5,
+                        1.0,
+                    )),
                 ));
             });
     }
