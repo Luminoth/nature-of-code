@@ -26,7 +26,7 @@ pub struct FishBundle {
     pub physical: PhysicalBundle,
 }
 
-/// Fish bundle
+/// Snake bundle
 #[derive(Default, Bundle)]
 pub struct SnakeBundle {
     pub snake: Snake,
