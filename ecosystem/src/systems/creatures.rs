@@ -100,7 +100,7 @@ pub fn fish_physics(
 ) {
     for (mut rigidbody, fish) in query.iter_mut() {
         let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
-        let modifier = noise.get(t, 0.5) as f32;
+        let modifier = noise.get(t, random.random_range(0.5..0.75)) as f32;
 
         let direction = if rigidbody.velocity.length_squared() == 0.0 {
             random.direction()
@@ -108,7 +108,7 @@ pub fn fish_physics(
             rigidbody
                 .velocity
                 .truncate()
-                .lerp(random.direction(), PHYSICS_STEP * modifier)
+                .lerp(random.direction(), PHYSICS_STEP)
                 .normalize()
         };
         let magnitude = fish.acceleration * rigidbody.mass * modifier;
@@ -175,7 +175,7 @@ pub fn snake_physics(
 ) {
     for (mut rigidbody, snake) in query.iter_mut() {
         let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
-        let modifier = noise.get(t, 0.5) as f32;
+        let modifier = noise.get(t, random.random_range(0.25..0.5)) as f32;
 
         let direction = if rigidbody.velocity.length_squared() == 0.0 {
             random.direction()
@@ -183,7 +183,7 @@ pub fn snake_physics(
             rigidbody
                 .velocity
                 .truncate()
-                .lerp(random.direction(), PHYSICS_STEP * modifier)
+                .lerp(random.direction(), PHYSICS_STEP)
                 .normalize()
         };
         let magnitude = snake.ground_acceleration * rigidbody.mass * modifier;
