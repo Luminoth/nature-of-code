@@ -3167,6 +3167,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af8b08b04175473088b46763e51ee54da5f9a164bc162f615b91bc179dbf15a3"
 
 [[package]]
+name = "oscillator-example"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "glam 0.14.0",
+ "processing",
+ "rand 0.8.3",
+]
+
+[[package]]
 name = "osmesa-sys"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"

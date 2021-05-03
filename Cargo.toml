@@ -10,6 +10,7 @@ members = [
     "vector-example",
     "perlin-example",
     "polar-example",
+    "oscillator-example",
 
     # mover examples
     "liquid-example",
