@@ -1,5 +1,7 @@
 #![allow(deprecated)]
 #![allow(dead_code)]
+#![allow(clippy::many_single_char_names)]
+#![allow(clippy::unnecessary_fold)]
 
 extern crate processing as p5;
 
@@ -213,11 +215,11 @@ fn example(mut screen: p5::Screen) -> Result<(), ProcessingErr> {
     Ok(())
 }
 
-fn mean(x: &Vec<f64>) -> f64 {
+fn mean(x: &[f64]) -> f64 {
     x.iter().fold(0f64, |total, y| total + y) / (x.len() as f64)
 }
 
-fn std(x: &Vec<f64>) -> f64 {
+fn std(x: &[f64]) -> f64 {
     // This uses the corrected two-pass algorithm (1.7), from "Algorithms for computing
     // the sample variance: Analysis and recommendations" by Chan, Tony F., Gene H. Golub,
     // and Randall J. LeVeque.
