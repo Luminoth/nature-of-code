@@ -11,7 +11,6 @@ pub struct Physics;
 pub enum PhysicsSystem {
     Collisions,
     Update,
-    Debug,
 }
 
 /// Handles physics collisions

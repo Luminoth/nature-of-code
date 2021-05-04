@@ -14,6 +14,7 @@ mod util;
 use bevy::core::FixedTimestep;
 use bevy::diagnostic::*;
 use bevy::prelude::*;
+use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
 use bevy_prototype_lyon::prelude::*;
 use num_traits::Float;
@@ -89,6 +90,7 @@ fn main() {
 
     // plugins
     app.add_plugins(DefaultPlugins)
+        .add_plugin(EguiPlugin)
         .add_plugin(ShapePlugin)
         .add_plugin(FrameTimeDiagnosticsPlugin)
         .insert_resource(WorldInspectorParams {
@@ -186,7 +188,6 @@ fn main() {
         .add_system_set(
             // per-frame update
             SystemSet::on_update(GameState::Game)
-                .with_system(physics_debug.system().label(PhysicsSystem::Debug))
                 .with_system(fly_update.system().label(CreaturesSystem::Update))
                 .with_system(fish_update.system().label(CreaturesSystem::Update))
                 .with_system(snake_update.system().label(CreaturesSystem::Update))
@@ -207,7 +208,7 @@ fn main() {
 
     // debug
     app.add_system(debug_system.system())
-        .add_system(fps_text_system.system());
+        .add_system(debug_ui.system());
 
     // register components for inspector
     let mut registry = app
