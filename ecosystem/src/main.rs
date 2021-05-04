@@ -14,7 +14,7 @@ mod util;
 use bevy::core::FixedTimestep;
 use bevy::diagnostic::*;
 use bevy::prelude::*;
-use bevy_egui::EguiPlugin;
+use bevy_egui::{EguiPlugin, EguiSettings};
 use bevy_inspector_egui::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
 use bevy_prototype_lyon::prelude::*;
 use num_traits::Float;
@@ -73,7 +73,7 @@ fn main() {
 
     let mut app = App::build();
 
-    // bevy resources
+    // basic bevy
     app.insert_resource(WindowDescriptor {
         title: "Ecosystem".to_owned(),
         width: WINDOW_WIDTH,
@@ -86,19 +86,24 @@ fn main() {
         level: bevy::log::Level::DEBUG,
         ..Default::default()
     })
-    .insert_resource(Msaa { samples: 4 });
+    .insert_resource(Msaa { samples: 4 })
+    .add_plugins(DefaultPlugins)
+    .add_plugin(FrameTimeDiagnosticsPlugin);
 
-    // plugins
-    app.add_plugins(DefaultPlugins)
-        .add_plugin(EguiPlugin)
-        .add_plugin(ShapePlugin)
-        .add_plugin(FrameTimeDiagnosticsPlugin)
-        .insert_resource(WorldInspectorParams {
-            enabled: false,
-            despawnable_entities: true,
-            ..Default::default()
-        })
-        .add_plugin(WorldInspectorPlugin::new());
+    // prototype lyon
+    app.add_plugin(ShapePlugin);
+
+    // egui
+    app.insert_resource(EguiSettings { scale_factor: 0.8 })
+        .add_plugin(EguiPlugin);
+
+    // inspector
+    app.insert_resource(WorldInspectorParams {
+        enabled: false,
+        despawnable_entities: true,
+        ..Default::default()
+    })
+    .add_plugin(WorldInspectorPlugin::new());
 
     // events
     app.add_event::<ToggleDebugEvent>();
