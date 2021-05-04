@@ -14,6 +14,7 @@ mod util;
 use bevy::core::FixedTimestep;
 use bevy::diagnostic::*;
 use bevy::prelude::*;
+use bevy_inspector_egui::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
 use bevy_prototype_lyon::prelude::*;
 use num_traits::Float;
 
@@ -69,27 +70,39 @@ fn main() {
         error!(%data, "Unexpected panic!");
     }));
 
-    App::build()
-        .insert_resource(WindowDescriptor {
-            title: "Ecosystem".to_owned(),
-            width: WINDOW_WIDTH,
-            height: WINDOW_HEIGHT,
-            vsync: false,
-            resizable: false,
-            ..Default::default()
-        })
-        .insert_resource(bevy::log::LogSettings {
-            level: bevy::log::Level::DEBUG,
-            ..Default::default()
-        })
-        // plugins
-        .add_plugins(DefaultPlugins)
+    let mut app = App::build();
+
+    // bevy resources
+    app.insert_resource(WindowDescriptor {
+        title: "Ecosystem".to_owned(),
+        width: WINDOW_WIDTH,
+        height: WINDOW_HEIGHT,
+        vsync: false,
+        resizable: false,
+        ..Default::default()
+    })
+    .insert_resource(bevy::log::LogSettings {
+        level: bevy::log::Level::DEBUG,
+        ..Default::default()
+    })
+    .insert_resource(Msaa { samples: 4 });
+
+    // plugins
+    app.add_plugins(DefaultPlugins)
         .add_plugin(ShapePlugin)
         .add_plugin(FrameTimeDiagnosticsPlugin)
-        // events
-        .add_event::<ToggleDebugEvent>()
-        // game states
-        .add_state(GameState::Game)
+        .insert_resource(WorldInspectorParams {
+            enabled: false,
+            despawnable_entities: true,
+            ..Default::default()
+        })
+        .add_plugin(WorldInspectorPlugin::new());
+
+    // events
+    app.add_event::<ToggleDebugEvent>();
+
+    // game states
+    app.add_state(GameState::Game)
         .add_system_set(
             SystemSet::on_enter(GameState::Game).with_system(states::game::setup.system()),
         )
@@ -186,12 +199,32 @@ fn main() {
         )
         .add_system_set(
             SystemSet::on_exit(GameState::Game).with_system(states::game::teardown.system()),
-        )
-        // setup
-        .add_startup_system(setup.system())
-        .add_startup_system(setup_debug.system())
-        // debug
-        .add_system(debug_system.system())
-        .add_system(fps_text_system.system())
-        .run();
+        );
+
+    // setup
+    app.add_startup_system(setup.system())
+        .add_startup_system(setup_debug.system());
+
+    // debug
+    app.add_system(debug_system.system())
+        .add_system(fps_text_system.system());
+
+    // register components for inspector
+    let mut registry = app
+        .world_mut()
+        .get_resource_or_insert_with(InspectableRegistry::default);
+
+    registry.register::<components::physics::Rigidbody>();
+    registry.register::<components::physics::Collider>();
+    registry.register::<components::physics::Surface>();
+    registry.register::<components::physics::Fluid>();
+    registry.register::<components::creatures::Creature>();
+    registry.register::<components::creatures::Fly>();
+    registry.register::<components::creatures::Fish>();
+    registry.register::<components::creatures::Snake>();
+    registry.register::<components::environment::Ground>();
+    registry.register::<components::environment::Water>();
+    registry.register::<components::environment::Air>();
+
+    app.run();
 }

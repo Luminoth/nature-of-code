@@ -1,6 +1,7 @@
 //! Environment components
 
 use bevy::prelude::*;
+use bevy_inspector_egui::Inspectable;
 use bevy_prototype_lyon::prelude::*;
 
 use super::physics::*;
@@ -17,13 +18,13 @@ const GROUND_COLOR: Color = Color::DARK_GREEN;
 const GROUND_FRICTION: f32 = 15.0;
 
 /// Ground
-#[derive(Default)]
+#[derive(Debug, Inspectable, Default)]
 pub struct Ground;
 
 impl Ground {
     /// Spawn a ground entity
     #[allow(dead_code)]
-    pub fn spawn(commands: &mut Commands, position: Vec2, size: Vec2) {
+    pub fn spawn(commands: &mut Commands, i: usize, position: Vec2, size: Vec2) {
         commands
             .spawn_bundle(GeometryBuilder::build_as(
                 &shapes::Rectangle {
@@ -40,18 +41,19 @@ impl Ground {
                 size,
                 layer: CollisionLayer::Ground,
             })
-            .insert(Ground::default());
+            .insert(Ground::default())
+            .insert(Name::new(format!("Ground {}", i)));
     }
 }
 
 /// Water
-#[derive(Default)]
+#[derive(Debug, Inspectable, Default)]
 pub struct Water;
 
 impl Water {
     /// Spawn a water entity
     #[allow(dead_code)]
-    pub fn spawn(commands: &mut Commands, position: Vec2, size: Vec2) {
+    pub fn spawn(commands: &mut Commands, i: usize, position: Vec2, size: Vec2) {
         commands
             .spawn_bundle(GeometryBuilder::build_as(
                 &shapes::Rectangle {
@@ -70,18 +72,19 @@ impl Water {
                 size,
                 layer: CollisionLayer::Water,
             })
-            .insert(Water::default());
+            .insert(Water::default())
+            .insert(Name::new(format!("Water {}", i)));
     }
 }
 
 /// Air
-#[derive(Default)]
+#[derive(Debug, Inspectable, Default)]
 pub struct Air;
 
 impl Air {
     /// Spawn an air entity
     #[allow(dead_code)]
-    pub fn spawn(commands: &mut Commands, size: Vec2) {
+    pub fn spawn(commands: &mut Commands, i: usize, size: Vec2) {
         commands
             .spawn()
             .insert(Transform::default())
@@ -92,6 +95,7 @@ impl Air {
                 size,
                 layer: CollisionLayer::Air,
             })
-            .insert(Air::default());
+            .insert(Air::default())
+            .insert(Name::new(format!("Air {}", i)));
     }
 }

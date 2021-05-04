@@ -2,6 +2,7 @@
 
 use bevy::diagnostic::*;
 use bevy::prelude::*;
+use bevy_inspector_egui::WorldInspectorParams;
 
 use crate::components::debug::*;
 use crate::components::physics::*;
@@ -13,6 +14,7 @@ use crate::resources::debug::*;
 /// Sends the ToggleDebugEvent
 pub fn debug_system(
     mut commands: Commands,
+    mut inspector: ResMut<WorldInspectorParams>,
     asset_server: Res<AssetServer>,
     mut debug_state: ResMut<DebugState>,
     keyboard_input: Res<Input<KeyCode>>,
@@ -22,6 +24,7 @@ pub fn debug_system(
         debug!("toggling debug ...");
 
         debug_state.enabled = !debug_state.enabled;
+        inspector.enabled = debug_state.enabled;
 
         #[allow(clippy::collapsible_else_if)]
         if debug_state.enabled {

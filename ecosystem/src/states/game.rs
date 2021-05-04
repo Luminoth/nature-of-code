@@ -29,6 +29,7 @@ pub fn setup(
     // ground
     Ground::spawn(
         &mut commands,
+        0,
         Vec2::new(hw - qw / 2.0, 0.0),
         Vec2::new(qw, window.height()),
     );
@@ -36,12 +37,13 @@ pub fn setup(
     // water
     Water::spawn(
         &mut commands,
+        0,
         Vec2::new(-hw + (qw * 3.0) / 2.0, 0.0),
         Vec2::new(qw * 3.0, window.height()),
     );
 
     // air
-    Air::spawn(&mut commands, Vec2::new(window.width(), window.height()));
+    Air::spawn(&mut commands, 0, Vec2::new(window.width(), window.height()));
 
     // creatures
 

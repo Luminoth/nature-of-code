@@ -1,6 +1,7 @@
 //! Creature components
 
 use bevy::prelude::*;
+use bevy_inspector_egui::Inspectable;
 use bevy_prototype_lyon::prelude::*;
 
 use crate::bundles::creatures::*;
@@ -38,11 +39,11 @@ const SNAKE_GROUND_ACCEL: f32 = 400.0;
 //const SNAKE_WATER_ACCEL: f32 = 300.0;
 
 /// Shared creature component
-#[derive(Default)]
+#[derive(Debug, Inspectable, Default)]
 pub struct Creature;
 
 /// Flies fly
-#[derive(Default)]
+#[derive(Debug, Inspectable, Default)]
 pub struct Fly {
     pub acceleration: f32,
     pub repel_acceleration: f32,
@@ -83,6 +84,7 @@ impl Fly {
                 },
                 ..Default::default()
             })
+            .insert(Name::new(format!("Fly {}", i)))
             .with_children(|parent| {
                 parent.spawn_bundle(GeometryBuilder::build_as(
                     &shapes::Ellipse {
@@ -98,7 +100,7 @@ impl Fly {
 }
 
 /// Fish swim
-#[derive(Default)]
+#[derive(Debug, Inspectable, Default)]
 pub struct Fish {
     pub acceleration: f32,
     pub repel_acceleration: f32,
@@ -140,6 +142,7 @@ impl Fish {
                 },
                 ..Default::default()
             })
+            .insert(Name::new(format!("Fish {}", i)))
             .with_children(|parent| {
                 parent
                     .spawn_bundle(GeometryBuilder::build_as(
@@ -171,7 +174,7 @@ impl Fish {
 }
 
 /// Snakes snek
-#[derive(Default)]
+#[derive(Debug, Inspectable, Default)]
 pub struct Snake {
     pub ground_acceleration: f32,
     pub repel_acceleration: f32,
@@ -213,6 +216,7 @@ impl Snake {
                 },
                 ..Default::default()
             })
+            .insert(Name::new(format!("Snake {}", i)))
             .with_children(|parent| {
                 parent
                     .spawn_bundle(GeometryBuilder::build_as(

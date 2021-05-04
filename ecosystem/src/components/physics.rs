@@ -1,6 +1,7 @@
 //! Physics components
 
 use bevy::prelude::*;
+use bevy_inspector_egui::Inspectable;
 use num_traits::Float;
 
 /// Physics step rate
@@ -26,7 +27,7 @@ impl Derivative {
 }
 
 /// Rigidbody state
-#[derive(Debug)]
+#[derive(Debug, Inspectable)]
 pub struct Rigidbody {
     pub(crate) previous_position: Vec3,
 
@@ -219,7 +220,7 @@ impl Rigidbody {
 }
 
 /// Colliders on the same layer collide
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Inspectable)]
 pub enum CollisionLayer {
     Water,
     Ground,
@@ -227,7 +228,7 @@ pub enum CollisionLayer {
 }
 
 /// Colliders collide
-#[derive(Debug)]
+#[derive(Debug, Inspectable)]
 pub struct Collider {
     pub size: Vec2,
     pub layer: CollisionLayer,
@@ -273,7 +274,7 @@ impl Collider {
 }
 
 /// Surface state
-#[derive(Debug, Default)]
+#[derive(Debug, Inspectable, Default)]
 pub struct Surface {
     pub c: f32,
 }
@@ -290,7 +291,7 @@ impl Surface {
 }
 
 /// Fluid state
-#[derive(Debug, Default)]
+#[derive(Debug, Inspectable, Default)]
 pub struct Fluid {
     pub density: f32,
 }
