@@ -86,15 +86,22 @@ impl Fly {
             })
             .insert(Name::new(format!("Fly {}", i)))
             .with_children(|parent| {
-                parent.spawn_bundle(GeometryBuilder::build_as(
-                    &shapes::Ellipse {
-                        radii: size * 0.5,
+                parent
+                    .spawn_bundle(GeometryBuilder::build_as(
+                        &shapes::Ellipse {
+                            radii: size * 0.5,
+                            ..Default::default()
+                        },
+                        ShapeColors::new(FLY_COLOR),
+                        DrawMode::Fill(FillOptions::default()),
+                        Transform::default(),
+                    ))
+                    .insert(Name::new("Model"))
+                    .insert(Oscillator {
+                        velocity: Vec2::new(20.0, 0.0),
+                        amplitude: Vec2::new(1.0, 0.0),
                         ..Default::default()
-                    },
-                    ShapeColors::new(FLY_COLOR),
-                    DrawMode::Fill(FillOptions::default()),
-                    Transform::default(),
-                ));
+                    });
             });
     }
 }
@@ -154,20 +161,28 @@ impl Fish {
                         DrawMode::Fill(FillOptions::default()),
                         Transform::default(),
                     ))
+                    .insert(Name::new("Model"))
                     .with_children(|parent| {
-                        parent.spawn_bundle(GeometryBuilder::build_as(
-                            &shapes::Ellipse {
-                                radii: head_size * 0.5,
-                                ..Default::default()
-                            },
-                            ShapeColors::new(FISH_HEAD_COLOR),
-                            DrawMode::Fill(FillOptions::default()),
-                            Transform::from_translation(Vec3::new(
-                                0.0,
-                                size.y * 0.5 - head_size.y * 0.5,
-                                1.0,
-                            )),
-                        ));
+                        parent
+                            .spawn_bundle(GeometryBuilder::build_as(
+                                &shapes::Ellipse {
+                                    radii: head_size * 0.5,
+                                    ..Default::default()
+                                },
+                                ShapeColors::new(FISH_HEAD_COLOR),
+                                DrawMode::Fill(FillOptions::default()),
+                                Transform::from_translation(Vec3::new(
+                                    0.0,
+                                    size.y * 0.5 - head_size.y * 0.5,
+                                    1.0,
+                                )),
+                            ))
+                            .insert(Name::new("Head"));
+                    })
+                    .insert(Oscillator {
+                        velocity: Vec2::new(10.0, 0.0),
+                        amplitude: Vec2::new(5.0, 0.0),
+                        ..Default::default()
                     });
             });
     }
@@ -228,20 +243,28 @@ impl Snake {
                         DrawMode::Fill(FillOptions::default()),
                         Transform::default(),
                     ))
+                    .insert(Name::new("Model"))
                     .with_children(|parent| {
-                        parent.spawn_bundle(GeometryBuilder::build_as(
-                            &shapes::Ellipse {
-                                radii: head_size * 0.5,
-                                ..Default::default()
-                            },
-                            ShapeColors::new(SNAKE_HEAD_COLOR),
-                            DrawMode::Fill(FillOptions::default()),
-                            Transform::from_translation(Vec3::new(
-                                0.0,
-                                size.y * 0.5 - head_size.y * 0.5,
-                                1.0,
-                            )),
-                        ));
+                        parent
+                            .spawn_bundle(GeometryBuilder::build_as(
+                                &shapes::Ellipse {
+                                    radii: head_size * 0.5,
+                                    ..Default::default()
+                                },
+                                ShapeColors::new(SNAKE_HEAD_COLOR),
+                                DrawMode::Fill(FillOptions::default()),
+                                Transform::from_translation(Vec3::new(
+                                    0.0,
+                                    size.y * 0.5 - head_size.y * 0.5,
+                                    1.0,
+                                )),
+                            ))
+                            .insert(Name::new("Head"));
+                    })
+                    .insert(Oscillator {
+                        velocity: Vec2::new(10.0, 0.0),
+                        amplitude: Vec2::new(5.0, 0.0),
+                        ..Default::default()
                     });
             });
     }

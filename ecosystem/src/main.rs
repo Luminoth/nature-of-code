@@ -117,10 +117,11 @@ fn main() {
             // fixed (physics) update
             // 1) all CreaturesSystem::Physics (before Physics, including repel)
             // 2) PhysicsSystem::Collisions (friction, drag, etc)
-            // 3) PhysicsSystem::Update (move rigidbodies)
+            // 3) PhysicsSystem::Update (move rigidbodies, oscillate, etc)
             // 4) CreaturesSystem::Bounds (rewind updates at borders, border repel)
             SystemSet::on_update(GameState::Game)
                 .with_run_criteria(FixedTimestep::step(PHYSICS_STEP as f64))
+                // core physics
                 .with_system(
                     physics_collisions
                         .system()
@@ -130,6 +131,12 @@ fn main() {
                 )
                 .with_system(
                     physics_update
+                        .system()
+                        .label(Physics)
+                        .label(PhysicsSystem::Update),
+                )
+                .with_system(
+                    oscillator_update
                         .system()
                         .label(Physics)
                         .label(PhysicsSystem::Update),
@@ -222,6 +229,7 @@ fn main() {
 
     registry.register::<components::physics::Rigidbody>();
     registry.register::<components::physics::Collider>();
+    registry.register::<components::physics::Oscillator>();
     registry.register::<components::physics::Surface>();
     registry.register::<components::physics::Fluid>();
     registry.register::<components::creatures::Creature>();

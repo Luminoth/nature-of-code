@@ -307,3 +307,33 @@ impl Fluid {
         rigidbody.apply_force(drag.truncate());
     }
 }
+
+/// Oscillator
+#[derive(Debug, Inspectable)]
+pub struct Oscillator {
+    pub angle: Vec2,
+    pub velocity: Vec2,
+    pub amplitude: Vec2,
+}
+
+impl Default for Oscillator {
+    fn default() -> Self {
+        Self {
+            angle: Vec2::default(),
+            velocity: Vec2::default(),
+            amplitude: Vec2::splat(1.0),
+        }
+    }
+}
+
+impl Oscillator {
+    pub fn update(&mut self, transform: &mut Transform) {
+        // https://github.com/bevyengine/bevy/issues/2041
+        let dt = PHYSICS_STEP;
+
+        self.angle += self.velocity * dt;
+
+        transform.translation.x = self.angle.x.sin() * self.amplitude.x;
+        transform.translation.y = self.angle.y.sin() * self.amplitude.y;
+    }
+}

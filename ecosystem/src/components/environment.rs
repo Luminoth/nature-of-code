@@ -43,16 +43,18 @@ impl Ground {
             })
             .insert(Name::new(format!("Ground {}", i)))
             .with_children(|parent| {
-                parent.spawn_bundle(GeometryBuilder::build_as(
-                    &shapes::Rectangle {
-                        width: size.x,
-                        height: size.y,
-                        origin: shapes::RectangleOrigin::Center,
-                    },
-                    ShapeColors::new(GROUND_COLOR),
-                    DrawMode::Fill(FillOptions::default()),
-                    Transform::default(),
-                ));
+                parent
+                    .spawn_bundle(GeometryBuilder::build_as(
+                        &shapes::Rectangle {
+                            width: size.x,
+                            height: size.y,
+                            origin: shapes::RectangleOrigin::Center,
+                        },
+                        ShapeColors::new(GROUND_COLOR),
+                        DrawMode::Fill(FillOptions::default()),
+                        Transform::default(),
+                    ))
+                    .insert(Name::new("Model"));
             });
     }
 }
@@ -82,16 +84,18 @@ impl Water {
             })
             .insert(Name::new(format!("Water {}", i)))
             .with_children(|parent| {
-                parent.spawn_bundle(GeometryBuilder::build_as(
-                    &shapes::Rectangle {
-                        width: size.x,
-                        height: size.y,
-                        origin: shapes::RectangleOrigin::Center,
-                    },
-                    ShapeColors::new(WATER_COLOR),
-                    DrawMode::Fill(FillOptions::default()),
-                    Transform::default(),
-                ));
+                parent
+                    .spawn_bundle(GeometryBuilder::build_as(
+                        &shapes::Rectangle {
+                            width: size.x,
+                            height: size.y,
+                            origin: shapes::RectangleOrigin::Center,
+                        },
+                        ShapeColors::new(WATER_COLOR),
+                        DrawMode::Fill(FillOptions::default()),
+                        Transform::default(),
+                    ))
+                    .insert(Name::new("Model"));
             });
     }
 }
@@ -121,16 +125,18 @@ impl Air {
             })
             .insert(Name::new(format!("Air {}", i)))
             .with_children(|parent| {
-                parent.spawn_bundle(GeometryBuilder::build_as(
-                    &shapes::Rectangle {
-                        width: size.x,
-                        height: size.y,
-                        origin: shapes::RectangleOrigin::Center,
-                    },
-                    ShapeColors::new(WATER_COLOR),
-                    DrawMode::Fill(FillOptions::default()),
-                    Transform::default(),
-                ));
+                parent
+                    .spawn_bundle(GeometryBuilder::build_as(
+                        &shapes::Rectangle {
+                            width: size.x,
+                            height: size.y,
+                            origin: shapes::RectangleOrigin::Center,
+                        },
+                        ShapeColors::new(WATER_COLOR),
+                        DrawMode::Fill(FillOptions::default()),
+                        Transform::default(),
+                    ))
+                    .insert(Name::new("Model"));
             });
     }
 }

@@ -41,3 +41,10 @@ pub fn physics_update(mut query: Query<(&mut Transform, &mut Rigidbody)>) {
         rigidbody.update(&mut transform);
     }
 }
+
+/// Updates an oscillator
+pub fn oscillator_update(mut query: Query<(&mut Transform, &mut Oscillator)>) {
+    for (mut transform, mut oscillator) in query.iter_mut() {
+        oscillator.update(&mut transform);
+    }
+}
