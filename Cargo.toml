@@ -12,6 +12,7 @@ members = [
     "polar-example",
     "oscillator-example",
     "wave-example",
+    "pendulum-example",
 
     # mover examples
     "liquid-example",
