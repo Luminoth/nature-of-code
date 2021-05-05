@@ -69,7 +69,7 @@ impl Fly {
                     acceleration: FLY_ACCEL,
                     repel_acceleration: FLY_REPEL_ACCEL,
                 },
-                physical: PhysicalBundle {
+                physical: DynamicPhysicsBundle {
                     rigidbody: Rigidbody {
                         mass,
                         drag: FLY_DRAG,
@@ -79,7 +79,7 @@ impl Fly {
                         size,
                         layer: CollisionLayer::Air,
                     },
-                    transform: Transform::from_translation(position.extend(0.0)),
+                    transform: Transform::from_translation(position.extend(40.0)),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -127,7 +127,7 @@ impl Fish {
                     acceleration: FISH_ACCEL,
                     repel_acceleration: FISH_REPEL_ACCEL,
                 },
-                physical: PhysicalBundle {
+                physical: DynamicPhysicsBundle {
                     rigidbody: Rigidbody {
                         mass,
                         drag: FISH_DRAG,
@@ -201,7 +201,7 @@ impl Snake {
                     ground_acceleration: SNAKE_GROUND_ACCEL,
                     repel_acceleration: SNAKE_REPEL_ACCEL,
                 },
-                physical: PhysicalBundle {
+                physical: DynamicPhysicsBundle {
                     rigidbody: Rigidbody {
                         mass,
                         drag: SNAKE_DRAG,

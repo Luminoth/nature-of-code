@@ -4,6 +4,9 @@ use bevy::prelude::*;
 use bevy_inspector_egui::Inspectable;
 use bevy_prototype_lyon::prelude::*;
 
+use crate::bundles::environment::*;
+use crate::bundles::physics::*;
+
 use super::physics::*;
 
 // TODO: move all of these constants to the simulation params
@@ -26,23 +29,31 @@ impl Ground {
     #[allow(dead_code)]
     pub fn spawn(commands: &mut Commands, i: usize, position: Vec2, size: Vec2) {
         commands
-            .spawn_bundle(GeometryBuilder::build_as(
-                &shapes::Rectangle {
-                    width: size.x,
-                    height: size.y,
-                    origin: shapes::RectangleOrigin::Center,
+            .spawn_bundle(GroundBundle {
+                surface: Surface { c: GROUND_FRICTION },
+                physical: StaticPhysicsBundle {
+                    collider: Collider {
+                        size,
+                        layer: CollisionLayer::Ground,
+                    },
+                    transform: Transform::from_translation(position.extend(10.0)),
+                    ..Default::default()
                 },
-                ShapeColors::new(GROUND_COLOR),
-                DrawMode::Fill(FillOptions::default()),
-                Transform::from_translation(position.extend(10.0)),
-            ))
-            .insert(Surface { c: GROUND_FRICTION })
-            .insert(Collider {
-                size,
-                layer: CollisionLayer::Ground,
+                ..Default::default()
             })
-            .insert(Ground::default())
-            .insert(Name::new(format!("Ground {}", i)));
+            .insert(Name::new(format!("Ground {}", i)))
+            .with_children(|parent| {
+                parent.spawn_bundle(GeometryBuilder::build_as(
+                    &shapes::Rectangle {
+                        width: size.x,
+                        height: size.y,
+                        origin: shapes::RectangleOrigin::Center,
+                    },
+                    ShapeColors::new(GROUND_COLOR),
+                    DrawMode::Fill(FillOptions::default()),
+                    Transform::default(),
+                ));
+            });
     }
 }
 
@@ -55,25 +66,33 @@ impl Water {
     #[allow(dead_code)]
     pub fn spawn(commands: &mut Commands, i: usize, position: Vec2, size: Vec2) {
         commands
-            .spawn_bundle(GeometryBuilder::build_as(
-                &shapes::Rectangle {
-                    width: size.x,
-                    height: size.y,
-                    origin: shapes::RectangleOrigin::Center,
+            .spawn_bundle(WaterBundle {
+                fluid: Fluid {
+                    density: WATER_DENSITY,
                 },
-                ShapeColors::new(WATER_COLOR),
-                DrawMode::Fill(FillOptions::default()),
-                Transform::from_translation(position.extend(5.0)),
-            ))
-            .insert(Fluid {
-                density: WATER_DENSITY,
+                physical: StaticPhysicsBundle {
+                    collider: Collider {
+                        size,
+                        layer: CollisionLayer::Water,
+                    },
+                    transform: Transform::from_translation(position.extend(5.0)),
+                    ..Default::default()
+                },
+                ..Default::default()
             })
-            .insert(Collider {
-                size,
-                layer: CollisionLayer::Water,
-            })
-            .insert(Water::default())
-            .insert(Name::new(format!("Water {}", i)));
+            .insert(Name::new(format!("Water {}", i)))
+            .with_children(|parent| {
+                parent.spawn_bundle(GeometryBuilder::build_as(
+                    &shapes::Rectangle {
+                        width: size.x,
+                        height: size.y,
+                        origin: shapes::RectangleOrigin::Center,
+                    },
+                    ShapeColors::new(WATER_COLOR),
+                    DrawMode::Fill(FillOptions::default()),
+                    Transform::default(),
+                ));
+            });
     }
 }
 
@@ -86,16 +105,32 @@ impl Air {
     #[allow(dead_code)]
     pub fn spawn(commands: &mut Commands, i: usize, size: Vec2) {
         commands
-            .spawn()
-            .insert(Transform::default())
-            .insert(Fluid {
-                density: AIR_DENSITY,
+            .spawn_bundle(AirBundle {
+                fluid: Fluid {
+                    density: AIR_DENSITY,
+                },
+                physical: StaticPhysicsBundle {
+                    collider: Collider {
+                        size,
+                        layer: CollisionLayer::Air,
+                    },
+                    transform: Transform::default(),
+                    ..Default::default()
+                },
+                ..Default::default()
             })
-            .insert(Collider {
-                size,
-                layer: CollisionLayer::Air,
-            })
-            .insert(Air::default())
-            .insert(Name::new(format!("Air {}", i)));
+            .insert(Name::new(format!("Air {}", i)))
+            .with_children(|parent| {
+                parent.spawn_bundle(GeometryBuilder::build_as(
+                    &shapes::Rectangle {
+                        width: size.x,
+                        height: size.y,
+                        origin: shapes::RectangleOrigin::Center,
+                    },
+                    ShapeColors::new(WATER_COLOR),
+                    DrawMode::Fill(FillOptions::default()),
+                    Transform::default(),
+                ));
+            });
     }
 }

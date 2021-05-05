@@ -13,7 +13,7 @@ pub struct FlyBundle {
     pub creature: Creature,
 
     #[bundle]
-    pub physical: PhysicalBundle,
+    pub physical: DynamicPhysicsBundle,
 }
 
 /// Fish bundle
@@ -23,7 +23,7 @@ pub struct FishBundle {
     pub creature: Creature,
 
     #[bundle]
-    pub physical: PhysicalBundle,
+    pub physical: DynamicPhysicsBundle,
 }
 
 /// Snake bundle
@@ -33,5 +33,5 @@ pub struct SnakeBundle {
     pub creature: Creature,
 
     #[bundle]
-    pub physical: PhysicalBundle,
+    pub physical: DynamicPhysicsBundle,
 }

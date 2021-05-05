@@ -4,9 +4,18 @@ use bevy::prelude::*;
 
 use crate::components::physics::*;
 
-/// Basic physical
+/// Static object
 #[derive(Default, Bundle)]
-pub struct PhysicalBundle {
+pub struct StaticPhysicsBundle {
+    pub collider: Collider,
+
+    pub transform: Transform,
+    pub global_transform: GlobalTransform,
+}
+
+/// Dynamic object
+#[derive(Default, Bundle)]
+pub struct DynamicPhysicsBundle {
     pub rigidbody: Rigidbody,
     pub collider: Collider,
 
