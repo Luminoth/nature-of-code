@@ -6,6 +6,7 @@ use processing::errors::ProcessingErr;
 use processing::Screen;
 use rand::Rng;
 
+#[derive(Debug, Default)]
 struct Oscillator {
     angle: DVec2,
     velocity: DVec2,

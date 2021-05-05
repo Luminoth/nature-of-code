@@ -11,6 +11,7 @@ members = [
     "perlin-example",
     "polar-example",
     "oscillator-example",
+    "wave-example",
 
     # mover examples
     "liquid-example",

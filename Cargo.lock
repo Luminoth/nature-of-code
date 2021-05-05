@@ -4534,6 +4534,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7e7811dd7f9398f14cc76efd356f98f03aa30419dea46aa810d71e819fc97158"
 
 [[package]]
+name = "wave-example"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "processing",
+]
+
+[[package]]
 name = "wayland-client"
 version = "0.12.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
