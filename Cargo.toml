@@ -20,6 +20,7 @@ members = [
     "mutual-attractor-example",
     "angular-example",
     "spaceship-example",
+    "spring-example",
 
     # chapters
     "intro/example1",
