@@ -82,10 +82,10 @@ impl Fly {
                         drag: FLY_DRAG,
                         ..Default::default()
                     },
-                    collider: Collider {
-                        size,
-                        layer: CollisionLayer::Air,
-                    },
+                    collider: Collider::Box(
+                        BoxCollider::new(Vec2::default(), size),
+                        CollisionLayer::Air,
+                    ),
                     transform: Transform::from_translation(position.extend(40.0)),
                     ..Default::default()
                 },
@@ -108,7 +108,6 @@ impl Fly {
                         angle: Vec2::new(random.random_range(0.0..2.0 * std::f32::consts::PI), 0.0),
                         velocity: Vec2::new(10.0, 0.0),
                         amplitude: Vec2::new(0.1, 0.0),
-                        ..Default::default()
                     });
             });
     }
@@ -149,10 +148,10 @@ impl Fish {
                         drag: FISH_DRAG,
                         ..Default::default()
                     },
-                    collider: Collider {
-                        size,
-                        layer: CollisionLayer::Water,
-                    },
+                    collider: Collider::Box(
+                        BoxCollider::new(Vec2::default(), size),
+                        CollisionLayer::Water,
+                    ),
                     transform: Transform::from_translation(position.extend(0.0)),
                     ..Default::default()
                 },
@@ -192,7 +191,6 @@ impl Fish {
                         angle: Vec2::new(random.random_range(0.0..2.0 * std::f32::consts::PI), 0.0),
                         velocity: Vec2::new(20.0, 0.0),
                         amplitude: Vec2::new(0.1, 0.0),
-                        ..Default::default()
                     });
             });
     }
@@ -233,10 +231,10 @@ impl Snake {
                         drag: SNAKE_DRAG,
                         ..Default::default()
                     },
-                    collider: Collider {
-                        size,
-                        layer: CollisionLayer::Ground,
-                    },
+                    collider: Collider::Box(
+                        BoxCollider::new(Vec2::default(), size),
+                        CollisionLayer::Ground,
+                    ),
                     transform: Transform::from_translation(position.extend(20.0)),
                     ..Default::default()
                 },
@@ -276,7 +274,6 @@ impl Snake {
                         angle: Vec2::new(random.random_range(0.0..2.0 * std::f32::consts::PI), 0.0),
                         velocity: Vec2::new(30.0, 0.0),
                         amplitude: Vec2::new(0.1, 0.0),
-                        ..Default::default()
                     });
             });
     }

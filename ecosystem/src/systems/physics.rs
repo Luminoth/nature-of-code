@@ -22,13 +22,13 @@ pub fn physics_collisions(
 ) {
     for (transform, mut rigidbody, collider) in query.iter_mut() {
         for (surface, stransform, scollider) in surfaces.iter() {
-            if collider.collides(transform, scollider, stransform) {
+            if collider.collides(transform, (stransform, scollider)) {
                 surface.update(&mut rigidbody);
             }
         }
 
         for (fluid, ftransform, fcollider) in fluids.iter() {
-            if collider.collides(transform, fcollider, ftransform) {
+            if collider.collides(transform, (ftransform, fcollider)) {
                 fluid.update(&mut rigidbody);
             }
         }

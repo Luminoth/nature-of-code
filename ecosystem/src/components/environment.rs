@@ -32,10 +32,10 @@ impl Ground {
             .spawn_bundle(GroundBundle {
                 surface: Surface { c: GROUND_FRICTION },
                 physical: StaticPhysicsBundle {
-                    collider: Collider {
-                        size,
-                        layer: CollisionLayer::Ground,
-                    },
+                    collider: Collider::Box(
+                        BoxCollider::new(Vec2::default(), size),
+                        CollisionLayer::Ground,
+                    ),
                     transform: Transform::from_translation(position.extend(10.0)),
                     ..Default::default()
                 },
@@ -73,10 +73,10 @@ impl Water {
                     density: WATER_DENSITY,
                 },
                 physical: StaticPhysicsBundle {
-                    collider: Collider {
-                        size,
-                        layer: CollisionLayer::Water,
-                    },
+                    collider: Collider::Box(
+                        BoxCollider::new(Vec2::default(), size),
+                        CollisionLayer::Water,
+                    ),
                     transform: Transform::from_translation(position.extend(5.0)),
                     ..Default::default()
                 },
@@ -114,10 +114,10 @@ impl Air {
                     density: AIR_DENSITY,
                 },
                 physical: StaticPhysicsBundle {
-                    collider: Collider {
-                        size,
-                        layer: CollisionLayer::Air,
-                    },
+                    collider: Collider::Box(
+                        BoxCollider::new(Vec2::default(), size),
+                        CollisionLayer::Air,
+                    ),
                     transform: Transform::default(),
                     ..Default::default()
                 },

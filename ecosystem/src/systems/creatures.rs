@@ -58,18 +58,10 @@ pub fn fly_bounds(
     let hh = world_bounds.height / 2.0;
 
     for (mut transform, mut rigidbody, collider) in query.iter_mut() {
-        let (minx, maxx, miny, maxy) =
-            collider.adjust_container_bounds(-hw, hw, -hh, hh, BOUNDS_OFFSET);
-        rigidbody.contain(&mut transform, minx, maxx, miny, maxy, FLY_SIZE);
-        rigidbody.bounds_repel(
-            &transform,
-            minx,
-            maxx,
-            miny,
-            maxy,
-            BOUNDS_REPEL_ACCEL,
-            FLY_SIZE,
-        );
+        let (min, max) =
+            collider.adjust_container_bounds(Vec2::new(-hw, -hh), Vec2::new(hw, hh), BOUNDS_OFFSET);
+        rigidbody.contain(&mut transform, min, max, FLY_SIZE);
+        rigidbody.bounds_repel(&transform, min, max, BOUNDS_REPEL_ACCEL, FLY_SIZE);
     }
 }
 
@@ -152,27 +144,16 @@ pub fn fish_bounds(
 ) {
     for (mut transform, mut rigidbody, collider) in query.iter_mut() {
         for (ftransform, fcollider) in fluids.iter() {
-            if collider.collides(&transform, fcollider, ftransform) {
-                let hw = fcollider.size.x / 2.0;
-                let hh = fcollider.size.y / 2.0;
+            if collider.collides(&transform, (ftransform, fcollider)) {
+                let position = ftransform.translation.truncate();
+                let half_size = fcollider.size() / 2.0;
 
-                let minx = ftransform.translation.x - hw;
-                let maxx = ftransform.translation.x + hw;
-                let miny = ftransform.translation.y - hh;
-                let maxy = ftransform.translation.y + hh;
+                let min = position - half_size;
+                let max = position + half_size;
 
-                let (minx, maxx, miny, maxy) =
-                    collider.adjust_container_bounds(minx, maxx, miny, maxy, BOUNDS_OFFSET);
-                rigidbody.contain(&mut transform, minx, maxx, miny, maxy, FISH_WIDTH);
-                rigidbody.bounds_repel(
-                    &transform,
-                    minx,
-                    maxx,
-                    miny,
-                    maxy,
-                    BOUNDS_REPEL_ACCEL,
-                    FISH_WIDTH,
-                );
+                let (min, max) = collider.adjust_container_bounds(min, max, BOUNDS_OFFSET);
+                rigidbody.contain(&mut transform, min, max, FISH_WIDTH);
+                rigidbody.bounds_repel(&transform, min, max, BOUNDS_REPEL_ACCEL, FISH_WIDTH);
             }
         }
     }
@@ -215,27 +196,16 @@ pub fn snake_bounds(
 ) {
     for (mut transform, mut rigidbody, collider) in query.iter_mut() {
         for (stransform, scollider) in surfaces.iter() {
-            if collider.collides(&transform, scollider, stransform) {
-                let hw = scollider.size.x / 2.0;
-                let hh = scollider.size.y / 2.0;
+            if collider.collides(&transform, (stransform, scollider)) {
+                let position = stransform.translation.truncate();
+                let half_size = scollider.size() / 2.0;
 
-                let minx = stransform.translation.x - hw;
-                let maxx = stransform.translation.x + hw;
-                let miny = stransform.translation.y - hh;
-                let maxy = stransform.translation.y + hh;
+                let min = position - half_size;
+                let max = position + half_size;
 
-                let (minx, maxx, miny, maxy) =
-                    collider.adjust_container_bounds(minx, maxx, miny, maxy, BOUNDS_OFFSET);
-                rigidbody.contain(&mut transform, minx, maxx, miny, maxy, SNAKE_WIDTH);
-                rigidbody.bounds_repel(
-                    &transform,
-                    minx,
-                    maxx,
-                    miny,
-                    maxy,
-                    BOUNDS_REPEL_ACCEL,
-                    SNAKE_WIDTH,
-                );
+                let (min, max) = collider.adjust_container_bounds(min, max, BOUNDS_OFFSET);
+                rigidbody.contain(&mut transform, min, max, SNAKE_WIDTH);
+                rigidbody.bounds_repel(&transform, min, max, BOUNDS_REPEL_ACCEL, SNAKE_WIDTH);
             }
         }
     }

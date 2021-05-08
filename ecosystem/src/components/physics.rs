@@ -63,44 +63,36 @@ impl Rigidbody {
 
     /// Contain a rigidbody inside bounds
     #[allow(dead_code)]
-    pub fn contain(
-        &mut self,
-        transform: &mut Transform,
-        minx: f32,
-        maxx: f32,
-        miny: f32,
-        maxy: f32,
-        min_distance: f32,
-    ) {
+    pub fn contain(&mut self, transform: &mut Transform, min: Vec2, max: Vec2, min_distance: f32) {
         // unwind to our previous position, if we can
         // otherwise clamp to the min / max minus a little fudge
 
-        if transform.translation.x <= minx {
-            transform.translation.x = if self.previous_position.x <= minx {
-                minx + min_distance
+        if transform.translation.x <= min.x {
+            transform.translation.x = if self.previous_position.x <= min.x {
+                min.x + min_distance
             } else {
                 self.previous_position.x
             };
             self.velocity.x = 0.0;
-        } else if transform.translation.x >= maxx {
-            transform.translation.x = if self.previous_position.x >= maxx {
-                maxx - min_distance
+        } else if transform.translation.x >= max.x {
+            transform.translation.x = if self.previous_position.x >= max.x {
+                max.x - min_distance
             } else {
                 self.previous_position.x
             };
             self.velocity.x = 0.0;
         }
 
-        if transform.translation.y <= miny {
-            transform.translation.y = if self.previous_position.y <= miny {
-                miny + min_distance
+        if transform.translation.y <= min.y {
+            transform.translation.y = if self.previous_position.y <= min.y {
+                min.y + min_distance
             } else {
                 self.previous_position.y
             };
             self.velocity.y = 0.0;
-        } else if transform.translation.y >= maxy {
-            transform.translation.y = if self.previous_position.y >= maxy {
-                maxy - min_distance
+        } else if transform.translation.y >= max.y {
+            transform.translation.y = if self.previous_position.y >= max.y {
+                max.y - min_distance
             } else {
                 self.previous_position.y
             };
@@ -121,36 +113,34 @@ impl Rigidbody {
     pub fn bounds_repel(
         &mut self,
         transform: &Transform,
-        minx: f32,
-        maxx: f32,
-        miny: f32,
-        maxy: f32,
+        min: Vec2,
+        max: Vec2,
         acceleration: f32,
         min_distance: f32,
     ) {
         let force = self.attract_repel_force(
-            Vec2::new(transform.translation.x - minx, 0.0),
+            Vec2::new(transform.translation.x - min.x, 0.0),
             acceleration,
             min_distance,
         );
         self.apply_force(force);
 
         let force = self.attract_repel_force(
-            Vec2::new(transform.translation.x - maxx, 0.0),
+            Vec2::new(transform.translation.x - max.x, 0.0),
             acceleration,
             min_distance,
         );
         self.apply_force(force);
 
         let force = self.attract_repel_force(
-            Vec2::new(0.0, transform.translation.y - miny),
+            Vec2::new(0.0, transform.translation.y - min.y),
             acceleration,
             min_distance,
         );
         self.apply_force(force);
 
         let force = self.attract_repel_force(
-            Vec2::new(0.0, transform.translation.y - maxy),
+            Vec2::new(0.0, transform.translation.y - max.y),
             acceleration,
             min_distance,
         );
@@ -176,7 +166,7 @@ impl Rigidbody {
 
     /// Attact a a rigidbody toward a point
     #[allow(dead_code)]
-    pub fn atract(
+    pub fn attract(
         &mut self,
         transform: &Transform,
         point: Vec2,
@@ -249,57 +239,108 @@ impl Rigidbody {
     }
 }
 
+/* Colliders */
+
 /// Colliders on the same layer collide
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Inspectable)]
 pub enum CollisionLayer {
-    Water,
     Ground,
+    Water,
     Air,
 }
 
-/// Colliders collide
-#[derive(Debug, Inspectable)]
-pub struct Collider {
-    pub size: Vec2,
-    pub layer: CollisionLayer,
+impl Default for CollisionLayer {
+    fn default() -> Self {
+        CollisionLayer::Ground
+    }
 }
 
-impl Default for Collider {
+/// AABB collider
+#[derive(Debug, Copy, Clone, Inspectable)]
+pub struct BoxCollider {
+    pub center: Vec2,
+    pub size: Vec2,
+}
+
+impl Default for BoxCollider {
     fn default() -> Self {
         Self {
+            center: Vec2::default(),
             size: Vec2::new(1.0, 1.0),
-            layer: CollisionLayer::Ground,
         }
     }
 }
 
+impl BoxCollider {
+    /// Creates a new BoxCollider at the given center with the given size
+    pub fn new(center: Vec2, size: Vec2) -> Self {
+        Self { center, size }
+    }
+
+    /// Returns true if the BoxCollider intersects the other BoxCollider
+    pub fn intersects_box(&self, transform: &Transform, other: (&Transform, &BoxCollider)) -> bool {
+        let position = transform.translation.truncate();
+        let min = position - self.size;
+        let max = position + self.size;
+
+        let oposition = other.0.translation.truncate();
+        let omin = oposition - other.1.size;
+        let omax = oposition - other.1.size;
+
+        (min.x <= omax.x && max.x >= omin.x) && (min.y <= omax.y && max.y >= omin.y)
+    }
+}
+
+/// Colliders collide
+#[derive(Debug, Copy, Clone, Inspectable)]
+pub enum Collider {
+    Box(BoxCollider, CollisionLayer),
+}
+
+impl Default for Collider {
+    fn default() -> Self {
+        Collider::Box(BoxCollider::default(), CollisionLayer::default())
+    }
+}
+
 impl Collider {
+    /// Returns the size of the collider
+    pub fn size(&self) -> Vec2 {
+        match self {
+            Collider::Box(collider, _) => collider.size,
+        }
+    }
+
+    fn collides_layers(&self, layer: CollisionLayer) -> bool {
+        match self {
+            Collider::Box(_, slayer) => *slayer == layer,
+        }
+    }
+
+    fn intersects_box(&self, transform: &Transform, other: (&Transform, &BoxCollider)) -> bool {
+        match self {
+            Collider::Box(collider, _) => collider.intersects_box(transform, other),
+        }
+    }
+
     /// Check if a collider is colliding with another collider
-    pub fn collides(
-        &self,
-        _transform: &Transform,
-        other: &Collider,
-        _other_transform: &Transform,
-    ) -> bool {
-        // TODO: also check overlapping bounds
-        self.layer == other.layer
+    pub fn collides(&self, transform: &Transform, other: (&Transform, &Collider)) -> bool {
+        match self {
+            Collider::Box(collider, layer) => {
+                other.1.collides_layers(*layer)
+                    && other.1.intersects_box(other.0, (transform, collider))
+            }
+        }
     }
 
     /// Adjusts the bounds that should contain this collider
-    pub fn adjust_container_bounds(
-        &self,
-        minx: f32,
-        maxx: f32,
-        miny: f32,
-        maxy: f32,
-        offset: f32,
-    ) -> (f32, f32, f32, f32) {
-        let minx = minx + self.size.x + offset;
-        let maxx = maxx - self.size.x - offset;
-        let miny = miny + self.size.y + offset;
-        let maxy = maxy - self.size.y - offset;
+    pub fn adjust_container_bounds(&self, min: Vec2, max: Vec2, offset: f32) -> (Vec2, Vec2) {
+        let size = self.size();
+        let offset = Vec2::splat(offset);
+        let min = min + size + offset;
+        let max = max - size - offset;
 
-        (minx, maxx, miny, maxy)
+        (min, max)
     }
 }
 
