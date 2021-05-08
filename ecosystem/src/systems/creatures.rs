@@ -4,6 +4,7 @@ use bevy::prelude::*;
 
 use crate::components::creatures::*;
 use crate::components::physics::*;
+use crate::components::*;
 use crate::resources::*;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
@@ -15,8 +16,8 @@ pub enum CreaturesSystem {
 }
 
 // TODO: move these to SimulationParams
-const BOUNDS_OFFSET: f32 = 5.0;
-const BOUNDS_REPEL_ACCEL: f32 = 10.0;
+const BOUNDS_OFFSET: f32 = 0.1;
+const BOUNDS_REPEL_ACCEL: f32 = 0.01;
 
 /// Creature facing
 pub fn creature_facing(
@@ -41,28 +42,35 @@ pub fn fly_update(mut query: Query<&mut Fly>) {
 /// Fly behavior
 pub fn fly_physics(mut random: ResMut<Random>, mut query: Query<(&mut Rigidbody, &Fly)>) {
     for (mut rigidbody, fly) in query.iter_mut() {
-        let modifier = random.random() as f32;
+        let _modifier = random.random() as f32;
 
         let direction = random.direction();
-        let magnitude = fly.acceleration * rigidbody.mass * modifier;
+        let magnitude = fly.acceleration * rigidbody.mass; // * _modifier;
         rigidbody.apply_force(direction * magnitude);
     }
 }
 
 /// Keep flies inside the window
 pub fn fly_bounds(
-    windows: Res<Windows>,
+    world_bounds: Res<WorldBounds>,
     mut query: Query<(&mut Transform, &mut Rigidbody, &Collider), With<Fly>>,
 ) {
-    let window = windows.get_primary().unwrap();
-    let hw = window.width() as f32 / 2.0;
-    let hh = window.height() as f32 / 2.0;
+    let hw = world_bounds.width / 2.0;
+    let hh = world_bounds.height / 2.0;
 
     for (mut transform, mut rigidbody, collider) in query.iter_mut() {
         let (minx, maxx, miny, maxy) =
             collider.adjust_container_bounds(-hw, hw, -hh, hh, BOUNDS_OFFSET);
-        rigidbody.contain(&mut transform, minx, maxx, miny, maxy);
-        rigidbody.bounds_repel(&transform, minx, maxx, miny, maxy, BOUNDS_REPEL_ACCEL);
+        rigidbody.contain(&mut transform, minx, maxx, miny, maxy, FLY_SIZE);
+        rigidbody.bounds_repel(
+            &transform,
+            minx,
+            maxx,
+            miny,
+            maxy,
+            BOUNDS_REPEL_ACCEL,
+            FLY_SIZE,
+        );
     }
 }
 
@@ -81,6 +89,7 @@ pub fn fly_repel(
                 transform,
                 ftransform.translation.truncate(),
                 fish.repel_acceleration,
+                FLY_SIZE,
             );
         }
     }
@@ -100,7 +109,7 @@ pub fn fish_physics(
 ) {
     for (mut rigidbody, fish) in query.iter_mut() {
         let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
-        let modifier = noise.get(t, random.random_range(0.5..0.75)) as f32;
+        let _modifier = noise.get(t, random.random_range(0.5..0.75)) as f32;
 
         let direction = if rigidbody.velocity.length_squared() == 0.0 {
             random.direction()
@@ -111,7 +120,7 @@ pub fn fish_physics(
                 .lerp(random.direction(), PHYSICS_STEP)
                 .normalize()
         };
-        let magnitude = fish.acceleration * rigidbody.mass * modifier;
+        let magnitude = fish.acceleration * rigidbody.mass; // * _modifier;
         rigidbody.apply_force(direction * magnitude);
     }
 }
@@ -131,6 +140,7 @@ pub fn fish_repel(
                 transform,
                 ftransform.translation.truncate(),
                 fish.repel_acceleration,
+                FISH_WIDTH,
             );
         }
     }
@@ -154,8 +164,16 @@ pub fn fish_bounds(
 
                 let (minx, maxx, miny, maxy) =
                     collider.adjust_container_bounds(minx, maxx, miny, maxy, BOUNDS_OFFSET);
-                rigidbody.contain(&mut transform, minx, maxx, miny, maxy);
-                rigidbody.bounds_repel(&transform, minx, maxx, miny, maxy, BOUNDS_REPEL_ACCEL);
+                rigidbody.contain(&mut transform, minx, maxx, miny, maxy, FISH_WIDTH);
+                rigidbody.bounds_repel(
+                    &transform,
+                    minx,
+                    maxx,
+                    miny,
+                    maxy,
+                    BOUNDS_REPEL_ACCEL,
+                    FISH_WIDTH,
+                );
             }
         }
     }
@@ -175,7 +193,7 @@ pub fn snake_physics(
 ) {
     for (mut rigidbody, snake) in query.iter_mut() {
         let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
-        let modifier = noise.get(t, random.random_range(0.25..0.5)) as f32;
+        let _modifier = noise.get(t, random.random_range(0.25..0.5)) as f32;
 
         let direction = if rigidbody.velocity.length_squared() == 0.0 {
             random.direction()
@@ -186,7 +204,7 @@ pub fn snake_physics(
                 .lerp(random.direction(), PHYSICS_STEP)
                 .normalize()
         };
-        let magnitude = snake.ground_acceleration * rigidbody.mass * modifier;
+        let magnitude = snake.ground_acceleration * rigidbody.mass; // * _modifier;
         rigidbody.apply_force(direction * magnitude);
     }
 }
@@ -209,8 +227,16 @@ pub fn snake_bounds(
 
                 let (minx, maxx, miny, maxy) =
                     collider.adjust_container_bounds(minx, maxx, miny, maxy, BOUNDS_OFFSET);
-                rigidbody.contain(&mut transform, minx, maxx, miny, maxy);
-                rigidbody.bounds_repel(&transform, minx, maxx, miny, maxy, BOUNDS_REPEL_ACCEL);
+                rigidbody.contain(&mut transform, minx, maxx, miny, maxy, SNAKE_WIDTH);
+                rigidbody.bounds_repel(
+                    &transform,
+                    minx,
+                    maxx,
+                    miny,
+                    maxy,
+                    BOUNDS_REPEL_ACCEL,
+                    SNAKE_WIDTH,
+                );
             }
         }
     }
@@ -231,6 +257,7 @@ pub fn snake_repel(
                 transform,
                 stransform.translation.truncate(),
                 fish.repel_acceleration,
+                SNAKE_WIDTH,
             );
         }
     }

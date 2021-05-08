@@ -20,6 +20,7 @@ use bevy_prototype_lyon::prelude::*;
 use num_traits::Float;
 
 use components::physics::*;
+use components::*;
 use events::debug::*;
 use resources::debug::*;
 use resources::*;
@@ -30,6 +31,8 @@ use systems::physics::*;
 
 const WINDOW_WIDTH: f32 = 1024.0;
 const WINDOW_HEIGHT: f32 = 576.0;
+const ASPECT_RATIO: f32 = WINDOW_WIDTH / WINDOW_HEIGHT;
+const WORLD_SIZE: f32 = 10.0;
 
 /// Clamps an ord between a min and a max
 pub fn clamp<T: Ord>(v: T, min: T, max: T) -> T {
@@ -54,9 +57,15 @@ fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
         snake_count: random.normal_clamped::<f32>(2.0, 1.0, 1.0, 4.0) as usize,
     };
 
+    let world_bounds = WorldBounds {
+        width: WORLD_SIZE * ASPECT_RATIO,
+        height: WORLD_SIZE,
+    };
+
     commands.insert_resource(random);
     commands.insert_resource(PerlinNoise::default());
     commands.insert_resource(simulation);
+    commands.insert_resource(world_bounds);
 }
 
 /// Debug setup

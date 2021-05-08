@@ -4,6 +4,7 @@ use bevy::prelude::*;
 
 use crate::components::creatures::*;
 use crate::components::environment::*;
+use crate::components::*;
 use crate::resources::*;
 
 /// Game setup
@@ -11,18 +12,28 @@ pub fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut random: ResMut<Random>,
-    windows: Res<Windows>,
     simulation: Res<SimulationParams>,
+    world_bounds: Res<WorldBounds>,
 ) {
     // cameras
-    commands.insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)));
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
-    commands.spawn_bundle(UiCameraBundle::default());
+    let mut camera = OrthographicCameraBundle::new_2d();
+    camera.orthographic_projection.scaling_mode = bevy::render::camera::ScalingMode::FixedVertical;
+    camera.orthographic_projection.scale = world_bounds.height / 2.0;
 
-    let window = windows.get_primary().unwrap();
-    let qw = window.width() as f32 / 4.0;
-    let hw = window.width() as f32 / 2.0;
-    let hh = window.height() as f32 / 2.0;
+    commands.insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)));
+    commands
+        .spawn_bundle(camera)
+        .insert(MainCamera)
+        .insert(Name::new("Main Camera"));
+    commands
+        .spawn_bundle(UiCameraBundle::default())
+        .insert(UiCamera)
+        .insert(Name::new("UI Camera"));
+
+    // world bounds
+    let qw = world_bounds.width / 4.0;
+    let hw = world_bounds.width / 2.0;
+    let hh = world_bounds.height / 2.0;
 
     // environment
 
@@ -31,7 +42,7 @@ pub fn setup(
         &mut commands,
         0,
         Vec2::new(hw - qw / 2.0, 0.0),
-        Vec2::new(qw, window.height()),
+        Vec2::new(qw, world_bounds.height),
     );
 
     // water
@@ -39,30 +50,41 @@ pub fn setup(
         &mut commands,
         0,
         Vec2::new(-hw + (qw * 3.0) / 2.0, 0.0),
-        Vec2::new(qw * 3.0, window.height()),
+        Vec2::new(qw * 3.0, world_bounds.height),
     );
 
     // air
-    Air::spawn(&mut commands, 0, Vec2::new(window.width(), window.height()));
+    Air::spawn(
+        &mut commands,
+        0,
+        Vec2::new(world_bounds.width, world_bounds.height),
+    );
 
     // creatures
 
     // flies
     for i in 0..simulation.fly_count {
-        let position = random.vec2_range(-hw + 5.0..hw - 5.0, -hh + 5.0..hh - 5.0);
-        Fly::spawn(&mut commands, &asset_server, i, position);
+        let position =
+            random.vec2_range(-hw + FLY_SIZE..hw - FLY_SIZE, -hh + FLY_SIZE..hh - FLY_SIZE);
+        Fly::spawn(&mut commands, &asset_server, &mut random, i, position);
     }
 
     // fish
     for i in 0..simulation.fish_count {
-        let position = random.vec2_range(-hw + 10.0..qw - 10.0, -hh + 10.0..hh - 10.0);
-        Fish::spawn(&mut commands, &asset_server, i, position);
+        let position = random.vec2_range(
+            -hw + FISH_WIDTH..qw - FISH_WIDTH,
+            -hh + FISH_LENGTH..hh - FISH_LENGTH,
+        );
+        Fish::spawn(&mut commands, &asset_server, &mut random, i, position);
     }
 
     // snakes
     for i in 0..simulation.snake_count {
-        let position = random.vec2_range(qw + 5.0..hw - 5.0, -hh + 5.0..hh - 5.0);
-        Snake::spawn(&mut commands, &asset_server, i, position);
+        let position = random.vec2_range(
+            qw + SNAKE_WIDTH..hw - SNAKE_WIDTH,
+            -hh + SNAKE_LENGTH..hh - SNAKE_LENGTH,
+        );
+        Snake::spawn(&mut commands, &asset_server, &mut random, i, position);
     }
 }
 
