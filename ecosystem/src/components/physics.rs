@@ -26,6 +26,7 @@ impl Derivative {
 /// Rigidbody state
 #[derive(Debug, Inspectable)]
 pub struct Rigidbody {
+    #[inspectable(ignore)]
     pub(crate) previous_position: Vec3,
 
     pub acceleration: Vec3,

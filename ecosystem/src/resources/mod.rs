@@ -11,6 +11,12 @@ use rand_distr::{Normal, StandardNormal};
 
 use crate::clampf;
 
+/// World boundary
+pub struct WorldBounds {
+    pub width: f32,
+    pub height: f32,
+}
+
 /// Simulation parameters
 pub struct SimulationParams {
     pub fly_count: usize,

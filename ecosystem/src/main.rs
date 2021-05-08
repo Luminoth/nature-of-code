@@ -20,7 +20,6 @@ use bevy_prototype_lyon::prelude::*;
 use num_traits::Float;
 
 use components::physics::*;
-use components::*;
 use events::debug::*;
 use resources::debug::*;
 use resources::*;

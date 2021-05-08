@@ -4,7 +4,6 @@ use bevy::prelude::*;
 
 use crate::components::creatures::*;
 use crate::components::physics::*;
-use crate::components::*;
 use crate::resources::*;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]

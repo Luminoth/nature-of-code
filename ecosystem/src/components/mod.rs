@@ -4,11 +4,12 @@ pub mod creatures;
 pub mod environment;
 pub mod physics;
 
-pub struct WorldBounds {
-    pub width: f32,
-    pub height: f32,
-}
+use bevy_inspector_egui::Inspectable;
 
+/// Main camera tag
+#[derive(Debug, Inspectable, Default)]
 pub struct MainCamera;
 
+/// UI camera tag
+#[derive(Debug, Inspectable, Default)]
 pub struct UiCamera;
