@@ -19,12 +19,9 @@ const BOUNDS_OFFSET: f32 = 0.1;
 const BOUNDS_REPEL_ACCEL: f32 = 0.01;
 
 /// Creature facing
-pub fn creature_facing(
-    time: Res<Time>,
-    mut query: Query<(&mut Transform, &Rigidbody), With<Creature>>,
-) {
-    for (mut transform, rigidbody) in query.iter_mut() {
-        let angle = -rigidbody.velocity.truncate().angle_between(Vec2::Y);
+pub fn creature_facing(time: Res<Time>, mut query: Query<(&mut Transform, &Rigidbody, &Creature)>) {
+    for (mut transform, rigidbody, creature) in query.iter_mut() {
+        let angle = -creature.acceleration_direction.angle_between(Vec2::Y);
         if rigidbody.velocity.length_squared() != 0.0 {
             transform.rotation = transform
                 .rotation
@@ -39,13 +36,16 @@ pub fn fly_update(mut query: Query<&mut Fly>) {
 }
 
 /// Fly behavior
-pub fn fly_physics(mut random: ResMut<Random>, mut query: Query<(&mut Rigidbody, &Fly)>) {
-    for (mut rigidbody, fly) in query.iter_mut() {
+pub fn fly_physics(
+    mut random: ResMut<Random>,
+    mut query: Query<(&mut Rigidbody, &Fly, &mut Creature)>,
+) {
+    for (mut rigidbody, fly, mut creature) in query.iter_mut() {
         let _modifier = random.random() as f32;
 
-        let direction = random.direction();
+        creature.acceleration_direction = random.direction();
         let magnitude = fly.acceleration * rigidbody.mass; // * _modifier;
-        rigidbody.apply_force(direction * magnitude);
+        rigidbody.apply_force(creature.acceleration_direction * magnitude);
     }
 }
 
@@ -104,13 +104,13 @@ pub fn fish_physics(
     time: Res<Time>,
     mut random: ResMut<Random>,
     noise: Res<PerlinNoise>,
-    mut query: Query<(&mut Rigidbody, &Fish)>,
+    mut query: Query<(&mut Rigidbody, &Fish, &mut Creature)>,
 ) {
-    for (mut rigidbody, fish) in query.iter_mut() {
+    for (mut rigidbody, fish, mut creature) in query.iter_mut() {
         let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
         let _modifier = noise.get(t, random.random_range(0.5..0.75)) as f32;
 
-        let direction = if rigidbody.velocity.length_squared() == 0.0 {
+        creature.acceleration_direction = if rigidbody.velocity.length_squared() == 0.0 {
             random.direction()
         } else {
             rigidbody
@@ -120,7 +120,7 @@ pub fn fish_physics(
                 .normalize()
         };
         let magnitude = fish.acceleration * rigidbody.mass; // * _modifier;
-        rigidbody.apply_force(direction * magnitude);
+        rigidbody.apply_force(creature.acceleration_direction * magnitude);
     }
 }
 
@@ -188,13 +188,13 @@ pub fn snake_physics(
     time: Res<Time>,
     mut random: ResMut<Random>,
     noise: Res<PerlinNoise>,
-    mut query: Query<(&mut Rigidbody, &Snake)>,
+    mut query: Query<(&mut Rigidbody, &Snake, &mut Creature)>,
 ) {
-    for (mut rigidbody, snake) in query.iter_mut() {
+    for (mut rigidbody, snake, mut creature) in query.iter_mut() {
         let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
         let _modifier = noise.get(t, random.random_range(0.25..0.5)) as f32;
 
-        let direction = if rigidbody.velocity.length_squared() == 0.0 {
+        creature.acceleration_direction = if rigidbody.velocity.length_squared() == 0.0 {
             random.direction()
         } else {
             rigidbody
@@ -204,7 +204,7 @@ pub fn snake_physics(
                 .normalize()
         };
         let magnitude = snake.ground_acceleration * rigidbody.mass; // * _modifier;
-        rigidbody.apply_force(direction * magnitude);
+        rigidbody.apply_force(creature.acceleration_direction * magnitude);
     }
 }
 

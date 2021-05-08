@@ -43,7 +43,10 @@ const SNAKE_GROUND_ACCEL: f32 = 30.5;
 
 /// Shared creature component
 #[derive(Debug, Inspectable, Default)]
-pub struct Creature;
+pub struct Creature {
+    #[inspectable(read_only)]
+    pub acceleration_direction: Vec2,
+}
 
 /// Flies fly
 #[derive(Debug, Inspectable, Default)]
