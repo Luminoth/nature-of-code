@@ -6,8 +6,14 @@ use processing::errors::ProcessingErr;
 use processing::Screen;
 use rand::Rng;
 
+trait Particle {
+    fn is_dead(&self) -> bool;
+
+    fn run(&mut self, screen: &mut Screen, dt: f64) -> Result<(), ProcessingErr>;
+}
+
 #[derive(Debug, Default)]
-struct Particle {
+struct ParticleCore {
     location: DVec2,
     velocity: DVec2,
     acceleration: DVec2,
@@ -15,7 +21,7 @@ struct Particle {
     lifespan: f64,
 }
 
-impl Particle {
+impl ParticleCore {
     fn new(location: DVec2) -> Self {
         let mut rng = rand::thread_rng();
 
@@ -26,25 +32,16 @@ impl Particle {
             lifespan: 255.0,
         }
     }
+}
 
+#[derive(Debug, Default)]
+struct Confetti {
+    particle: ParticleCore,
+}
+
+impl Particle for Confetti {
     fn is_dead(&self) -> bool {
-        self.lifespan < 0.0
-    }
-
-    fn update(&mut self, _dt: f64) {
-        self.velocity += self.acceleration; // * dt;
-        self.location += self.velocity; // * dt;
-
-        //self.acceleration = DVec2::default();
-
-        self.lifespan -= 2.0;
-    }
-
-    fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
-        core::stroke_grayscale_alpha(screen, 0.0, self.lifespan as f32);
-        core::fill_grayscale_alpha(screen, 0.0, self.lifespan as f32);
-
-        core::shapes::ellipse(screen, self.location.x, self.location.y, 8.0, 8.0)
+        self.particle.lifespan < 0.0
     }
 
     fn run(&mut self, screen: &mut Screen, dt: f64) -> Result<(), ProcessingErr> {
@@ -55,10 +52,40 @@ impl Particle {
     }
 }
 
-#[derive(Debug, Default)]
+impl Confetti {
+    fn new(location: DVec2) -> Self {
+        Self {
+            particle: ParticleCore::new(location),
+        }
+    }
+
+    fn update(&mut self, _dt: f64) {
+        self.particle.velocity += self.particle.acceleration; // * dt;
+        self.particle.location += self.particle.velocity; // * dt;
+
+        //self.acceleration = DVec2::default();
+
+        self.particle.lifespan -= 2.0;
+    }
+
+    fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
+        core::stroke_grayscale_alpha(screen, 0.0, self.particle.lifespan as f32);
+        core::fill_grayscale_alpha(screen, 0.0, self.particle.lifespan as f32);
+
+        core::shapes::ellipse(
+            screen,
+            self.particle.location.x,
+            self.particle.location.y,
+            8.0,
+            8.0,
+        )
+    }
+}
+
+#[derive(Default)]
 struct ParticleSystem {
     origin: DVec2,
-    particles: Vec<Particle>,
+    particles: Vec<Box<dyn Particle>>,
 }
 
 impl ParticleSystem {
@@ -70,7 +97,7 @@ impl ParticleSystem {
     }
 
     fn add_particle(&mut self) {
-        self.particles.push(Particle::new(self.origin));
+        self.particles.push(Box::new(Confetti::new(self.origin)));
     }
 
     fn run(&mut self, screen: &mut Screen, dt: f64) -> Result<(), ProcessingErr> {
