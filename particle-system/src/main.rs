@@ -6,10 +6,43 @@ use processing::errors::ProcessingErr;
 use processing::Screen;
 use rand::Rng;
 
-trait Particle {
-    fn is_dead(&self) -> bool;
+// design decision - using a tagged enum type
+// instead of a Trait to avoid having to Box individual particles
 
-    fn run(&mut self, screen: &mut Screen, dt: f64) -> Result<(), ProcessingErr>;
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+enum ParticleType {
+    Confetti,
+}
+
+impl ParticleType {
+    fn display(&self, screen: &mut Screen, core: &ParticleCore) -> Result<(), ProcessingErr> {
+        match self {
+            ParticleType::Confetti => {
+                let _theta = core::math::map(
+                    core.location.x,
+                    0.0,
+                    screen.width() as f64,
+                    0.0,
+                    4.0 * std::f64::consts::PI,
+                );
+
+                core::stroke_grayscale_alpha(screen, 0.0, core.lifespan as f32);
+                core::fill_grayscale_alpha(screen, 0.0, core.lifespan as f32);
+
+                screen.push_matrix();
+
+                core::translate(screen, core.location.x, core.location.y);
+                //core::rotate(screen, theta);
+
+                screen.rect_mode(&core::shapes::RectMode::Center.to_string());
+                core::shapes::rect(screen, 0.0, 0.0, 8.0, 8.0)?;
+
+                screen.pop_matrix();
+            }
+        }
+
+        Ok(())
+    }
 }
 
 #[derive(Debug, Default)]
@@ -32,16 +65,47 @@ impl ParticleCore {
             lifespan: 255.0,
         }
     }
-}
 
-#[derive(Debug, Default)]
-struct Confetti {
-    particle: ParticleCore,
-}
-
-impl Particle for Confetti {
     fn is_dead(&self) -> bool {
-        self.particle.lifespan < 0.0
+        self.lifespan < 0.0
+    }
+
+    fn update(&mut self, _dt: f64) {
+        self.velocity += self.acceleration; // * dt;
+        self.location += self.velocity; // * dt;
+
+        //self.acceleration = DVec2::default();
+
+        self.lifespan -= 2.0;
+    }
+}
+
+#[derive(Debug)]
+struct Particle {
+    core: ParticleCore,
+    r#type: ParticleType,
+}
+
+impl Particle {
+    fn confetti(location: DVec2) -> Self {
+        Self {
+            core: ParticleCore::new(location),
+            r#type: ParticleType::Confetti,
+        }
+    }
+
+    fn is_dead(&self) -> bool {
+        self.core.is_dead()
+    }
+
+    fn update(&mut self, dt: f64) {
+        self.core.update(dt);
+    }
+
+    fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
+        self.r#type.display(screen, &self.core)?;
+
+        Ok(())
     }
 
     fn run(&mut self, screen: &mut Screen, dt: f64) -> Result<(), ProcessingErr> {
@@ -52,40 +116,10 @@ impl Particle for Confetti {
     }
 }
 
-impl Confetti {
-    fn new(location: DVec2) -> Self {
-        Self {
-            particle: ParticleCore::new(location),
-        }
-    }
-
-    fn update(&mut self, _dt: f64) {
-        self.particle.velocity += self.particle.acceleration; // * dt;
-        self.particle.location += self.particle.velocity; // * dt;
-
-        //self.acceleration = DVec2::default();
-
-        self.particle.lifespan -= 2.0;
-    }
-
-    fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
-        core::stroke_grayscale_alpha(screen, 0.0, self.particle.lifespan as f32);
-        core::fill_grayscale_alpha(screen, 0.0, self.particle.lifespan as f32);
-
-        core::shapes::ellipse(
-            screen,
-            self.particle.location.x,
-            self.particle.location.y,
-            8.0,
-            8.0,
-        )
-    }
-}
-
 #[derive(Default)]
 struct ParticleSystem {
     origin: DVec2,
-    particles: Vec<Box<dyn Particle>>,
+    particles: Vec<Particle>,
 }
 
 impl ParticleSystem {
@@ -97,7 +131,7 @@ impl ParticleSystem {
     }
 
     fn add_particle(&mut self) {
-        self.particles.push(Box::new(Confetti::new(self.origin)));
+        self.particles.push(Particle::confetti(self.origin));
     }
 
     fn run(&mut self, screen: &mut Screen, dt: f64) -> Result<(), ProcessingErr> {
