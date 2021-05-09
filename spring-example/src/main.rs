@@ -5,11 +5,9 @@ use glam::DVec2;
 use processing::errors::ProcessingErr;
 use processing::Screen;
 
-const G: f64 = 1.0;
-
 #[derive(Debug, Default)]
 struct Spring {
-    location: DVec2,
+    anchor: DVec2,
     len: f64,
     k: f64,
 }
@@ -17,25 +15,39 @@ struct Spring {
 impl Spring {
     fn new(x: f64, y: f64, len: f64) -> Self {
         Self {
-            location: DVec2::new(x, y),
+            anchor: DVec2::new(x, y),
             len,
-            k: 0.01,
+            k: 0.1,
         }
     }
 
-    fn attract(&self, mover: &Bob) -> DVec2 {
-        /*let force = self.location - mover.location;
-        let distance = core::math::clampf(force.length(), 5.0, 20.0);
-        let force = force.normalize_or_zero();
-        let strength = (G * self.mass * mover.mass) / (distance * distance);
+    // implements Hooke's Law
+    fn connect(&self, b: &mut Bob) {
+        let force = b.location - self.anchor;
+        let d = force.length();
+        let stretch = d - self.len;
 
-        force * strength*/
-        DVec2::default()
+        let direction = force.normalize_or_zero();
+        b.apply_force(-self.k * stretch * direction);
     }
 
-    #[allow(dead_code)]
     fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
-        // TODO:
+        core::fill_grayscale(screen, 100.0);
+        screen.rect_mode(&core::shapes::RectMode::Center.to_string());
+        core::shapes::rect(screen, self.anchor.x, self.anchor.y, 10.0, 10.0)?;
+
+        Ok(())
+    }
+
+    fn display_line(&self, screen: &mut Screen, b: &Bob) -> Result<(), ProcessingErr> {
+        core::stroke_grayscale(screen, 255.0);
+        core::shapes::line(
+            screen,
+            b.location.x,
+            b.location.y,
+            self.anchor.x,
+            self.anchor.y,
+        )?;
 
         Ok(())
     }
@@ -100,13 +112,15 @@ fn draw(
 ) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 255.0);
 
-    spring.display(screen)?;
+    let gravity = DVec2::new(0.0, 1.0);
+    bob.apply_force(gravity);
 
-    let f = spring.attract(bob);
-    bob.apply_force(f);
+    spring.connect(bob);
 
     bob.update(dt);
     bob.display(screen)?;
+    spring.display(screen)?;
+    spring.display_line(screen, bob)?;
 
     Ok(())
 }
