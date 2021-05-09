@@ -59,26 +59,43 @@ fn setup<'a>() -> Result<Screen<'a>, ProcessingErr> {
     core::create_canvas(640, 360)
 }
 
-fn draw(screen: &mut Screen, dt: f64, particle: &mut Particle) -> Result<(), ProcessingErr> {
+fn draw(screen: &mut Screen, dt: f64, particles: &mut Vec<Particle>) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 255.0);
 
-    particle.run(screen, dt)?;
+    particles.push(Particle::new(screen.width() as f64 / 2.0, 50.0));
+
+    // drain_filter() equivalent
+    let mut i = 0;
+    while i != particles.len() {
+        let particle = &mut particles[i];
+        particle.run(screen, dt)?;
+
+        if particle.is_dead() {
+            particles.remove(i);
+        } else {
+            i += 1;
+        }
+    }
 
     Ok(())
 }
 
 fn main() -> Result<(), ProcessingErr> {
-    let particle = Rc::new(RefCell::new(None));
+    let particles = Rc::new(RefCell::new(None));
 
     core::run(
         || {
             let screen = setup()?;
 
-            *particle.borrow_mut() = Some(Particle::new(screen.width() as f64 / 2.0, 10.0));
+            let mut p = vec![];
+            for _ in 0..10 {
+                p.push(Particle::default());
+            }
+            *particles.borrow_mut() = Some(p);
 
             Ok(screen)
         },
-        |screen, dt| draw(screen, dt, particle.borrow_mut().as_mut().unwrap()),
+        |screen, dt| draw(screen, dt, particles.borrow_mut().as_mut().unwrap()),
     )?;
 
     Ok(())
