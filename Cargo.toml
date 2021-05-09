@@ -22,6 +22,9 @@ members = [
     "spaceship-example",
     "spring-example",
 
+    # particle system
+    "particle-system",
+
     # chapters
     "intro/example1",
     "intro/example2",

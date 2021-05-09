@@ -67,8 +67,16 @@ pub fn stroke_grayscale(screen: &mut Screen, v: f32) {
     stroke_rgb(screen, v, v, v);
 }
 
+pub fn stroke_grayscale_alpha(screen: &mut Screen, v: f32, a: f32) {
+    stroke_rgba(screen, v, v, v, a);
+}
+
 pub fn stroke_rgb(screen: &mut Screen, r: f32, g: f32, b: f32) {
-    screen.fill(&[r / 255.0], &[g / 255.0], &[b / 255.0], &[1.0]);
+    stroke_rgba(screen, r, g, b, 255.0);
+}
+
+pub fn stroke_rgba(screen: &mut Screen, r: f32, g: f32, b: f32, a: f32) {
+    screen.fill(&[r / 255.0], &[g / 255.0], &[b / 255.0], &[a / 255.0]);
 }
 
 /* fill */
