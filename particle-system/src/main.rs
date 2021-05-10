@@ -58,6 +58,7 @@ struct ParticleCore {
     location: DVec2,
     velocity: DVec2,
     acceleration: DVec2,
+    mass: f64,
 
     lifespan: f64,
 }
@@ -68,9 +69,10 @@ impl ParticleCore {
 
         Self {
             location,
-            acceleration: DVec2::new(0.0, 0.05),
             velocity: DVec2::new(rng.gen_range(-1.0..1.0), rng.gen_range(-2.0..0.0)),
+            mass: 1.0,
             lifespan: 255.0,
+            ..Default::default()
         }
     }
 
@@ -78,11 +80,20 @@ impl ParticleCore {
         self.lifespan < 0.0
     }
 
+    fn apply_force(&mut self, force: DVec2) {
+        let force = if self.mass > 0.0 {
+            force / self.mass
+        } else {
+            force
+        };
+        self.acceleration += force;
+    }
+
     fn update(&mut self, _dt: f64) {
         self.velocity += self.acceleration; // * dt;
         self.location += self.velocity; // * dt;
 
-        //self.acceleration = DVec2::default();
+        self.acceleration = DVec2::default();
 
         self.lifespan -= 2.0;
     }
@@ -111,6 +122,10 @@ impl Particle {
 
     fn is_dead(&self) -> bool {
         self.core.is_dead()
+    }
+
+    fn apply_force(&mut self, force: DVec2) {
+        self.core.apply_force(force)
     }
 
     fn update(&mut self, dt: f64) {
@@ -156,6 +171,12 @@ impl ParticleSystem {
         }
     }
 
+    fn apply_force(&mut self, force: DVec2) {
+        for particle in self.particles.iter_mut() {
+            particle.apply_force(force);
+        }
+    }
+
     fn run(&mut self, screen: &mut Screen, dt: f64) -> Result<(), ProcessingErr> {
         self.add_particle();
 
@@ -185,7 +206,10 @@ fn draw(
     dt: f64,
     particle_system: &mut ParticleSystem,
 ) -> Result<(), ProcessingErr> {
-    core::background_grayscale(screen, 255.0);
+    core::background_grayscale(screen, 100.0);
+
+    let gravity = DVec2::new(0.0, 0.1);
+    particle_system.apply_force(gravity);
 
     particle_system.run(screen, dt)?;
 
@@ -199,11 +223,8 @@ fn main() -> Result<(), ProcessingErr> {
         || {
             let screen = setup()?;
 
-            let mut p = ParticleSystem::new(screen.width() as f64 / 2.0, 50.0);
-            for _ in 0..10 {
-                p.add_particle();
-            }
-            *particle_system.borrow_mut() = Some(p);
+            *particle_system.borrow_mut() =
+                Some(ParticleSystem::new(screen.width() as f64 / 2.0, 50.0));
 
             Ok(screen)
         },
