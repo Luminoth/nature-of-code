@@ -2,6 +2,7 @@ pub mod input;
 pub mod math;
 pub mod shapes;
 
+use std::fmt;
 use std::time::Instant;
 
 use noise::{NoiseFn, Perlin, Seedable};
@@ -115,6 +116,36 @@ pub fn image(
     )?;
     rect.attach_texture(texture);
     screen.draw(&rect)
+}
+
+/* blend mode */
+
+pub enum BlendMode {
+    Replace,
+    Blend,
+    Add,
+    Subtract,
+    Lightest,
+    Darkest,
+    Exclusion,
+    Multiply,
+    Screen,
+}
+
+impl fmt::Display for BlendMode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Replace => write!(f, "REPLACE"),
+            Self::Blend => write!(f, "BLEND"),
+            Self::Add => write!(f, "ADD"),
+            Self::Subtract => write!(f, "SUBTRACT"),
+            Self::Lightest => write!(f, "LIGHTEST"),
+            Self::Darkest => write!(f, "DARKEST"),
+            Self::Exclusion => write!(f, "EXCLUSION"),
+            Self::Multiply => write!(f, "MULTIPLY"),
+            Self::Screen => write!(f, "SCREEN"),
+        }
+    }
 }
 
 /* noise */

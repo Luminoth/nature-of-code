@@ -91,6 +91,7 @@ impl ParticleType {
                 core::shapes::rect(screen, 0.0, 0.0, 8.0, 8.0)?;
             }
             ParticleType::Smoke(texture) => {
+                screen.blend_mode(&core::BlendMode::Add.to_string());
                 core::fill_grayscale_alpha(screen, 255.0, core.lifespan as f32);
 
                 core::image(screen, 0.0, 0.0, texture)?;
