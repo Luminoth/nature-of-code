@@ -5,6 +5,7 @@ use glam::DVec2;
 use processing::errors::ProcessingErr;
 use processing::Screen;
 use rand::Rng;
+use rand_distr::{Distribution, Normal};
 
 // design decision - using a tagged enum type
 // instead of a Trait to avoid having to Box individual particles
@@ -49,10 +50,14 @@ impl Repeller {
     }
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug)]
 enum ParticleType {
     Basic,
     Confetti,
+
+    // TODO: is there a way to make this a reference
+    // rather than having to allocate into an Rc ?
+    Smoke(Rc<processing::Texture2d>),
 }
 
 impl ParticleType {
@@ -85,6 +90,11 @@ impl ParticleType {
                 screen.rect_mode(&core::shapes::RectMode::Center.to_string());
                 core::shapes::rect(screen, 0.0, 0.0, 8.0, 8.0)?;
             }
+            ParticleType::Smoke(texture) => {
+                core::fill_grayscale_alpha(screen, 255.0, core.lifespan as f32);
+
+                core::image(screen, 0.0, 0.0, texture)?;
+            }
         }
 
         screen.pop_matrix();
@@ -93,6 +103,8 @@ impl ParticleType {
     }
 }
 
+// TODO: this should just move into the Particle struct
+// and anywhere that needs the core can just take the Particle itself
 #[derive(Debug, Default)]
 struct ParticleCore {
     location: DVec2,
@@ -105,11 +117,8 @@ struct ParticleCore {
 
 impl ParticleCore {
     fn new(location: DVec2) -> Self {
-        let mut rng = rand::thread_rng();
-
         Self {
             location,
-            velocity: DVec2::new(rng.gen_range(-1.0..1.0), rng.gen_range(-2.0..0.0)),
             mass: 1.0,
             lifespan: 255.0,
             ..Default::default()
@@ -147,16 +156,44 @@ struct Particle {
 
 impl Particle {
     fn basic(location: DVec2) -> Self {
+        let mut rng = rand::thread_rng();
+
+        let mut core = ParticleCore::new(location);
+        core.velocity = DVec2::new(rng.gen_range(-1.0..1.0), rng.gen_range(-2.0..0.0));
+
         Self {
-            core: ParticleCore::new(location),
+            core,
             r#type: ParticleType::Basic,
         }
     }
 
     fn confetti(location: DVec2) -> Self {
+        let mut rng = rand::thread_rng();
+
+        let mut core = ParticleCore::new(location);
+        core.velocity = DVec2::new(rng.gen_range(-1.0..1.0), rng.gen_range(-2.0..0.0));
+
         Self {
-            core: ParticleCore::new(location),
+            core,
             r#type: ParticleType::Confetti,
+        }
+    }
+
+    fn smoke(location: DVec2, texture: Rc<processing::Texture2d>) -> Self {
+        let mut rng = rand::thread_rng();
+
+        let mut core = ParticleCore::new(location);
+
+        let normal_x = Normal::new(1.0, 0.3).unwrap();
+        let normal_y = Normal::new(1.0, 0.3).unwrap();
+
+        let vx = normal_x.sample(&mut rng);
+        let vy = -normal_y.sample(&mut rng);
+        core.velocity = DVec2::new(vx, vy);
+
+        Self {
+            core,
+            r#type: ParticleType::Smoke(texture),
         }
     }
 
@@ -186,20 +223,26 @@ impl Particle {
     }
 }
 
-#[derive(Default)]
 struct ParticleSystem {
     origin: DVec2,
     particles: Vec<Particle>,
+
+    smoke: Rc<processing::Texture2d>,
 }
 
 impl ParticleSystem {
-    fn new(x: f64, y: f64) -> Self {
-        Self {
+    fn new(screen: &mut Screen, x: f64, y: f64) -> Result<Self, ProcessingErr> {
+        let image = processing::load_image("data/smoke.png")?;
+        let (smoke, _, _) = screen.texture(&image)?;
+
+        Ok(Self {
             origin: DVec2::new(x, y),
-            ..Default::default()
-        }
+            smoke: Rc::new(smoke),
+            particles: Vec::default(),
+        })
     }
 
+    #[allow(dead_code)]
     fn add_particle(&mut self) {
         let mut rng = rand::thread_rng();
 
@@ -211,12 +254,22 @@ impl ParticleSystem {
         }
     }
 
+    #[allow(dead_code)]
+    fn add_smoke(&mut self) {
+        self.particles
+            .push(Particle::smoke(self.origin, self.smoke.clone()));
+    }
+
     fn apply_force(&mut self, force: DVec2) {
         for particle in self.particles.iter_mut() {
-            particle.apply_force(force);
+            match particle.r#type {
+                ParticleType::Smoke(_) => {}
+                _ => particle.apply_force(force),
+            }
         }
     }
 
+    #[allow(dead_code)]
     fn apply_repeller(&mut self, repeller: &Repeller) {
         for particle in self.particles.iter_mut() {
             let force = repeller.repel(particle);
@@ -250,19 +303,20 @@ fn draw(
     screen: &mut Screen,
     dt: f64,
     particle_system: &mut ParticleSystem,
-    repeller: &Repeller,
+    _repeller: &Repeller,
 ) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 100.0);
 
-    particle_system.add_particle();
+    //particle_system.add_particle();
+    particle_system.add_smoke();
 
     let gravity = DVec2::new(0.0, 0.1);
     particle_system.apply_force(gravity);
 
-    particle_system.apply_repeller(repeller);
+    //particle_system.apply_repeller(repeller);
+    //repeller.display(screen)?;
 
     particle_system.run(screen, dt)?;
-    repeller.display(screen)?;
 
     Ok(())
 }
@@ -273,15 +327,18 @@ fn main() -> Result<(), ProcessingErr> {
 
     core::run(
         || {
-            let screen = setup()?;
+            let mut screen = setup()?;
 
-            *particle_system.borrow_mut() =
-                Some(ParticleSystem::new(screen.width() as f64 / 2.0, 50.0));
+            let hw = screen.width() as f64 / 2.0;
+            let hh = screen.height() as f64 / 2.0;
 
-            *repeller.borrow_mut() = Some(Repeller::new(
-                screen.width() as f64 / 2.0 - 20.0,
-                screen.height() as f64 / 2.0,
-            ));
+            *particle_system.borrow_mut() = Some(ParticleSystem::new(
+                &mut screen,
+                hw,
+                hh, //50.0,
+            )?);
+
+            *repeller.borrow_mut() = Some(Repeller::new(hw - 20.0, screen.height() as f64 / 2.0));
 
             Ok(screen)
         },

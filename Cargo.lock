@@ -3387,6 +3387,7 @@ dependencies = [
  "glam 0.14.0",
  "processing",
  "rand 0.8.3",
+ "rand_distr",
 ]
 
 [[package]]

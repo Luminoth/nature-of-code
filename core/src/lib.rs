@@ -97,6 +97,26 @@ pub fn fill_rgba(screen: &mut Screen, r: f32, g: f32, b: f32, a: f32) {
     screen.fill(&[r / 255.0], &[g / 255.0], &[b / 255.0], &[a / 255.0]);
 }
 
+/* image */
+
+pub fn image(
+    screen: &mut Screen,
+    x: f64,
+    y: f64,
+    texture: &processing::Texture2d,
+) -> Result<(), ProcessingErr> {
+    let mut rect = processing::shapes::rect::Rect::new(
+        screen,
+        &[x_to_screen(screen, x)],
+        &[y_to_screen(screen, y)],
+        &[0.0],
+        &[w_to_screen(screen, texture.width() as f64)],
+        &[h_to_screen(screen, texture.height() as f64)],
+    )?;
+    rect.attach_texture(texture);
+    screen.draw(&rect)
+}
+
 /* noise */
 
 #[allow(dead_code)]
