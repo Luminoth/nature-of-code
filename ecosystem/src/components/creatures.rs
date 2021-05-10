@@ -119,7 +119,7 @@ impl Fly {
         if is_firefly {
             bundle
                 .insert(Name::new(format!("Firefly {}", i)))
-                .insert(Firefly);
+                .insert_bundle(FireflyBundle::default());
         } else {
             bundle.insert(Name::new(format!("Fly {}", i)));
         }

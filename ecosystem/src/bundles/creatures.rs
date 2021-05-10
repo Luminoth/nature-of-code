@@ -3,6 +3,7 @@
 use bevy::prelude::*;
 
 use crate::components::creatures::*;
+use crate::components::particles::*;
 
 use super::physics::*;
 
@@ -14,6 +15,13 @@ pub struct FlyBundle {
 
     #[bundle]
     pub physical: DynamicPhysicsBundle,
+}
+
+/// Firefly bundle
+#[derive(Default, Bundle)]
+pub struct FireflyBundle {
+    pub firefly: Firefly,
+    pub particles: ParticleSystem,
 }
 
 /// Fish bundle

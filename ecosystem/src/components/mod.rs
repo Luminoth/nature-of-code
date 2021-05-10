@@ -2,6 +2,7 @@
 
 pub mod creatures;
 pub mod environment;
+pub mod particles;
 pub mod physics;
 
 use bevy_inspector_egui::Inspectable;
