@@ -16,6 +16,7 @@ use super::physics::*;
 // fly is much larger than an actual fly
 // so that they're actually visible
 const FLY_COLOR: Color = Color::WHITE;
+const FIREFLY_COLOR: Color = Color::YELLOW_GREEN;
 const FLY_MASS: f32 = 0.012;
 const FLY_DRAG: f32 = 0.01;
 pub const FLY_SIZE: f32 = 0.05 / FLY_MASS;
@@ -65,53 +66,69 @@ impl Fly {
         i: usize,
         position: Vec2,
     ) {
-        info!("spawning fly {} at {}", i, position);
+        let is_firefly = random.coin();
+        if is_firefly {
+            info!("spawning firefly {} at {}", i, position);
+        } else {
+            info!("spawning fly {} at {}", i, position);
+        }
 
         let mass = FLY_MASS; // TODO: modifier
         let size = Vec2::new(FLY_SIZE, FLY_SIZE) * mass;
 
-        commands
-            .spawn_bundle(FlyBundle {
-                fly: Fly {
-                    acceleration: FLY_ACCEL,
-                    repel_acceleration: FLY_REPEL_ACCEL,
-                },
-                physical: DynamicPhysicsBundle {
-                    rigidbody: Rigidbody {
-                        mass,
-                        drag: FLY_DRAG,
-                        ..Default::default()
-                    },
-                    collider: Collider::Box(
-                        BoxCollider::new(Vec2::default(), size),
-                        CollisionLayer::Air,
-                    ),
-                    transform: Transform::from_translation(position.extend(40.0)),
+        let mut bundle = commands.spawn_bundle(FlyBundle {
+            fly: Fly {
+                acceleration: FLY_ACCEL,
+                repel_acceleration: FLY_REPEL_ACCEL,
+            },
+            physical: DynamicPhysicsBundle {
+                rigidbody: Rigidbody {
+                    mass,
+                    drag: FLY_DRAG,
                     ..Default::default()
                 },
+                collider: Collider::Box(
+                    BoxCollider::new(Vec2::default(), size),
+                    CollisionLayer::Air,
+                ),
+                transform: Transform::from_translation(position.extend(40.0)),
                 ..Default::default()
-            })
-            .insert(Name::new(format!("Fly {}", i)))
-            .with_children(|parent| {
-                parent
-                    .spawn_bundle(GeometryBuilder::build_as(
-                        &shapes::Ellipse {
-                            radii: size * 0.5,
-                            ..Default::default()
-                        },
-                        ShapeColors::new(FLY_COLOR),
-                        DrawMode::Fill(FillOptions::default()),
-                        Transform::default(),
-                    ))
-                    .insert(Name::new("Model"))
-                    .insert(Oscillator {
-                        angle: Vec2::new(random.random_range(0.0..2.0 * std::f32::consts::PI), 0.0),
-                        velocity: Vec2::new(10.0, 0.0),
-                        amplitude: Vec2::new(0.1, 0.0),
-                    });
-            });
+            },
+            ..Default::default()
+        });
+
+        bundle.with_children(|parent| {
+            parent
+                .spawn_bundle(GeometryBuilder::build_as(
+                    &shapes::Ellipse {
+                        radii: size * 0.5,
+                        ..Default::default()
+                    },
+                    ShapeColors::new(if is_firefly { FIREFLY_COLOR } else { FLY_COLOR }),
+                    DrawMode::Fill(FillOptions::default()),
+                    Transform::default(),
+                ))
+                .insert(Name::new("Model"))
+                .insert(Oscillator {
+                    angle: Vec2::new(random.random_range(0.0..2.0 * std::f32::consts::PI), 0.0),
+                    velocity: Vec2::new(10.0, 0.0),
+                    amplitude: Vec2::new(0.1, 0.0),
+                });
+        });
+
+        if is_firefly {
+            bundle
+                .insert(Name::new(format!("Firefly {}", i)))
+                .insert(Firefly);
+        } else {
+            bundle.insert(Name::new(format!("Fly {}", i)));
+        }
     }
 }
+
+/// Fireflies fly... and glow
+#[derive(Debug, Inspectable, Default)]
+pub struct Firefly;
 
 /// Fish swim
 #[derive(Debug, Inspectable, Default)]
