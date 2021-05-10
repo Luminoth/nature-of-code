@@ -10,15 +10,13 @@ pub enum ParticlesSystem {
     Particles,
 }
 
-pub fn setup_particle_systems(mut commands: Commands, mut query: Query<&mut ParticleSystem>) {
+pub fn update_particle_systems(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut query: Query<&mut ParticleSystem>,
+) {
     for mut particle_system in query.iter_mut() {
-        particle_system.setup(&mut commands);
-    }
-}
-
-pub fn update_particle_systems(mut commands: Commands, mut query: Query<&mut ParticleSystem>) {
-    for mut particle_system in query.iter_mut() {
-        particle_system.update(&mut commands);
+        particle_system.update(&mut commands, &time);
     }
 }
 

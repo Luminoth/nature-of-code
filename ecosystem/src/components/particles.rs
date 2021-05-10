@@ -9,9 +9,16 @@ use crate::bundles::particles::*;
 #[derive(Debug, Inspectable, Default)]
 pub struct ParticleSystem {
     #[inspectable(read_only)]
+    name: String,
+
+    #[inspectable(read_only)]
     capacity: usize,
 
-    pub lifespan: f32,
+    pub spawn_rate: f64,
+    pub particle_lifespan: f32,
+
+    #[inspectable(read_only)]
+    next_spawn: f64,
 
     #[inspectable(ignore)]
     dead: Vec<Entity>,
@@ -21,10 +28,13 @@ pub struct ParticleSystem {
 }
 
 impl ParticleSystem {
-    pub fn with_capacity(capacity: usize) -> Self {
+    pub fn with_capacity(name: impl Into<String>, capacity: usize) -> Self {
         Self {
+            name: name.into(),
             capacity,
-            lifespan: 1.0,
+            spawn_rate: 1.0,
+            particle_lifespan: 1.0,
+            next_spawn: 0.0,
             dead: Vec::with_capacity(capacity),
             live: Vec::with_capacity(capacity),
         }
@@ -37,13 +47,10 @@ impl ParticleSystem {
         }
     }
 
-    pub fn setup(&mut self, commands: &mut Commands) {
-        self.spawn(commands);
-    }
-
     pub fn spawn_particle(&mut self, commands: &mut Commands) {
         // grow if we need to, this is pretty expensive
         if self.dead.is_empty() {
+            debug!("Growing particle system {}", self.name);
             self.dead.reserve(self.capacity);
             self.spawn(commands);
         }
@@ -51,11 +58,16 @@ impl ParticleSystem {
         let entity = self.dead.pop().unwrap();
         commands
             .entity(entity)
-            .insert_bundle(ParticleBundle::new(self.lifespan));
+            .insert_bundle(ParticleBundle::new(self.particle_lifespan));
     }
 
-    pub fn update(&mut self, commands: &mut Commands) {
-        //self.spawn_particle(commands);
+    pub fn update(&mut self, commands: &mut Commands, time: &Time) {
+        let now = time.seconds_since_startup();
+        if now >= self.next_spawn {
+            self.spawn_particle(commands);
+
+            self.next_spawn = now + self.spawn_rate;
+        }
 
         // drain_filter() equivalent
         /*let mut i = 0;
