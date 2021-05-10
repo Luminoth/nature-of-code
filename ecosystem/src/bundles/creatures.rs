@@ -18,10 +18,23 @@ pub struct FlyBundle {
 }
 
 /// Firefly bundle
-#[derive(Default, Bundle)]
+///
+/// Requires an existing FlyBundle
+#[derive(Bundle)]
 pub struct FireflyBundle {
     pub firefly: Firefly,
     pub particles: ParticleSystem,
+}
+
+impl Default for FireflyBundle {
+    fn default() -> Self {
+        let particles = ParticleSystem::with_capacity(10);
+
+        Self {
+            firefly: Firefly::default(),
+            particles,
+        }
+    }
 }
 
 /// Fish bundle

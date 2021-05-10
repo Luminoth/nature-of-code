@@ -6,6 +6,7 @@
 mod bundles;
 mod components;
 mod events;
+mod plugins;
 mod resources;
 mod states;
 mod systems;
@@ -21,6 +22,7 @@ use num_traits::Float;
 
 use components::physics::*;
 use events::debug::*;
+use plugins::particles::*;
 use resources::debug::*;
 use resources::*;
 use states::*;
@@ -112,6 +114,9 @@ fn main() {
         ..Default::default()
     })
     .add_plugin(WorldInspectorPlugin::new());
+
+    // plugins
+    app.add_plugin(ParticleSystemPlugin);
 
     // events
     app.add_event::<ToggleDebugEvent>();
@@ -235,13 +240,19 @@ fn main() {
         .world_mut()
         .get_resource_or_insert_with(InspectableRegistry::default);
 
+    registry.register::<components::MainCamera>();
+    registry.register::<components::UiCamera>();
     registry.register::<components::physics::Rigidbody>();
     registry.register::<components::physics::Collider>();
+    registry.register::<components::physics::BoxCollider>();
     registry.register::<components::physics::Oscillator>();
     registry.register::<components::physics::Surface>();
     registry.register::<components::physics::Fluid>();
+    registry.register::<components::particles::ParticleSystem>();
+    registry.register::<components::particles::Particle>();
     registry.register::<components::creatures::Creature>();
     registry.register::<components::creatures::Fly>();
+    registry.register::<components::creatures::Firefly>();
     registry.register::<components::creatures::Fish>();
     registry.register::<components::creatures::Snake>();
     registry.register::<components::environment::Ground>();
