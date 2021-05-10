@@ -11,12 +11,23 @@ use rand::Rng;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 enum ParticleType {
+    Basic,
     Confetti,
 }
 
 impl ParticleType {
     fn display(&self, screen: &mut Screen, core: &ParticleCore) -> Result<(), ProcessingErr> {
+        screen.push_matrix();
+
+        core::translate(screen, core.location.x, core.location.y);
+
         match self {
+            ParticleType::Basic => {
+                core::stroke_grayscale_alpha(screen, 0.0, core.lifespan as f32);
+                core::fill_grayscale_alpha(screen, 0.0, core.lifespan as f32);
+
+                core::shapes::ellipse(screen, 0.0, 0.0, 8.0, 8.0)?;
+            }
             ParticleType::Confetti => {
                 let _theta = core::math::map(
                     core.location.x,
@@ -27,19 +38,16 @@ impl ParticleType {
                 );
 
                 core::stroke_grayscale_alpha(screen, 0.0, core.lifespan as f32);
-                core::fill_grayscale_alpha(screen, 0.0, core.lifespan as f32);
+                core::fill_grayscale_alpha(screen, 175.0, core.lifespan as f32);
 
-                screen.push_matrix();
-
-                core::translate(screen, core.location.x, core.location.y);
                 //core::rotate(screen, theta);
 
                 screen.rect_mode(&core::shapes::RectMode::Center.to_string());
                 core::shapes::rect(screen, 0.0, 0.0, 8.0, 8.0)?;
-
-                screen.pop_matrix();
             }
         }
+
+        screen.pop_matrix();
 
         Ok(())
     }
@@ -87,6 +95,13 @@ struct Particle {
 }
 
 impl Particle {
+    fn basic(location: DVec2) -> Self {
+        Self {
+            core: ParticleCore::new(location),
+            r#type: ParticleType::Basic,
+        }
+    }
+
     fn confetti(location: DVec2) -> Self {
         Self {
             core: ParticleCore::new(location),
@@ -131,7 +146,14 @@ impl ParticleSystem {
     }
 
     fn add_particle(&mut self) {
-        self.particles.push(Particle::confetti(self.origin));
+        let mut rng = rand::thread_rng();
+
+        let c = rng.gen_range(0.0..1.0);
+        if c < 0.5 {
+            self.particles.push(Particle::basic(self.origin));
+        } else {
+            self.particles.push(Particle::confetti(self.origin));
+        }
     }
 
     fn run(&mut self, screen: &mut Screen, dt: f64) -> Result<(), ProcessingErr> {
