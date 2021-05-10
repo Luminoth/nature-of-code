@@ -48,6 +48,16 @@ impl Random {
         }
     }
 
+    /// Coin returns a random boolean
+    pub fn coin(&mut self) -> bool {
+        self.random_range(0..=1) == 1
+    }
+
+    /// Dice returns a random in the range [1..faces]
+    pub fn dice(&mut self, faces: usize) -> usize {
+        self.random_range(1..=faces)
+    }
+
     /// Generates a uniform random value in the range [0..1)
     #[allow(dead_code)]
     pub fn random(&mut self) -> f64 {
