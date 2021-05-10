@@ -10,10 +10,12 @@
 
 ## TODO:
 
-* Bound fish to a water section
-* Bound snakes to a ground section or the water section
-* Drag (water) on things in water (fish, snakes)
-* Drag (air) on things in air (flies)
-* Friction on ground section (snakes)
+* Creatures should only face the direction they're accelerating themselves, not the direction of their velocity
+* Allow snakes to cross into the water section
 * Wind (show force in UI)
 * Water flow (show force in UI)
+* Add glowing fly with particle system trails
+* Creature health - diminish over time, use mouse to drop "food" they can use to replish
+  * Use an attractor on the food, but keep creatures repelling each other
+  * Render health as a rect on top of creatures
+  * Creatures that have 0 health die and despawn
