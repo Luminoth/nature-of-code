@@ -10,6 +10,7 @@ pub enum ParticlesSystem {
     Particles,
 }
 
+/// Updates the particle systems
 pub fn update_particle_systems(
     mut commands: Commands,
     time: Res<Time>,
@@ -20,8 +21,16 @@ pub fn update_particle_systems(
     }
 }
 
-pub fn update_particles(mut query: Query<&mut Particle>) {
-    for mut _particle in query.iter_mut() {
-        //particle.update();
+/// Updates all of the particles
+pub fn update_particles(time: Res<Time>, mut query: Query<&mut Particle>) {
+    for mut particle in query.iter_mut() {
+        particle.update(time.delta_seconds());
+    }
+}
+
+/// Updates particle physics
+pub fn update_particle_physics(mut query: Query<(&mut Transform, &mut Particle)>) {
+    for (mut transform, mut particle) in query.iter_mut() {
+        particle.update_physics(&mut transform);
     }
 }

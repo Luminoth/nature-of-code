@@ -5,6 +5,8 @@ use bevy_inspector_egui::Inspectable;
 
 use crate::bundles::particles::*;
 
+use super::physics::*;
+
 /// Particle system component
 #[derive(Debug, Inspectable, Default)]
 pub struct ParticleSystem {
@@ -28,6 +30,7 @@ pub struct ParticleSystem {
 }
 
 impl ParticleSystem {
+    /// Create a new particle system with a pool of the given capacity
     pub fn with_capacity(name: impl Into<String>, capacity: usize) -> Self {
         Self {
             name: name.into(),
@@ -47,6 +50,9 @@ impl ParticleSystem {
         }
     }
 
+    /// Spawn a new particle
+    ///
+    /// Grows the pool if necessary
     pub fn spawn_particle(&mut self, commands: &mut Commands) {
         // grow if we need to, this is pretty expensive
         if self.dead.is_empty() {
@@ -61,6 +67,7 @@ impl ParticleSystem {
             .insert_bundle(ParticleBundle::new(self.particle_lifespan));
     }
 
+    /// Updates the particle system
     pub fn update(&mut self, commands: &mut Commands, time: &Time) {
         let now = time.seconds_since_startup();
         if now >= self.next_spawn {
@@ -87,19 +94,39 @@ impl ParticleSystem {
 /// Particle component
 #[derive(Debug, Inspectable)]
 pub struct Particle {
+    pub acceleration: Vec3,
+    pub velocity: Vec3,
     pub lifespan: f32,
 }
 
 impl Particle {
+    /// Creates a new particle with the given lifespan
     pub fn new(lifespan: f32) -> Self {
-        Self { lifespan }
+        Self {
+            acceleration: Vec3::default(),
+            velocity: Vec3::default(),
+            lifespan,
+        }
     }
 
+    /// Is this particle dead?
     pub fn is_dead(&self) -> bool {
         self.lifespan <= 0.0
     }
 
+    /// Updates the particle
     pub fn update(&mut self, dt: f32) {
         self.lifespan -= dt;
+    }
+
+    /// Updates the particle physics
+    pub fn update_physics(&mut self, transform: &mut Transform) {
+        // https://github.com/bevyengine/bevy/issues/2041
+        let dt = PHYSICS_STEP;
+
+        //sympletic_euler_integrate(transform, self.acceleration, &mut self.velocity, dt);
+        rk4_integrate(transform, self.acceleration, &mut self.velocity, dt);
+
+        self.acceleration = Vec3::default();
     }
 }

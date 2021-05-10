@@ -15,12 +15,54 @@ struct Derivative {
 }
 
 impl Derivative {
-    fn evaluate(rigidbody: &Rigidbody, dt: f32, derivative: Self) -> Self {
+    fn evaluate(acceleration: Vec3, velocity: Vec3, dt: f32, derivative: Self) -> Self {
         Self {
-            velocity: rigidbody.velocity + derivative.acceleration * dt,
-            acceleration: rigidbody.acceleration,
+            velocity: velocity + derivative.acceleration * dt,
+            acceleration,
         }
     }
+}
+
+/// RK4 integration: https://gafferongames.com/post/integration_basics/
+#[allow(dead_code)]
+pub fn rk4_integrate(transform: &mut Transform, acceleration: Vec3, velocity: &mut Vec3, dt: f32) {
+    // sample derivative at four points
+    let a = Derivative::evaluate(acceleration, *velocity, 0.0, Derivative::default());
+    let b = Derivative::evaluate(acceleration, *velocity, dt * 0.5, a);
+    let c = Derivative::evaluate(acceleration, *velocity, dt * 0.5, b);
+    let d = Derivative::evaluate(acceleration, *velocity, dt, c);
+
+    // taylor expansion weighted sum
+    let dvdt =
+        1.0 / 6.0 * (a.acceleration + 2.0 * (b.acceleration + c.acceleration) + d.acceleration);
+    let dxdt = 1.0 / 6.0 * (a.velocity + 2.0 * (b.velocity + c.velocity) + d.velocity);
+
+    *velocity += dvdt * dt;
+    transform.translation += dxdt * dt;
+}
+
+/// Explicit Euler integration
+#[allow(dead_code)]
+pub fn explicit_euler_integrate(
+    transform: &mut Transform,
+    acceleration: Vec3,
+    velocity: &mut Vec3,
+    dt: f32,
+) {
+    transform.translation += *velocity * dt;
+    *velocity += acceleration * dt;
+}
+
+/// Semi-implicit Euler integration
+#[allow(dead_code)]
+pub fn sympletic_euler_integrate(
+    transform: &mut Transform,
+    acceleration: Vec3,
+    velocity: &mut Vec3,
+    dt: f32,
+) {
+    *velocity += acceleration * dt;
+    transform.translation += *velocity * dt;
 }
 
 /// Rigidbody state
@@ -192,38 +234,6 @@ impl Rigidbody {
         self.acceleration += force.extend(0.0);
     }
 
-    /// RK4 integration: https://gafferongames.com/post/integration_basics/
-    #[allow(dead_code)]
-    fn rk4_integrate(&mut self, transform: &mut Transform, dt: f32) {
-        // sample derivative at four points
-        let a = Derivative::evaluate(self, 0.0, Derivative::default());
-        let b = Derivative::evaluate(self, dt * 0.5, a);
-        let c = Derivative::evaluate(self, dt * 0.5, b);
-        let d = Derivative::evaluate(self, dt, c);
-
-        // taylor expansion weighted sum
-        let dvdt =
-            1.0 / 6.0 * (a.acceleration + 2.0 * (b.acceleration + c.acceleration) + d.acceleration);
-        let dxdt = 1.0 / 6.0 * (a.velocity + 2.0 * (b.velocity + c.velocity) + d.velocity);
-
-        self.velocity += dvdt * dt;
-        transform.translation += dxdt * dt;
-    }
-
-    /// Explicit Euler integration
-    #[allow(dead_code)]
-    fn explicit_euler_integrate(&mut self, transform: &mut Transform, dt: f32) {
-        transform.translation += self.velocity * dt;
-        self.velocity += self.acceleration * dt;
-    }
-
-    /// Semi-implicit Euler integration
-    #[allow(dead_code)]
-    fn sympletic_euler_integrate(&mut self, transform: &mut Transform, dt: f32) {
-        self.velocity += self.acceleration * dt;
-        transform.translation += self.velocity * dt;
-    }
-
     /// Update a rigidbody
     pub fn update(&mut self, transform: &mut Transform) {
         // https://github.com/bevyengine/bevy/issues/2041
@@ -232,8 +242,8 @@ impl Rigidbody {
         // save our current position in case we need to unwind
         self.previous_position = transform.translation;
 
-        //self.sympletic_euler_integrate(transform, dt);
-        self.rk4_integrate(transform, dt);
+        //sympletic_euler_integrate(transform, self.acceleration, &mut self.velocity, dt);
+        rk4_integrate(transform, self.acceleration, &mut self.velocity, dt);
 
         self.acceleration = Vec3::default();
     }

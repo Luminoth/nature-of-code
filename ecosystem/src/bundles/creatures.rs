@@ -29,6 +29,7 @@ pub struct FireflyBundle {
 impl Default for FireflyBundle {
     fn default() -> Self {
         let particles = ParticleSystem::with_capacity("Firefly", 10);
+        // TODO: modify the particle system as necessary (initial velocity, acceleration, etc)
 
         Self {
             firefly: Firefly::default(),
