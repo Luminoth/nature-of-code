@@ -9,6 +9,46 @@ use rand::Rng;
 // design decision - using a tagged enum type
 // instead of a Trait to avoid having to Box individual particles
 
+#[derive(Debug, Default)]
+struct Repeller {
+    location: DVec2,
+    r: f64,
+    strength: f64,
+}
+
+impl Repeller {
+    fn new(x: f64, y: f64) -> Self {
+        Self {
+            location: DVec2::new(x, y),
+            r: 10.0,
+            strength: 100.0,
+        }
+    }
+
+    fn repel(&self, particle: &Particle) -> DVec2 {
+        let dir = self.location - particle.core.location;
+        let d = core::math::clampf(dir.length(), 5.0, 100.0);
+        let dir = dir.normalize_or_zero();
+        let force = -1.0 * self.strength / (d * d);
+
+        dir * force
+    }
+
+    #[allow(dead_code)]
+    fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
+        core::stroke_grayscale(screen, 255.0);
+        core::fill_grayscale(screen, 255.0);
+
+        core::shapes::ellipse(
+            screen,
+            self.location.x,
+            self.location.y,
+            self.r * 2.0,
+            self.r * 2.0,
+        )
+    }
+}
+
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 enum ParticleType {
     Basic,
@@ -177,9 +217,14 @@ impl ParticleSystem {
         }
     }
 
-    fn run(&mut self, screen: &mut Screen, dt: f64) -> Result<(), ProcessingErr> {
-        self.add_particle();
+    fn apply_repeller(&mut self, repeller: &Repeller) {
+        for particle in self.particles.iter_mut() {
+            let force = repeller.repel(particle);
+            particle.apply_force(force);
+        }
+    }
 
+    fn run(&mut self, screen: &mut Screen, dt: f64) -> Result<(), ProcessingErr> {
         // drain_filter() equivalent
         let mut i = 0;
         while i != self.particles.len() {
@@ -205,19 +250,26 @@ fn draw(
     screen: &mut Screen,
     dt: f64,
     particle_system: &mut ParticleSystem,
+    repeller: &Repeller,
 ) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 100.0);
+
+    particle_system.add_particle();
 
     let gravity = DVec2::new(0.0, 0.1);
     particle_system.apply_force(gravity);
 
+    particle_system.apply_repeller(repeller);
+
     particle_system.run(screen, dt)?;
+    repeller.display(screen)?;
 
     Ok(())
 }
 
 fn main() -> Result<(), ProcessingErr> {
     let particle_system = Rc::new(RefCell::new(None));
+    let repeller = Rc::new(RefCell::new(None));
 
     core::run(
         || {
@@ -226,9 +278,21 @@ fn main() -> Result<(), ProcessingErr> {
             *particle_system.borrow_mut() =
                 Some(ParticleSystem::new(screen.width() as f64 / 2.0, 50.0));
 
+            *repeller.borrow_mut() = Some(Repeller::new(
+                screen.width() as f64 / 2.0 - 20.0,
+                screen.height() as f64 / 2.0,
+            ));
+
             Ok(screen)
         },
-        |screen, dt| draw(screen, dt, particle_system.borrow_mut().as_mut().unwrap()),
+        |screen, dt| {
+            draw(
+                screen,
+                dt,
+                particle_system.borrow_mut().as_mut().unwrap(),
+                repeller.borrow().as_ref().unwrap(),
+            )
+        },
     )?;
 
     Ok(())
