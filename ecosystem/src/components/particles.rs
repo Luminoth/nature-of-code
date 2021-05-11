@@ -117,6 +117,9 @@ impl Particle {
     /// Updates the particle
     pub fn update(&mut self, dt: f32) {
         self.lifespan -= dt;
+
+        // TODO: particles need a reference to the system that owns them
+        // if they die, they need to tell the system to remove the particle
     }
 
     /// Updates the particle physics
