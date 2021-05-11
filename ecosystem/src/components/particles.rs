@@ -2,6 +2,8 @@
 
 use bevy::prelude::*;
 use bevy_inspector_egui::Inspectable;
+use bevy_prototype_lyon::entity::ShapeBundle;
+use bevy_prototype_lyon::prelude::*;
 
 use crate::bundles::particles::*;
 
@@ -23,7 +25,7 @@ pub struct ParticleSystem {
     next_spawn: f64,
 
     #[inspectable(ignore)]
-    dead: Vec<Entity>,
+    pool: Vec<Entity>,
 
     #[inspectable(ignore)]
     live: Vec<Entity>,
@@ -38,7 +40,7 @@ impl ParticleSystem {
             spawn_rate: 1.0,
             particle_lifespan: 1.0,
             next_spawn: 0.0,
-            dead: Vec::with_capacity(capacity),
+            pool: Vec::with_capacity(capacity),
             live: Vec::with_capacity(capacity),
         }
     }
@@ -46,48 +48,73 @@ impl ParticleSystem {
     fn spawn(&mut self, commands: &mut Commands) {
         for _ in 0..self.capacity {
             let entity = commands.spawn().insert(Name::new("Particle")).id();
-            self.dead.push(entity);
+            self.pool.push(entity);
         }
     }
 
     /// Spawn a new particle
     ///
     /// Grows the pool if necessary
-    pub fn spawn_particle(&mut self, commands: &mut Commands) {
+    pub fn spawn_particle(&mut self, commands: &mut Commands, transform: Transform) {
         // grow if we need to, this is pretty expensive
-        if self.dead.is_empty() {
+        if self.pool.is_empty() {
             debug!("Growing particle system {}", self.name);
-            self.dead.reserve(self.capacity);
+            self.pool.reserve(self.capacity);
             self.spawn(commands);
         }
 
-        let entity = self.dead.pop().unwrap();
+        let entity = self.pool.pop().unwrap();
         commands
             .entity(entity)
-            .insert_bundle(ParticleBundle::new(self.particle_lifespan));
+            .insert_bundle(ParticleBundle::new(transform, self.particle_lifespan))
+            // TODO: this should be a child of the particle
+            // but not sure how to remove it if we do that
+            /*.insert_bundle(GeometryBuilder::build_as(
+                &shapes::Ellipse {
+                    radii: Vec2::splat(0.1),
+                    ..Default::default()
+                },
+                ShapeColors::new(Color::RED),
+                DrawMode::Fill(FillOptions::default()),
+                transform,
+            ))*/;
+        self.live.push(entity);
     }
 
     /// Updates the particle system
-    pub fn update(&mut self, commands: &mut Commands, time: &Time) {
-        let now = time.seconds_since_startup();
-        if now >= self.next_spawn {
-            self.spawn_particle(commands);
-
-            self.next_spawn = now + self.spawn_rate;
-        }
-
+    pub fn update(
+        &mut self,
+        commands: &mut Commands,
+        time: &Time,
+        transform: &Transform,
+        particles: &Query<&Particle>,
+    ) {
+        // remove dead particles first
         // drain_filter() equivalent
-        /*let mut i = 0;
+        let mut i = 0;
         while i != self.live.len() {
-            let particle = &mut self.live[i];
+            let entity = self.live[i];
+            let particle = particles.get(entity).unwrap();
             if particle.is_dead() {
-                // TODO: remove the particle bundle from the entity
-                self.dead.push(*particle);
+                commands
+                    .entity(entity)
+                    .remove_bundle::<ParticleBundle>()
+                    /*.remove_bundle::<ShapeBundle>()*/;
+
+                self.pool.push(entity);
                 self.live.remove(i);
             } else {
                 i += 1;
             }
-        }*/
+        }
+
+        // spawn new particles last
+        let now = time.seconds_since_startup();
+        if now >= self.next_spawn {
+            self.spawn_particle(commands, *transform);
+
+            self.next_spawn = now + self.spawn_rate;
+        }
     }
 }
 
@@ -96,7 +123,9 @@ impl ParticleSystem {
 pub struct Particle {
     pub acceleration: Vec3,
     pub velocity: Vec3,
+
     pub lifespan: f32,
+    pub health: f32,
 }
 
 impl Particle {
@@ -106,20 +135,30 @@ impl Particle {
             acceleration: Vec3::default(),
             velocity: Vec3::default(),
             lifespan,
+            health: lifespan,
         }
     }
 
     /// Is this particle dead?
     pub fn is_dead(&self) -> bool {
-        self.lifespan <= 0.0
+        self.health <= 0.0
     }
 
     /// Updates the particle
-    pub fn update(&mut self, dt: f32) {
-        self.lifespan -= dt;
+    pub fn update(&mut self, dt: f32 /*, meshes: &mut Assets<Mesh>, mesh: &Handle<Mesh>*/) {
+        self.health -= dt;
 
-        // TODO: particles need a reference to the system that owns them
-        // if they die, they need to tell the system to remove the particle
+        // https://github.com/Nilirad/bevy_prototype_lyon/issues/96
+        /*let mesh = meshes.get_mut(mesh).unwrap();
+        let colors = mesh.attribute_mut(Mesh::ATTRIBUTE_COLOR).unwrap();
+        let values = match colors {
+            bevy::render::mesh::VertexAttributeValues::Float4(colors) => colors
+                .iter()
+                .map(|[r, g, b, _]| Color::rgba(*r, *g, *b, self.health / self.lifespan).into())
+                .collect::<Vec<[f32; 4]>>(),
+            _ => vec![],
+        };
+        mesh.set_attribute(Mesh::ATTRIBUTE_COLOR, values);*/
     }
 
     /// Updates the particle physics
