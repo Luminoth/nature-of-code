@@ -10,7 +10,7 @@ use crate::resources::*;
 /// Game setup
 pub fn setup(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
     mut random: ResMut<Random>,
     simulation: Res<SimulationParams>,
     world_bounds: Res<WorldBounds>,
@@ -66,7 +66,7 @@ pub fn setup(
     for i in 0..simulation.fly_count {
         let position =
             random.vec2_range(-hw + FLY_SIZE..hw - FLY_SIZE, -hh + FLY_SIZE..hh - FLY_SIZE);
-        Fly::spawn(&mut commands, &asset_server, &mut random, i, position);
+        Fly::spawn(&mut commands, &mut materials, &mut random, i, position);
     }
 
     // fish
@@ -75,7 +75,7 @@ pub fn setup(
             -hw + FISH_WIDTH..qw - FISH_WIDTH,
             -hh + FISH_LENGTH..hh - FISH_LENGTH,
         );
-        Fish::spawn(&mut commands, &asset_server, &mut random, i, position);
+        Fish::spawn(&mut commands, &mut random, i, position);
     }
 
     // snakes
@@ -84,7 +84,7 @@ pub fn setup(
             qw + SNAKE_WIDTH..hw - SNAKE_WIDTH,
             -hh + SNAKE_LENGTH..hh - SNAKE_LENGTH,
         );
-        Snake::spawn(&mut commands, &asset_server, &mut random, i, position);
+        Snake::spawn(&mut commands, &mut random, i, position);
     }
 }
 

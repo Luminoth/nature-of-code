@@ -3,6 +3,7 @@
 use bevy::prelude::*;
 
 use crate::components::particles::*;
+use crate::resources::*;
 
 /// Particle bundle
 #[derive(Bundle)]
@@ -14,11 +15,11 @@ pub struct ParticleBundle {
 }
 
 impl ParticleBundle {
-    pub fn new(transform: Transform, lifespan: f32) -> Self {
+    pub fn new(random: &mut Random, transform: Transform, lifespan: f32, max_speed: f32) -> Self {
         Self {
             transform,
             global_transform: GlobalTransform::default(),
-            particle: Particle::new(lifespan),
+            particle: Particle::new(random, lifespan, max_speed),
         }
     }
 }

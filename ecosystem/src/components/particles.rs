@@ -2,10 +2,9 @@
 
 use bevy::prelude::*;
 use bevy_inspector_egui::Inspectable;
-use bevy_prototype_lyon::entity::ShapeBundle;
-use bevy_prototype_lyon::prelude::*;
 
 use crate::bundles::particles::*;
+use crate::resources::*;
 
 use super::physics::*;
 
@@ -20,6 +19,8 @@ pub struct ParticleSystem {
 
     pub spawn_rate: f64,
     pub particle_lifespan: f32,
+    pub max_speed: f32,
+    pub material: Handle<ColorMaterial>,
 
     #[inspectable(read_only)]
     next_spawn: f64,
@@ -33,12 +34,18 @@ pub struct ParticleSystem {
 
 impl ParticleSystem {
     /// Create a new particle system with a pool of the given capacity
-    pub fn with_capacity(name: impl Into<String>, capacity: usize) -> Self {
+    pub fn with_capacity(
+        name: impl Into<String>,
+        material: Handle<ColorMaterial>,
+        capacity: usize,
+    ) -> Self {
         Self {
             name: name.into(),
             capacity,
             spawn_rate: 1.0,
             particle_lifespan: 1.0,
+            material,
+            max_speed: 1.0,
             next_spawn: 0.0,
             pool: Vec::with_capacity(capacity),
             live: Vec::with_capacity(capacity),
@@ -55,7 +62,12 @@ impl ParticleSystem {
     /// Spawn a new particle
     ///
     /// Grows the pool if necessary
-    pub fn spawn_particle(&mut self, commands: &mut Commands, transform: Transform) {
+    fn spawn_particle(
+        &mut self,
+        commands: &mut Commands,
+        random: &mut Random,
+        transform: Transform,
+    ) {
         // grow if we need to, this is pretty expensive
         if self.pool.is_empty() {
             debug!("Growing particle system {}", self.name);
@@ -66,18 +78,20 @@ impl ParticleSystem {
         let entity = self.pool.pop().unwrap();
         commands
             .entity(entity)
-            .insert_bundle(ParticleBundle::new(transform, self.particle_lifespan))
+            .insert_bundle(ParticleBundle::new(
+                random,
+                transform,
+                self.particle_lifespan,
+                self.max_speed,
+            ))
             // TODO: this should be a child of the particle
             // but not sure how to remove it if we do that
-            /*.insert_bundle(GeometryBuilder::build_as(
-                &shapes::Ellipse {
-                    radii: Vec2::splat(0.1),
-                    ..Default::default()
-                },
-                ShapeColors::new(Color::RED),
-                DrawMode::Fill(FillOptions::default()),
+            .insert_bundle(SpriteBundle {
+                material: self.material.clone(),
+                sprite: Sprite::new(Vec2::splat(0.05)),
                 transform,
-            ))*/;
+                ..Default::default()
+            });
         self.live.push(entity);
     }
 
@@ -86,6 +100,7 @@ impl ParticleSystem {
         &mut self,
         commands: &mut Commands,
         time: &Time,
+        random: &mut Random,
         transform: &Transform,
         particles: &Query<&Particle>,
     ) {
@@ -99,7 +114,7 @@ impl ParticleSystem {
                 commands
                     .entity(entity)
                     .remove_bundle::<ParticleBundle>()
-                    /*.remove_bundle::<ShapeBundle>()*/;
+                    .remove_bundle::<SpriteBundle>();
 
                 self.pool.push(entity);
                 self.live.remove(i);
@@ -111,7 +126,7 @@ impl ParticleSystem {
         // spawn new particles last
         let now = time.seconds_since_startup();
         if now >= self.next_spawn {
-            self.spawn_particle(commands, *transform);
+            self.spawn_particle(commands, random, *transform);
 
             self.next_spawn = now + self.spawn_rate;
         }
@@ -130,10 +145,14 @@ pub struct Particle {
 
 impl Particle {
     /// Creates a new particle with the given lifespan
-    pub fn new(lifespan: f32) -> Self {
+    pub fn new(random: &mut Random, lifespan: f32, max_speed: f32) -> Self {
         Self {
             acceleration: Vec3::default(),
-            velocity: Vec3::default(),
+            velocity: Vec3::new(
+                random.random_range(-max_speed..=max_speed),
+                random.random_range(-max_speed..=max_speed),
+                0.0,
+            ),
             lifespan,
             health: lifespan,
         }
@@ -145,20 +164,10 @@ impl Particle {
     }
 
     /// Updates the particle
-    pub fn update(&mut self, dt: f32 /*, meshes: &mut Assets<Mesh>, mesh: &Handle<Mesh>*/) {
+    pub fn update(&mut self, dt: f32) {
         self.health -= dt;
 
-        // https://github.com/Nilirad/bevy_prototype_lyon/issues/96
-        /*let mesh = meshes.get_mut(mesh).unwrap();
-        let colors = mesh.attribute_mut(Mesh::ATTRIBUTE_COLOR).unwrap();
-        let values = match colors {
-            bevy::render::mesh::VertexAttributeValues::Float4(colors) => colors
-                .iter()
-                .map(|[r, g, b, _]| Color::rgba(*r, *g, *b, self.health / self.lifespan).into())
-                .collect::<Vec<[f32; 4]>>(),
-            _ => vec![],
-        };
-        mesh.set_attribute(Mesh::ATTRIBUTE_COLOR, values);*/
+        // TODO: fade the sprite by health / lifespan
     }
 
     /// Updates the particle physics

@@ -4,6 +4,7 @@ use bevy::prelude::*;
 
 use crate::components::creatures::*;
 use crate::components::particles::*;
+use crate::resources::*;
 
 use super::physics::*;
 
@@ -26,11 +27,15 @@ pub struct FireflyBundle {
     pub particles: ParticleSystem,
 }
 
-impl Default for FireflyBundle {
-    fn default() -> Self {
-        let mut particles = ParticleSystem::with_capacity("Firefly", 10);
-        particles.spawn_rate = 0.1;
-        particles.particle_lifespan = 5.0;
+impl FireflyBundle {
+    pub fn new(random: &mut Random, materials: &mut Assets<ColorMaterial>) -> Self {
+        // TODO: we can calculate the required capacity
+        // from the spawn rate and lifespan
+        let mut particles =
+            ParticleSystem::with_capacity("Firefly", materials.add(FIREFLY_COLOR.into()), 20);
+        particles.spawn_rate = 0.05;
+        particles.particle_lifespan = 0.5;
+        particles.max_speed = random.normal(0.5, 0.1);
 
         Self {
             firefly: Firefly::default(),

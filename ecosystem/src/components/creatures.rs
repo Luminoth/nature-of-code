@@ -16,7 +16,7 @@ use super::physics::*;
 // fly is much larger than an actual fly
 // so that they're actually visible
 const FLY_COLOR: Color = Color::WHITE;
-const FIREFLY_COLOR: Color = Color::YELLOW_GREEN;
+pub const FIREFLY_COLOR: Color = Color::YELLOW_GREEN;
 const FLY_MASS: f32 = 0.012;
 const FLY_DRAG: f32 = 0.01;
 pub const FLY_SIZE: f32 = 0.05 / FLY_MASS;
@@ -61,7 +61,7 @@ impl Fly {
     #[allow(dead_code)]
     pub fn spawn(
         commands: &mut Commands,
-        _asset_server: &Res<AssetServer>,
+        materials: &mut Assets<ColorMaterial>,
         random: &mut Random,
         i: usize,
         position: Vec2,
@@ -119,7 +119,7 @@ impl Fly {
         if is_firefly {
             bundle
                 .insert(Name::new(format!("Firefly {}", i)))
-                .insert_bundle(FireflyBundle::default());
+                .insert_bundle(FireflyBundle::new(random, materials));
         } else {
             bundle.insert(Name::new(format!("Fly {}", i)));
         }
@@ -140,13 +140,7 @@ pub struct Fish {
 impl Fish {
     /// Spawn a fish
     #[allow(dead_code)]
-    pub fn spawn(
-        commands: &mut Commands,
-        _asset_server: &Res<AssetServer>,
-        random: &mut Random,
-        i: usize,
-        position: Vec2,
-    ) {
+    pub fn spawn(commands: &mut Commands, random: &mut Random, i: usize, position: Vec2) {
         info!("spawning fish {} at {}", i, position);
 
         let mass = FISH_MASS; // TODO: modifier
@@ -223,13 +217,7 @@ pub struct Snake {
 impl Snake {
     /// Spawn a snake
     #[allow(dead_code)]
-    pub fn spawn(
-        commands: &mut Commands,
-        _asset_server: &Res<AssetServer>,
-        random: &mut Random,
-        i: usize,
-        position: Vec2,
-    ) {
+    pub fn spawn(commands: &mut Commands, random: &mut Random, i: usize, position: Vec2) {
         info!("spawning snake {} at {}", i, position);
 
         let mass = SNAKE_MASS; // TODO: modifier

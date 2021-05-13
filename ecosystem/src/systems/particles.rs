@@ -3,6 +3,7 @@
 use bevy::prelude::*;
 
 use crate::components::particles::*;
+use crate::resources::*;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
 pub enum ParticlesSystem {
@@ -14,24 +15,19 @@ pub enum ParticlesSystem {
 pub fn update_particle_systems(
     mut commands: Commands,
     time: Res<Time>,
+    mut random: ResMut<Random>,
     mut query: Query<(&Transform, &mut ParticleSystem)>,
     particles: Query<&Particle>,
 ) {
     for (transform, mut particle_system) in query.iter_mut() {
-        particle_system.update(&mut commands, &time, &transform, &particles);
+        particle_system.update(&mut commands, &time, &mut random, &transform, &particles);
     }
 }
 
 /// Updates all of the particles
-pub fn update_particles(
-    time: Res<Time>,
-    //mut meshes: ResMut<Assets<Mesh>>,
-    //mut query: Query<(&mut Particle, &Handle<Mesh>)>,
-    mut query: Query<&mut Particle>,
-) {
-    //for (mut particle, mesh) in query.iter_mut() {
+pub fn update_particles(time: Res<Time>, mut query: Query<&mut Particle>) {
     for mut particle in query.iter_mut() {
-        particle.update(time.delta_seconds() /*, &mut meshes, &mesh*/);
+        particle.update(time.delta_seconds());
     }
 }
 
