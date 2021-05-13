@@ -30,6 +30,11 @@ pub fn setup(
         .insert(UiCamera)
         .insert(Name::new("UI Camera"));
 
+    // materials
+    // TODO: wrap these in a struct to pass around (and store as a resource)
+    let firefly_material = materials.add(FIREFLY_COLOR.into());
+    let fish_material = materials.add(Color::NAVY.into());
+
     // world bounds
     let qw = world_bounds.width / 4.0;
     let hw = world_bounds.width / 2.0;
@@ -66,7 +71,13 @@ pub fn setup(
     for i in 0..simulation.fly_count {
         let position =
             random.vec2_range(-hw + FLY_SIZE..hw - FLY_SIZE, -hh + FLY_SIZE..hh - FLY_SIZE);
-        Fly::spawn(&mut commands, &mut materials, &mut random, i, position);
+        Fly::spawn(
+            &mut commands,
+            &mut random,
+            i,
+            position,
+            firefly_material.clone(),
+        );
     }
 
     // fish
@@ -75,7 +86,13 @@ pub fn setup(
             -hw + FISH_WIDTH..qw - FISH_WIDTH,
             -hh + FISH_LENGTH..hh - FISH_LENGTH,
         );
-        Fish::spawn(&mut commands, &mut random, i, position);
+        Fish::spawn(
+            &mut commands,
+            &mut random,
+            i,
+            position,
+            fish_material.clone(),
+        );
     }
 
     // snakes

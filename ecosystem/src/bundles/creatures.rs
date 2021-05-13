@@ -21,26 +21,23 @@ pub struct FlyBundle {
 /// Firefly bundle
 ///
 /// Requires an existing FlyBundle
-#[derive(Bundle)]
+#[derive(Default, Bundle)]
 pub struct FireflyBundle {
     pub firefly: Firefly,
+
     pub particles: ParticleSystem,
 }
 
 impl FireflyBundle {
-    pub fn new(random: &mut Random, materials: &mut Assets<ColorMaterial>) -> Self {
+    pub fn particles(random: &mut Random, material: Handle<ColorMaterial>) -> ParticleSystem {
         // TODO: we can calculate the required capacity
         // from the spawn rate and lifespan
-        let mut particles =
-            ParticleSystem::with_capacity("Firefly", materials.add(FIREFLY_COLOR.into()), 20);
+        let mut particles = ParticleSystem::with_capacity("Firefly", material, 20);
         particles.spawn_rate = 0.05;
         particles.particle_lifespan = 0.5;
         particles.max_speed = random.normal(0.5, 0.1);
 
-        Self {
-            firefly: Firefly::default(),
-            particles,
-        }
+        particles
     }
 }
 
@@ -52,6 +49,21 @@ pub struct FishBundle {
 
     #[bundle]
     pub physical: DynamicPhysicsBundle,
+
+    pub particles: ParticleSystem,
+}
+
+impl FishBundle {
+    pub fn particles(random: &mut Random, material: Handle<ColorMaterial>) -> ParticleSystem {
+        // TODO: we can calculate the required capacity
+        // from the spawn rate and lifespan
+        let mut particles = ParticleSystem::with_capacity("Fish", material, 20);
+        particles.spawn_rate = 0.05;
+        particles.particle_lifespan = 0.5;
+        particles.max_speed = random.normal(0.3, 0.1);
+
+        particles
+    }
 }
 
 /// Snake bundle

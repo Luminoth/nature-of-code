@@ -8,6 +8,8 @@ use crate::resources::*;
 
 use super::physics::*;
 
+// https://learn.unity.com/tutorial/introduction-to-particle-systems#6025fdd9edbc2a112d4f0135
+
 /// Particle system component
 #[derive(Debug, Inspectable, Default)]
 pub struct ParticleSystem {

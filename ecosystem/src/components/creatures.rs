@@ -61,10 +61,10 @@ impl Fly {
     #[allow(dead_code)]
     pub fn spawn(
         commands: &mut Commands,
-        materials: &mut Assets<ColorMaterial>,
         random: &mut Random,
         i: usize,
         position: Vec2,
+        material: Handle<ColorMaterial>,
     ) {
         let is_firefly = random.coin();
         if is_firefly {
@@ -119,7 +119,10 @@ impl Fly {
         if is_firefly {
             bundle
                 .insert(Name::new(format!("Firefly {}", i)))
-                .insert_bundle(FireflyBundle::new(random, materials));
+                .insert_bundle(FireflyBundle {
+                    firefly: Firefly::default(),
+                    particles: FireflyBundle::particles(random, material),
+                });
         } else {
             bundle.insert(Name::new(format!("Fly {}", i)));
         }
@@ -140,7 +143,13 @@ pub struct Fish {
 impl Fish {
     /// Spawn a fish
     #[allow(dead_code)]
-    pub fn spawn(commands: &mut Commands, random: &mut Random, i: usize, position: Vec2) {
+    pub fn spawn(
+        commands: &mut Commands,
+        random: &mut Random,
+        i: usize,
+        position: Vec2,
+        material: Handle<ColorMaterial>,
+    ) {
         info!("spawning fish {} at {}", i, position);
 
         let mass = FISH_MASS; // TODO: modifier
@@ -166,6 +175,7 @@ impl Fish {
                     transform: Transform::from_translation(position.extend(0.0)),
                     ..Default::default()
                 },
+                particles: FishBundle::particles(random, material),
                 ..Default::default()
             })
             .insert(Name::new(format!("Fish {}", i)))
