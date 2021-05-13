@@ -52,6 +52,14 @@ impl ParticleSystem {
         }
     }
 
+    #[allow(dead_code)]
+    pub fn apply_force(&mut self, particles: &mut Query<&mut Particle>, force: Vec2) {
+        for entity in &self.live {
+            let mut particle = particles.get_mut(*entity).unwrap();
+            particle.apply_force(force);
+        }
+    }
+
     fn spawn(&mut self, commands: &mut Commands) {
         for _ in 0..self.capacity {
             let entity = commands.spawn().insert(Name::new("Particle")).id();
@@ -138,6 +146,8 @@ impl ParticleSystem {
 pub struct Particle {
     pub acceleration: Vec3,
     pub velocity: Vec3,
+    pub mass: f32,
+    pub drag: f32,
 
     pub lifespan: f32,
     pub health: f32,
@@ -153,6 +163,8 @@ impl Particle {
                 random.random_range(-max_speed..=max_speed),
                 0.0,
             ),
+            mass: 1.0,
+            drag: 0.0,
             lifespan,
             health: lifespan,
         }
@@ -161,6 +173,17 @@ impl Particle {
     /// Is this particle dead?
     pub fn is_dead(&self) -> bool {
         self.health <= 0.0
+    }
+
+    /// Apply a force to the particle
+    pub fn apply_force(&mut self, force: Vec2) {
+        let force = if self.mass > 0.0 {
+            force / self.mass
+        } else {
+            force
+        };
+
+        self.acceleration += force.extend(0.0);
     }
 
     /// Updates the particle
