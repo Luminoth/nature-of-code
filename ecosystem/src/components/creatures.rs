@@ -8,6 +8,7 @@ use crate::bundles::creatures::*;
 use crate::bundles::physics::*;
 use crate::resources::*;
 
+use super::particles::*;
 use super::physics::*;
 
 // TODO: move all of these constants to the simulation params
@@ -57,6 +58,18 @@ pub struct Fly {
 }
 
 impl Fly {
+    fn firefly_particles(random: &mut Random, material: Handle<ColorMaterial>) -> ParticleSystem {
+        // TODO: we can calculate the required capacity
+        // from the spawn rate and lifespan
+        let mut particles = ParticleSystem::with_capacity("Firefly", material, 20);
+        particles.spawn_rate = 0.05;
+        particles.particle_lifespan = 0.5;
+        particles.max_speed = random.normal(0.5, 0.1);
+        particles.size = Vec2::splat(0.05);
+
+        particles
+    }
+
     /// Spawn a fly
     #[allow(dead_code)]
     pub fn spawn(
@@ -119,9 +132,11 @@ impl Fly {
         if is_firefly {
             bundle
                 .insert(Name::new(format!("Firefly {}", i)))
-                .insert_bundle(FireflyBundle {
-                    firefly: Firefly::default(),
-                    particles: FireflyBundle::particles(random, material),
+                .with_children(|parent| {
+                    parent.spawn_bundle(FireflyBundle {
+                        particles: Self::firefly_particles(random, material),
+                        ..Default::default()
+                    });
                 });
         } else {
             bundle.insert(Name::new(format!("Fly {}", i)));
@@ -141,6 +156,17 @@ pub struct Fish {
 }
 
 impl Fish {
+    pub fn particles(random: &mut Random, material: Handle<ColorMaterial>) -> ParticleSystem {
+        // TODO: we can calculate the required capacity
+        // from the spawn rate and lifespan
+        let mut particles = ParticleSystem::with_capacity("Fish", material, 20);
+        particles.spawn_rate = 0.05;
+        particles.particle_lifespan = 0.5;
+        particles.max_speed = random.normal(0.3, 0.1);
+
+        particles
+    }
+
     /// Spawn a fish
     #[allow(dead_code)]
     pub fn spawn(
@@ -175,7 +201,6 @@ impl Fish {
                     transform: Transform::from_translation(position.extend(0.0)),
                     ..Default::default()
                 },
-                particles: FishBundle::particles(random, material),
                 ..Default::default()
             })
             .insert(Name::new(format!("Fish {}", i)))
@@ -213,6 +238,12 @@ impl Fish {
                         velocity: Vec2::new(20.0, 0.0),
                         amplitude: Vec2::new(0.1, 0.0),
                     });
+
+                parent.spawn_bundle(FishParticlesBundle {
+                    particles: Self::particles(random, material),
+                    transform: Transform::from_translation(Vec3::new(0.0, -size.y * 0.5, 1.0)),
+                    ..Default::default()
+                });
             });
     }
 }

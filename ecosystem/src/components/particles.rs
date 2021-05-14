@@ -22,6 +22,9 @@ pub struct ParticleSystem {
     pub spawn_rate: f64,
     pub particle_lifespan: f32,
     pub max_speed: f32,
+    pub mass: f32,
+    pub drag: f32,
+    pub size: Vec2,
     pub material: Handle<ColorMaterial>,
 
     #[inspectable(read_only)]
@@ -46,8 +49,11 @@ impl ParticleSystem {
             capacity,
             spawn_rate: 1.0,
             particle_lifespan: 1.0,
-            material,
             max_speed: 1.0,
+            mass: 1.0,
+            drag: 0.0,
+            size: Vec2::splat(0.1),
+            material,
             next_spawn: 0.0,
             pool: Vec::with_capacity(capacity),
             live: Vec::with_capacity(capacity),
@@ -88,17 +94,12 @@ impl ParticleSystem {
         let entity = self.pool.pop().unwrap();
         commands
             .entity(entity)
-            .insert_bundle(ParticleBundle::new(
-                random,
-                transform,
-                self.particle_lifespan,
-                self.max_speed,
-            ))
+            .insert_bundle(ParticleBundle::new(random, transform, self))
             // TODO: this should be a child of the particle
             // but not sure how to remove it if we do that
             .insert_bundle(SpriteBundle {
                 material: self.material.clone(),
-                sprite: Sprite::new(Vec2::splat(0.05)),
+                sprite: Sprite::new(self.size),
                 transform,
                 ..Default::default()
             });
@@ -157,18 +158,18 @@ pub struct Particle {
 
 impl Particle {
     /// Creates a new particle with the given lifespan
-    pub fn new(random: &mut Random, lifespan: f32, max_speed: f32) -> Self {
+    pub fn new(random: &mut Random, particle_system: &ParticleSystem) -> Self {
         Self {
             acceleration: Vec3::default(),
             velocity: Vec3::new(
-                random.random_range(-max_speed..=max_speed),
-                random.random_range(-max_speed..=max_speed),
+                random.random_range(-particle_system.max_speed..=particle_system.max_speed),
+                random.random_range(-particle_system.max_speed..=particle_system.max_speed),
                 0.0,
             ),
-            mass: 1.0,
-            drag: 0.0,
-            lifespan,
-            health: lifespan,
+            mass: particle_system.mass,
+            drag: particle_system.drag,
+            lifespan: particle_system.particle_lifespan,
+            health: particle_system.particle_lifespan,
         }
     }
 

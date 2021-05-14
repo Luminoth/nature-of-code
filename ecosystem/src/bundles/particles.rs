@@ -8,18 +8,22 @@ use crate::resources::*;
 /// Particle bundle
 #[derive(Bundle)]
 pub struct ParticleBundle {
+    particle: Particle,
+
     transform: Transform,
     global_transform: GlobalTransform,
-
-    particle: Particle,
 }
 
 impl ParticleBundle {
-    pub fn new(random: &mut Random, transform: Transform, lifespan: f32, max_speed: f32) -> Self {
+    pub fn new(
+        random: &mut Random,
+        transform: Transform,
+        particle_system: &ParticleSystem,
+    ) -> Self {
         Self {
+            particle: Particle::new(random, particle_system),
             transform,
             global_transform: GlobalTransform::default(),
-            particle: Particle::new(random, lifespan, max_speed),
         }
     }
 }

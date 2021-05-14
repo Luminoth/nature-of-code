@@ -16,10 +16,11 @@ pub fn update_particle_systems(
     mut commands: Commands,
     time: Res<Time>,
     mut random: ResMut<Random>,
-    mut query: Query<(&Transform, &mut ParticleSystem)>,
+    mut query: Query<(&GlobalTransform, &mut ParticleSystem)>,
     particles: Query<&Particle>,
 ) {
-    for (transform, mut particle_system) in query.iter_mut() {
+    for (global_transform, mut particle_system) in query.iter_mut() {
+        let transform = (*global_transform).into();
         particle_system.update(&mut commands, &time, &mut random, &transform, &particles);
     }
 }
