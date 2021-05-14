@@ -6,6 +6,7 @@ use crate::components::creatures::*;
 use crate::components::physics::*;
 use crate::resources::*;
 
+/// Creature systems
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
 pub enum CreaturesSystem {
     Update,

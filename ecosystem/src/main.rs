@@ -28,6 +28,7 @@ use resources::*;
 use states::*;
 use systems::creatures::*;
 use systems::debug::*;
+use systems::environment::*;
 use systems::physics::*;
 
 const WINDOW_WIDTH: f32 = 1024.0;
@@ -208,6 +209,17 @@ fn main() {
                         .system()
                         .label(CreaturesSystem::Bounds)
                         .after(Physics),
+                )
+                .with_system(
+                    water_current
+                        .system()
+                        .label(EnvironmentsSystem::Physics)
+                        .before(Physics),
+                )
+                .with_system(
+                    wind.system()
+                        .label(EnvironmentsSystem::Physics)
+                        .before(Physics),
                 ),
         )
         .add_system_set(

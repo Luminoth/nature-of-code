@@ -100,6 +100,10 @@ impl Water {
     }
 }
 
+/// WaterCurrent
+#[derive(Debug, Inspectable, Default)]
+pub struct WaterCurrent;
+
 /// Air
 #[derive(Debug, Inspectable, Default)]
 pub struct Air;
@@ -140,3 +144,7 @@ impl Air {
             });
     }
 }
+
+/// Wind
+#[derive(Debug, Inspectable, Default)]
+pub struct Wind;

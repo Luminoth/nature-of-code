@@ -22,6 +22,7 @@ pub struct GroundBundle {
 pub struct WaterBundle {
     pub water: Water,
     pub fluid: Fluid,
+    pub current: WaterCurrent,
 
     #[bundle]
     pub physical: StaticPhysicsBundle,
@@ -32,6 +33,7 @@ pub struct WaterBundle {
 pub struct AirBundle {
     pub air: Air,
     pub fluid: Fluid,
+    pub wind: Wind,
 
     #[bundle]
     pub physical: StaticPhysicsBundle,
