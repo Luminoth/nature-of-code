@@ -1201,6 +1201,7 @@ dependencies = [
  "once_cell",
  "processing",
  "rand 0.8.3",
+ "wrapped2d",
 ]
 
 [[package]]
