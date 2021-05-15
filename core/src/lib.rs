@@ -11,6 +11,7 @@ use processing::errors::ProcessingErr;
 use processing::Screen;
 use rand::random;
 use wrapped2d::b2;
+use wrapped2d::user_data::UserDataTypes;
 
 use crate::math::*;
 
@@ -29,6 +30,28 @@ where
 
         let now = Instant::now();
         draw(&mut screen, (Instant::now() - prev).as_secs_f64())?;
+        prev = now;
+
+        screen.reveal()?;
+    }
+}
+
+pub fn b2d_run<'a, S, D, U>(setup: S, mut draw: D) -> Result<(), ProcessingErr>
+where
+    S: FnOnce() -> Result<(Screen<'a>, b2::World<U>), ProcessingErr>,
+    D: FnMut(&mut Screen, &b2::World<U>, f64) -> Result<(), ProcessingErr>,
+    U: UserDataTypes,
+{
+    let (mut screen, world) = setup()?;
+
+    let mut prev = Instant::now();
+    loop {
+        input::update(&mut screen);
+
+        screen.reset_matrix();
+
+        let now = Instant::now();
+        draw(&mut screen, &world, (Instant::now() - prev).as_secs_f64())?;
         prev = now;
 
         screen.reveal()?;
