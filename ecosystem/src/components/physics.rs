@@ -289,13 +289,13 @@ impl BoxCollider {
 
     /// Returns true if the BoxCollider intersects the other BoxCollider
     pub fn intersects_box(&self, transform: &Transform, other: (&Transform, &BoxCollider)) -> bool {
-        let position = transform.translation.truncate();
+        let position = transform.translation.truncate() + self.center;
         let min = position - self.size;
         let max = position + self.size;
 
-        let oposition = other.0.translation.truncate();
+        let oposition = other.0.translation.truncate() + self.center;
         let omin = oposition - other.1.size;
-        let omax = oposition - other.1.size;
+        let omax = oposition + other.1.size;
 
         (min.x <= omax.x && max.x >= omin.x) && (min.y <= omax.y && max.y >= omin.y)
     }
