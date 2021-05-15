@@ -269,7 +269,9 @@ fn main() {
     registry.register::<components::creatures::Snake>();
     registry.register::<components::environment::Ground>();
     registry.register::<components::environment::Water>();
+    registry.register::<components::environment::WaterCurrent>();
     registry.register::<components::environment::Air>();
+    registry.register::<components::environment::Wind>();
 
     app.run();
 }

@@ -6,6 +6,7 @@ use bevy_prototype_lyon::prelude::*;
 
 use crate::bundles::environment::*;
 use crate::bundles::physics::*;
+use crate::resources::*;
 
 use super::physics::*;
 
@@ -102,7 +103,27 @@ impl Water {
 
 /// WaterCurrent
 #[derive(Debug, Inspectable, Default)]
-pub struct WaterCurrent;
+pub struct WaterCurrent {
+    pub accumulator: Vec2,
+
+    #[inspectable(read_only)]
+    last_force: Vec2,
+}
+
+impl WaterCurrent {
+    pub fn force(&mut self, noise: &PerlinNoise) -> Vec2 {
+        self.last_force = Vec2::new(
+            noise.get(self.accumulator.x as f64, 0.5) as f32,
+            noise.get(self.accumulator.y as f64, 0.5) as f32,
+        ) * 35.0;
+
+        self.last_force
+    }
+
+    pub fn update(&mut self) {
+        self.accumulator += Vec2::new(0.02, 0.01);
+    }
+}
 
 /// Air
 #[derive(Debug, Inspectable, Default)]
@@ -147,4 +168,24 @@ impl Air {
 
 /// Wind
 #[derive(Debug, Inspectable, Default)]
-pub struct Wind;
+pub struct Wind {
+    pub accumulator: Vec2,
+
+    #[inspectable(read_only)]
+    last_force: Vec2,
+}
+
+impl Wind {
+    pub fn force(&mut self, noise: &PerlinNoise) -> Vec2 {
+        self.last_force = Vec2::new(
+            noise.get(self.accumulator.x as f64, 0.5) as f32,
+            noise.get(self.accumulator.y as f64, 0.5) as f32,
+        ) * 2.25;
+
+        self.last_force
+    }
+
+    pub fn update(&mut self) {
+        self.accumulator += Vec2::new(0.04, 0.02);
+    }
+}

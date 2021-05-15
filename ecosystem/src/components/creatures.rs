@@ -18,11 +18,11 @@ use super::physics::*;
 // so that they're actually visible
 const FLY_COLOR: Color = Color::WHITE;
 pub const FIREFLY_COLOR: Color = Color::YELLOW_GREEN;
-const FLY_MASS: f32 = 0.012;
+const FLY_MASS: f32 = 1.0;
 const FLY_DRAG: f32 = 0.01;
 pub const FLY_SIZE: f32 = 0.05 / FLY_MASS;
 const FLY_REPEL_ACCEL: f32 = 0.01;
-const FLY_ACCEL: f32 = 15.0;
+const FLY_ACCEL: f32 = 5.0;
 
 const FISH_BODY_COLOR: Color = Color::SILVER;
 const FISH_HEAD_COLOR: Color = Color::SALMON;
@@ -35,12 +35,12 @@ const FISH_ACCEL: f32 = 1.0;
 
 const SNAKE_BODY_COLOR: Color = Color::MAROON;
 const SNAKE_HEAD_COLOR: Color = Color::ORANGE_RED;
-const SNAKE_MASS: f32 = 0.5;
+const SNAKE_MASS: f32 = 2.0;
 const SNAKE_DRAG: f32 = 0.04;
 pub const SNAKE_WIDTH: f32 = 0.1 / SNAKE_MASS;
 pub const SNAKE_LENGTH: f32 = 0.8 / SNAKE_MASS;
 const SNAKE_REPEL_ACCEL: f32 = 0.01;
-const SNAKE_GROUND_ACCEL: f32 = 30.5;
+const SNAKE_GROUND_ACCEL: f32 = 8.0;
 //const SNAKE_WATER_ACCEL: f32 = 1.0;
 
 /// Shared creature component
