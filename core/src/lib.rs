@@ -41,11 +41,9 @@ pub fn create_canvas<'a>(width: u32, height: u32) -> Result<Screen<'a>, Processi
 }
 
 pub fn translate(screen: &mut Screen, x: f64, y: f64) {
-    screen.translate(
-        1.0 + x_to_screen(screen, x) as f32,
-        -1.0 + y_to_screen(screen, y) as f32,
-        0.0,
-    );
+    let (x, y) = device_to_screen(screen, x, y);
+
+    screen.translate(1.0 + x as f32, -1.0 + y as f32, 0.0);
 }
 
 pub fn rotate(screen: &mut Screen, angle: f64) {
@@ -106,14 +104,10 @@ pub fn image(
     y: f64,
     texture: &processing::Texture2d,
 ) -> Result<(), ProcessingErr> {
-    let mut rect = processing::shapes::rect::Rect::new(
-        screen,
-        &[x_to_screen(screen, x)],
-        &[y_to_screen(screen, y)],
-        &[0.0],
-        &[w_to_screen(screen, texture.width() as f64)],
-        &[h_to_screen(screen, texture.height() as f64)],
-    )?;
+    let (x, y) = device_to_screen(screen, x, y);
+    let (w, h) = device_to_screen_size(screen, texture.width() as f64, texture.height() as f64);
+
+    let mut rect = processing::shapes::rect::Rect::new(screen, &[x], &[y], &[0.0], &[w], &[h])?;
     rect.attach_texture(texture);
     screen.draw(&rect)
 }
@@ -177,20 +171,16 @@ pub fn noise3d(point: [f64; 3], frequency: f64) -> f64 {
 
 /* internal utils */
 
-pub(crate) fn x_to_screen(screen: &Screen, x: f64) -> f64 {
-    map(x, 0.0, screen.width() as f64, -1.0, 1.0)
+pub(crate) fn device_to_screen(screen: &Screen, x: f64, y: f64) -> (f64, f64) {
+    (
+        map(x, 0.0, screen.width() as f64, -1.0, 1.0),
+        -map(y, 0.0, screen.height() as f64, -1.0, 1.0),
+    )
 }
 
-pub(crate) fn y_to_screen(screen: &Screen, y: f64) -> f64 {
-    -map(y, 0.0, screen.height() as f64, -1.0, 1.0)
-}
-
-pub(crate) fn w_to_screen(screen: &Screen, w: f64) -> f64 {
-    let hw = screen.width() as f64 / 2.0;
-    w / hw
-}
-
-pub(crate) fn h_to_screen(screen: &Screen, h: f64) -> f64 {
-    let hh = screen.height() as f64 / 2.0;
-    h / hh
+pub(crate) fn device_to_screen_size(screen: &Screen, w: f64, h: f64) -> (f64, f64) {
+    (
+        w / (screen.width() as f64 / 2.0),
+        h / (screen.height() as f64 / 2.0),
+    )
 }
