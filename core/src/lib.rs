@@ -10,6 +10,7 @@ use once_cell::sync::Lazy;
 use processing::errors::ProcessingErr;
 use processing::Screen;
 use rand::random;
+use wrapped2d::b2;
 
 use crate::math::*;
 
@@ -183,4 +184,45 @@ pub(crate) fn device_to_screen_size(screen: &Screen, w: f64, h: f64) -> (f64, f6
         w / (screen.width() as f64 / 2.0),
         h / (screen.height() as f64 / 2.0),
     )
+}
+
+// https://github.com/shiffman/Box2D-for-Processing/blob/master/Box2D-for-Processing/src/shiffman/box2d/Box2DProcessing.java
+
+const SCALE_FACTOR: f64 = 10.0;
+const Y_FLIP: bool = true;
+
+pub fn coord_world_to_pixels(screen: &Screen, wx: f64, wy: f64) -> b2::Vec2 {
+    let hw = screen.width() as f64 / 2.0;
+    let hh = screen.height() as f64 / 2.0;
+
+    let px = map(wx, 0.0, 1.0, hw, hw + SCALE_FACTOR);
+
+    let mut py = map(wy, 0.0, 1.0, hh, hh + SCALE_FACTOR);
+    if Y_FLIP {
+        py = map(py, 0.0, screen.height() as f64, screen.height() as f64, 0.0);
+    }
+
+    b2::Vec2 {
+        x: px as f32,
+        y: py as f32,
+    }
+}
+
+pub fn coord_pixels_to_world(screen: &Screen, px: f64, py: f64) -> b2::Vec2 {
+    let hw = screen.width() as f64 / 2.0;
+    let hh = screen.height() as f64 / 2.0;
+
+    let wx = map(px, hw, hw + SCALE_FACTOR, 0.0, 1.0);
+
+    let mut wy = py;
+    if Y_FLIP {
+        wy = map(py, screen.height() as f64, 0.0, 0.0, screen.height() as f64);
+    }
+
+    wy = map(wy, hh, hh + SCALE_FACTOR, 0.0, 1.0);
+
+    b2::Vec2 {
+        x: wx as f32,
+        y: wy as f32,
+    }
 }
