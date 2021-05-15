@@ -209,6 +209,8 @@ pub(crate) fn device_to_screen_size(screen: &Screen, w: f64, h: f64) -> (f64, f6
     )
 }
 
+/* Box2D utils */
+
 // https://github.com/shiffman/Box2D-for-Processing/blob/master/Box2D-for-Processing/src/shiffman/box2d/Box2DProcessing.java
 
 const SCALE_FACTOR: f64 = 10.0;
