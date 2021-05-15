@@ -13,6 +13,7 @@ members = [
     "oscillator-example",
     "wave-example",
     "pendulum-example",
+    "box2d-example",
 
     # mover examples
     "liquid-example",

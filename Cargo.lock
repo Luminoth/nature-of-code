@@ -908,6 +908,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d8c1fef690941d3e7788d328517591fecc684c084084702d6ff1641e993699a"
 
 [[package]]
+name = "box2d-example"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "processing",
+ "wrapped2d",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4869,6 +4878,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5d129932f4644ac2396cb456385cbf9e63b5b30c6e8dc4820bdca4eb082037a5"
 dependencies = [
  "winapi 0.3.9",
+]
+
+[[package]]
+name = "wrapped2d"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "788cab1d895e49bbd7c034209005525a901402a52acc6fcc422cab895469858a"
+dependencies = [
+ "bitflags",
+ "cc",
+ "cmake",
+ "libc",
+ "vec_map",
 ]
 
 [[package]]
