@@ -1572,6 +1572,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "ecosystem-rapier"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy-inspector-egui",
+ "bevy_egui",
+ "bevy_prototype_lyon",
+ "derivative",
+ "noise",
+ "num-traits 0.2.14",
+ "rand 0.8.3",
+ "rand_distr",
+]
+
+[[package]]
 name = "egui"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
