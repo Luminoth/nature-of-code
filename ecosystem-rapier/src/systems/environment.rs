@@ -4,7 +4,6 @@ use bevy::prelude::*;
 
 use crate::components::creatures::*;
 use crate::components::environment::*;
-use crate::components::physics::*;
 use crate::resources::*;
 
 /// Environment systems

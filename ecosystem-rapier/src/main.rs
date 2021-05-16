@@ -18,6 +18,7 @@ use bevy::prelude::*;
 use bevy_egui::{EguiPlugin, EguiSettings};
 use bevy_inspector_egui::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
 use bevy_prototype_lyon::prelude::*;
+use bevy_rapier2d::physics::RapierPhysicsPlugin;
 use num_traits::Float;
 
 use components::physics::*;
@@ -100,6 +101,9 @@ fn main() {
     .insert_resource(Msaa { samples: 4 })
     .add_plugins(DefaultPlugins)
     .add_plugin(FrameTimeDiagnosticsPlugin);
+
+    // rapier
+    app.add_plugin(RapierPhysicsPlugin);
 
     // prototype lyon
     app.add_plugin(ShapePlugin);
@@ -254,9 +258,6 @@ fn main() {
 
     registry.register::<components::MainCamera>();
     registry.register::<components::UiCamera>();
-    registry.register::<components::physics::Rigidbody>();
-    registry.register::<components::physics::Collider>();
-    registry.register::<components::physics::BoxCollider>();
     registry.register::<components::physics::Oscillator>();
     registry.register::<components::physics::Surface>();
     registry.register::<components::physics::Fluid>();

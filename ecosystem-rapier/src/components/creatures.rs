@@ -5,7 +5,6 @@ use bevy_inspector_egui::Inspectable;
 use bevy_prototype_lyon::prelude::*;
 
 use crate::bundles::creatures::*;
-use crate::bundles::physics::*;
 use crate::resources::*;
 
 use super::particles::*;

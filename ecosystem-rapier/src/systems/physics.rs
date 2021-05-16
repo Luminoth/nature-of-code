@@ -35,13 +35,6 @@ pub fn physics_collisions(
     }
 }
 
-/// Updates rigidbodies and applies transform changes
-pub fn physics_update(mut query: Query<(&mut Transform, &mut Rigidbody)>) {
-    for (mut transform, mut rigidbody) in query.iter_mut() {
-        rigidbody.update(&mut transform);
-    }
-}
-
 /// Updates an oscillator
 pub fn oscillator_update(mut query: Query<(&mut Transform, &mut Oscillator)>) {
     for (mut transform, mut oscillator) in query.iter_mut() {
