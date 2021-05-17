@@ -8,8 +8,6 @@ use crate::bundles::environment::*;
 use crate::bundles::physics::*;
 use crate::resources::*;
 
-use super::physics::*;
-
 // TODO: move all of these constants to the simulation params
 // except maybe the colors
 
@@ -31,16 +29,8 @@ impl Ground {
     pub fn spawn(commands: &mut Commands, i: usize, position: Vec2, size: Vec2) {
         commands
             .spawn_bundle(GroundBundle {
-                surface: Surface { c: GROUND_FRICTION },
-                physical: StaticPhysicsBundle {
-                    collider: Collider::Box(
-                        BoxCollider::new(Vec2::default(), size),
-                        CollisionLayer::Ground,
-                    ),
-                    transform: Transform::from_translation(position.extend(10.0)),
-                    ..Default::default()
-                },
-                ..Default::default()
+                ground: Ground::default(),
+                physical: PhysicsBundle::new_surface(position.extend(10.0), size, GROUND_FRICTION),
             })
             .insert(Name::new(format!("Ground {}", i)))
             .with_children(|parent| {
@@ -70,18 +60,9 @@ impl Water {
     pub fn spawn(commands: &mut Commands, i: usize, position: Vec2, size: Vec2) {
         commands
             .spawn_bundle(WaterBundle {
-                fluid: Fluid {
-                    density: WATER_DENSITY,
-                },
-                physical: StaticPhysicsBundle {
-                    collider: Collider::Box(
-                        BoxCollider::new(Vec2::default(), size),
-                        CollisionLayer::Water,
-                    ),
-                    transform: Transform::from_translation(position.extend(5.0)),
-                    ..Default::default()
-                },
-                ..Default::default()
+                water: Water::default(),
+                current: WaterCurrent::default(),
+                physical: PhysicsBundle::new_fluid(position.extend(5.0), size, WATER_DENSITY),
             })
             .insert(Name::new(format!("Water {}", i)))
             .with_children(|parent| {
@@ -135,18 +116,9 @@ impl Air {
     pub fn spawn(commands: &mut Commands, i: usize, size: Vec2) {
         commands
             .spawn_bundle(AirBundle {
-                fluid: Fluid {
-                    density: AIR_DENSITY,
-                },
-                physical: StaticPhysicsBundle {
-                    collider: Collider::Box(
-                        BoxCollider::new(Vec2::default(), size),
-                        CollisionLayer::Air,
-                    ),
-                    transform: Transform::default(),
-                    ..Default::default()
-                },
-                ..Default::default()
+                air: Air::default(),
+                wind: Wind::default(),
+                physical: PhysicsBundle::new_fluid(Vec3::default(), size, AIR_DENSITY),
             })
             .insert(Name::new(format!("Air {}", i)))
             .with_children(|parent| {

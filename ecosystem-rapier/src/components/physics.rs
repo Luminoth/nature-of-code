@@ -7,39 +7,37 @@ use bevy_inspector_egui::Inspectable;
 /// 50hz, the same as Unity
 pub const PHYSICS_STEP: f32 = 0.02;
 
-/// Surface state
-#[derive(Debug, Inspectable, Default)]
-pub struct Surface {
-    pub c: f32,
+#[derive(Debug, Default, Copy, Clone)]
+struct Derivative {
+    acceleration: Vec3,
+    velocity: Vec3,
 }
 
-impl Surface {
-    pub fn update(&self, rigidbody: &mut Rigidbody) {
-        let magnitude = self.c;
-        let direction = -rigidbody.velocity.normalize_or_zero();
-
-        let friction = direction * magnitude;
-
-        rigidbody.apply_force(friction.truncate());
+impl Derivative {
+    fn evaluate(acceleration: Vec3, velocity: Vec3, dt: f32, derivative: Self) -> Self {
+        Self {
+            velocity: velocity + derivative.acceleration * dt,
+            acceleration,
+        }
     }
 }
 
-/// Fluid state
-#[derive(Debug, Inspectable, Default)]
-pub struct Fluid {
-    pub density: f32,
-}
+/// RK4 integration: https://gafferongames.com/post/integration_basics/
+#[allow(dead_code)]
+pub fn rk4_integrate(transform: &mut Transform, acceleration: Vec3, velocity: &mut Vec3, dt: f32) {
+    // sample derivative at four points
+    let a = Derivative::evaluate(acceleration, *velocity, 0.0, Derivative::default());
+    let b = Derivative::evaluate(acceleration, *velocity, dt * 0.5, a);
+    let c = Derivative::evaluate(acceleration, *velocity, dt * 0.5, b);
+    let d = Derivative::evaluate(acceleration, *velocity, dt, c);
 
-impl Fluid {
-    pub fn update(&self, rigidbody: &mut Rigidbody) {
-        let speed_squared = rigidbody.speed_squared();
-        let magnitude = 0.5 * self.density * speed_squared * rigidbody.drag;
-        let direction = -rigidbody.velocity.normalize_or_zero();
+    // taylor expansion weighted sum
+    let dvdt =
+        1.0 / 6.0 * (a.acceleration + 2.0 * (b.acceleration + c.acceleration) + d.acceleration);
+    let dxdt = 1.0 / 6.0 * (a.velocity + 2.0 * (b.velocity + c.velocity) + d.velocity);
 
-        let drag = direction * magnitude;
-
-        rigidbody.apply_force(drag.truncate());
-    }
+    *velocity += dvdt * dt;
+    transform.translation += dxdt * dt;
 }
 
 /// Oscillator

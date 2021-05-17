@@ -5,6 +5,7 @@ use bevy_inspector_egui::Inspectable;
 use bevy_prototype_lyon::prelude::*;
 
 use crate::bundles::creatures::*;
+use crate::bundles::physics::*;
 use crate::resources::*;
 
 use super::particles::*;
@@ -93,20 +94,8 @@ impl Fly {
                 acceleration: FLY_ACCEL,
                 repel_acceleration: FLY_REPEL_ACCEL,
             },
-            physical: DynamicPhysicsBundle {
-                rigidbody: Rigidbody {
-                    mass,
-                    drag: FLY_DRAG,
-                    ..Default::default()
-                },
-                collider: Collider::Box(
-                    BoxCollider::new(Vec2::default(), size),
-                    CollisionLayer::Air,
-                ),
-                transform: Transform::from_translation(position.extend(40.0)),
-                ..Default::default()
-            },
-            ..Default::default()
+            creature: Creature::default(),
+            physical: PhysicsBundle::new_dynamic(position.extend(40.0), size, mass),
         });
 
         bundle.with_children(|parent| {
@@ -187,20 +176,8 @@ impl Fish {
                     acceleration: FISH_ACCEL,
                     repel_acceleration: FISH_REPEL_ACCEL,
                 },
-                physical: DynamicPhysicsBundle {
-                    rigidbody: Rigidbody {
-                        mass,
-                        drag: FISH_DRAG,
-                        ..Default::default()
-                    },
-                    collider: Collider::Box(
-                        BoxCollider::new(Vec2::default(), size),
-                        CollisionLayer::Water,
-                    ),
-                    transform: Transform::from_translation(position.extend(0.0)),
-                    ..Default::default()
-                },
-                ..Default::default()
+                creature: Creature::default(),
+                physical: PhysicsBundle::new_dynamic(position.extend(0.0), size, mass),
             })
             .insert(Name::new(format!("Fish {}", i)))
             .with_children(|parent| {
@@ -270,20 +247,8 @@ impl Snake {
                     ground_acceleration: SNAKE_GROUND_ACCEL,
                     repel_acceleration: SNAKE_REPEL_ACCEL,
                 },
-                physical: DynamicPhysicsBundle {
-                    rigidbody: Rigidbody {
-                        mass,
-                        drag: SNAKE_DRAG,
-                        ..Default::default()
-                    },
-                    collider: Collider::Box(
-                        BoxCollider::new(Vec2::default(), size),
-                        CollisionLayer::Ground,
-                    ),
-                    transform: Transform::from_translation(position.extend(20.0)),
-                    ..Default::default()
-                },
-                ..Default::default()
+                creature: Creature::default(),
+                physical: PhysicsBundle::new_dynamic(position.extend(20.0), size, mass),
             })
             .insert(Name::new(format!("Snake {}", i)))
             .with_children(|parent| {

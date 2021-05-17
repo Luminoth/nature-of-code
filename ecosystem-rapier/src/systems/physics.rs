@@ -9,30 +9,7 @@ pub struct Physics;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
 pub enum PhysicsSystem {
-    Collisions,
     Update,
-}
-
-/// Handles physics collisions
-// TODO: this name sucks
-pub fn physics_collisions(
-    mut query: Query<(&Transform, &mut Rigidbody, &Collider)>,
-    surfaces: Query<(&Surface, &Transform, &Collider)>,
-    fluids: Query<(&Fluid, &Transform, &Collider)>,
-) {
-    for (transform, mut rigidbody, collider) in query.iter_mut() {
-        for (surface, stransform, scollider) in surfaces.iter() {
-            if collider.collides(transform, (stransform, scollider)) {
-                surface.update(&mut rigidbody);
-            }
-        }
-
-        for (fluid, ftransform, fcollider) in fluids.iter() {
-            if collider.collides(transform, (ftransform, fcollider)) {
-                fluid.update(&mut rigidbody);
-            }
-        }
-    }
 }
 
 /// Updates an oscillator

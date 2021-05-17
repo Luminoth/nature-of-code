@@ -3,38 +3,34 @@
 use bevy::prelude::*;
 
 use crate::components::environment::*;
-use crate::components::physics::*;
 
 use super::physics::*;
 
 /// Ground bundle
-#[derive(Default, Bundle)]
+#[derive(Bundle)]
 pub struct GroundBundle {
     pub ground: Ground,
-    pub surface: Surface,
 
     #[bundle]
-    pub physical: StaticPhysicsBundle,
+    pub physical: PhysicsBundle,
 }
 
 /// Water bundle
-#[derive(Default, Bundle)]
+#[derive(Bundle)]
 pub struct WaterBundle {
     pub water: Water,
-    pub fluid: Fluid,
     pub current: WaterCurrent,
 
     #[bundle]
-    pub physical: StaticPhysicsBundle,
+    pub physical: PhysicsBundle,
 }
 
 /// Air bundle
-#[derive(Default, Bundle)]
+#[derive(Bundle)]
 pub struct AirBundle {
     pub air: Air,
-    pub fluid: Fluid,
     pub wind: Wind,
 
     #[bundle]
-    pub physical: StaticPhysicsBundle,
+    pub physical: PhysicsBundle,
 }

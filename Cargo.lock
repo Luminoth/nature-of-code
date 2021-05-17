@@ -1639,7 +1639,6 @@ dependencies = [
  "bevy_prototype_lyon",
  "bevy_rapier2d",
  "derivative",
- "nalgebra 0.26.2",
  "noise",
  "num-traits 0.2.14",
  "rand 0.8.3",
@@ -3047,22 +3046,6 @@ dependencies = [
  "num-rational 0.3.2",
  "num-traits 0.2.14",
  "serde",
- "simba",
- "typenum",
-]
-
-[[package]]
-name = "nalgebra"
-version = "0.26.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "476d1d59fe02fe54c86356e91650cd892f392782a1cb9fc524ec84f7aa9e1d06"
-dependencies = [
- "approx 0.4.0",
- "glam 0.13.1",
- "matrixmultiply 0.3.1",
- "num-complex 0.3.1",
- "num-rational 0.3.2",
- "num-traits 0.2.14",
  "simba",
  "typenum",
 ]

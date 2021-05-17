@@ -4,10 +4,13 @@ use bevy::prelude::*;
 use bevy_rapier2d::physics::{ColliderHandleComponent, RigidBodyHandleComponent};
 use bevy_rapier2d::rapier::dynamics::RigidBodySet;
 use bevy_rapier2d::rapier::geometry::ColliderSet;
+use bevy_rapier2d::rapier::parry::bounding_volume::BoundingVolume;
 
 use crate::components::creatures::*;
+use crate::components::environment::*;
 use crate::components::physics::*;
 use crate::resources::*;
+use crate::util::{from_vector, to_vector};
 
 /// Creature systems
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
@@ -57,7 +60,7 @@ pub fn fly_physics(
 
             creature.acceleration_direction = random.direction();
             let magnitude = fly.acceleration * rigidbody.mass(); // * _modifier;
-            rigidbody.apply_force(creature.acceleration_direction * magnitude, true);
+            rigidbody.apply_force(to_vector(creature.acceleration_direction * magnitude), true);
         }
     }
 }
@@ -131,16 +134,18 @@ pub fn fish_physics(
             creature.acceleration_direction = if rigidbody.linvel().magnitude_squared() == 0.0 {
                 random.direction()
             } else {
-                rigidbody
-                    .linvel()
-                    .truncate()
-                    .lerp(random.direction(), PHYSICS_STEP)
-                    .normalize()
+                let direction = to_vector(random.direction());
+                from_vector(
+                    rigidbody
+                        .linvel()
+                        .lerp(&direction, PHYSICS_STEP)
+                        .normalize(),
+                )
             };
 
             let magnitude = fish.acceleration * rigidbody.mass(); // * _modifier;
 
-            rigidbody.apply_force(creature.acceleration_direction * magnitude, true);
+            rigidbody.apply_force(to_vector(creature.acceleration_direction * magnitude), true);
         }
     }
 }
@@ -173,15 +178,16 @@ pub fn fish_repel(
 pub fn fish_bounds(
     colliders: Res<ColliderSet>,
     mut query: Query<(&mut Transform, &ColliderHandleComponent), With<Fish>>,
-    fluids: Query<(&Transform, &ColliderHandleComponent), (With<Fluid>, Without<Fish>)>,
+    waters: Query<(&Transform, &ColliderHandleComponent), (With<Water>, Without<Fish>)>,
 ) {
     for (mut transform, chandle) in query.iter_mut() {
-        for (ftransform, fchandle) in fluids.iter() {
+        for (wtransform, wchandle) in waters.iter() {
             if let Some(collider) = colliders.get(chandle.handle()) {
-                if let Some(fcollider) = colliders.get(fchandle.handle()) {
-                    if collider.collides(&transform, (ftransform, fcollider)) {
-                        let position = ftransform.translation.truncate();
-                        let half_size = fcollider.size() / 2.0;
+                if let Some(fcollider) = colliders.get(wchandle.handle()) {
+                    let fbounds = fcollider.compute_aabb();
+                    if collider.compute_aabb().intersects(&fbounds) {
+                        let position = wtransform.translation.truncate();
+                        let half_size = from_vector(fbounds.half_extents());
 
                         let min = position - half_size;
                         let max = position + half_size;
@@ -225,16 +231,18 @@ pub fn snake_physics(
             creature.acceleration_direction = if rigidbody.linvel().magnitude_squared() == 0.0 {
                 random.direction()
             } else {
-                rigidbody
-                    .linvel()
-                    .truncate()
-                    .lerp(random.direction(), PHYSICS_STEP)
-                    .normalize()
+                let direction = to_vector(random.direction());
+                from_vector(
+                    rigidbody
+                        .linvel()
+                        .lerp(&direction, PHYSICS_STEP)
+                        .normalize(),
+                )
             };
 
             let magnitude = snake.ground_acceleration * rigidbody.mass(); // * _modifier;
 
-            rigidbody.apply_force(creature.acceleration_direction * magnitude, true);
+            rigidbody.apply_force(to_vector(creature.acceleration_direction * magnitude), true);
         }
     }
 }
@@ -243,15 +251,16 @@ pub fn snake_physics(
 pub fn snake_bounds(
     colliders: Res<ColliderSet>,
     mut query: Query<(&mut Transform, &ColliderHandleComponent), With<Snake>>,
-    surfaces: Query<(&Transform, &ColliderHandleComponent), (With<Surface>, Without<Snake>)>,
+    grounds: Query<(&Transform, &ColliderHandleComponent), (With<Ground>, Without<Snake>)>,
 ) {
     for (mut transform, chandle) in query.iter_mut() {
-        for (stransform, schandle) in surfaces.iter() {
+        for (stransform, schandle) in grounds.iter() {
             if let Some(collider) = colliders.get(chandle.handle()) {
                 if let Some(scollider) = colliders.get(schandle.handle()) {
-                    if collider.collides(&transform, (stransform, scollider)) {
+                    let sbounds = scollider.compute_aabb();
+                    if collider.compute_aabb().intersects(&sbounds) {
                         let position = stransform.translation.truncate();
-                        let half_size = scollider.size() / 2.0;
+                        let half_size = from_vector(sbounds.half_extents());
 
                         let min = position - half_size;
                         let max = position + half_size;

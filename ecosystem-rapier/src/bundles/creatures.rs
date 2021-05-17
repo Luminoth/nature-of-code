@@ -8,13 +8,13 @@ use crate::components::particles::*;
 use super::physics::*;
 
 /// Fly bundle
-#[derive(Default, Bundle)]
+#[derive(Bundle)]
 pub struct FlyBundle {
     pub fly: Fly,
     pub creature: Creature,
 
     #[bundle]
-    pub physical: DynamicPhysicsBundle,
+    pub physical: PhysicsBundle,
 }
 
 /// Firefly (Fly particles) bundle
@@ -29,13 +29,13 @@ pub struct FireflyBundle {
 }
 
 /// Fish bundle
-#[derive(Default, Bundle)]
+#[derive(Bundle)]
 pub struct FishBundle {
     pub fish: Fish,
     pub creature: Creature,
 
     #[bundle]
-    pub physical: DynamicPhysicsBundle,
+    pub physical: PhysicsBundle,
 }
 
 /// Fish particles bundle
@@ -48,11 +48,11 @@ pub struct FishParticlesBundle {
 }
 
 /// Snake bundle
-#[derive(Default, Bundle)]
+#[derive(Bundle)]
 pub struct SnakeBundle {
     pub snake: Snake,
     pub creature: Creature,
 
     #[bundle]
-    pub physical: DynamicPhysicsBundle,
+    pub physical: PhysicsBundle,
 }

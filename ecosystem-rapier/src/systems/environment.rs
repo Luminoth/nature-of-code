@@ -9,6 +9,7 @@ use bevy_rapier2d::rapier::parry::bounding_volume::BoundingVolume;
 use crate::components::creatures::*;
 use crate::components::environment::*;
 use crate::resources::*;
+use crate::util::to_vector;
 
 /// Environment systems
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
@@ -33,7 +34,7 @@ pub fn water_current(
                     if let Some(rigidbody) = rigidbodies.get_mut(ccollider.parent()) {
                         let cbounds = ccollider.compute_aabb();
                         if collider.compute_aabb().intersects(&cbounds) {
-                            rigidbody.apply_force(force.extend(0.0), true);
+                            rigidbody.apply_force(to_vector(force), true);
                         }
                     }
                 }
@@ -61,7 +62,7 @@ pub fn wind(
                     if let Some(rigidbody) = rigidbodies.get_mut(ccollider.parent()) {
                         let cbounds = ccollider.compute_aabb();
                         if collider.compute_aabb().intersects(&cbounds) {
-                            rigidbody.apply_force(force, true);
+                            rigidbody.apply_force(to_vector(force), true);
                         }
                     }
                 }
