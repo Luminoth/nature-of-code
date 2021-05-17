@@ -54,7 +54,7 @@ pub fn fly_physics(
     mut rigidbodies: ResMut<RigidBodySet>,
     mut query: Query<(&RigidBodyHandleComponent, &Fly, &mut Creature)>,
 ) {
-    for (mut rbhandle, fly, mut creature) in query.iter_mut() {
+    for (rbhandle, fly, mut creature) in query.iter_mut() {
         if let Some(rigidbody) = rigidbodies.get_mut(rbhandle.handle()) {
             let _modifier = random.random() as f32;
 
@@ -68,6 +68,7 @@ pub fn fly_physics(
 /// Keep flies inside the window
 pub fn fly_bounds(
     world_bounds: Res<WorldBounds>,
+    mut rigidbodies: ResMut<RigidBodySet>,
     colliders: Res<ColliderSet>,
     mut query: Query<(&mut Transform, &ColliderHandleComponent), With<Fly>>,
 ) {
@@ -76,15 +77,26 @@ pub fn fly_bounds(
 
     for (mut transform, chandle) in query.iter_mut() {
         if let Some(collider) = colliders.get(chandle.handle()) {
-            let (min, max) = collider.adjust_container_bounds(
+            let bounds = collider.compute_aabb();
+
+            let (min, max) = adjust_container_bounds(
+                from_vector(bounds.extents()),
                 Vec2::new(-hw, -hh),
                 Vec2::new(hw, hh),
                 BOUNDS_OFFSET,
             );
 
-            let rigidbody = collider.parent();
-            rigidbody.contain(&mut transform, min, max, FLY_SIZE);
-            rigidbody.bounds_repel(&transform, min, max, BOUNDS_REPEL_ACCEL, FLY_SIZE);
+            if let Some(rigidbody) = rigidbodies.get_mut(collider.parent()) {
+                contain(rigidbody, &mut transform, min, max, FLY_SIZE);
+                bounds_repel(
+                    rigidbody,
+                    &transform,
+                    min,
+                    max,
+                    BOUNDS_REPEL_ACCEL,
+                    FLY_SIZE,
+                );
+            }
         }
     }
 }
@@ -102,7 +114,8 @@ pub fn fly_repel(
             }
 
             if let Some(frigidbody) = rigidbodies.get_mut(frbhandle.handle()) {
-                frigidbody.repel(
+                repel(
+                    frigidbody,
                     transform,
                     ftransform.translation.truncate(),
                     fish.repel_acceleration,
@@ -163,7 +176,8 @@ pub fn fish_repel(
             }
 
             if let Some(frigidbody) = rigidbodies.get_mut(frbhandle.handle()) {
-                frigidbody.repel(
+                repel(
+                    frigidbody,
                     transform,
                     ftransform.translation.truncate(),
                     fish.repel_acceleration,
@@ -176,6 +190,7 @@ pub fn fish_repel(
 
 /// Keep fish inside the water
 pub fn fish_bounds(
+    mut rigidbodies: ResMut<RigidBodySet>,
     colliders: Res<ColliderSet>,
     mut query: Query<(&mut Transform, &ColliderHandleComponent), With<Fish>>,
     waters: Query<(&Transform, &ColliderHandleComponent), (With<Water>, Without<Fish>)>,
@@ -192,17 +207,24 @@ pub fn fish_bounds(
                         let min = position - half_size;
                         let max = position + half_size;
 
-                        let (min, max) = collider.adjust_container_bounds(min, max, BOUNDS_OFFSET);
-
-                        let rigidbody = collider.parent();
-                        rigidbody.contain(&mut transform, min, max, FISH_WIDTH);
-                        rigidbody.bounds_repel(
-                            &transform,
+                        let (min, max) = adjust_container_bounds(
+                            from_vector(fbounds.extents()),
                             min,
                             max,
-                            BOUNDS_REPEL_ACCEL,
-                            FISH_WIDTH,
+                            BOUNDS_OFFSET,
                         );
+
+                        if let Some(rigidbody) = rigidbodies.get_mut(collider.parent()) {
+                            contain(rigidbody, &mut transform, min, max, FISH_WIDTH);
+                            bounds_repel(
+                                rigidbody,
+                                &transform,
+                                min,
+                                max,
+                                BOUNDS_REPEL_ACCEL,
+                                FISH_WIDTH,
+                            );
+                        }
                     }
                 }
             }
@@ -249,6 +271,7 @@ pub fn snake_physics(
 
 /// Keep snakes on the ground (for now)
 pub fn snake_bounds(
+    mut rigidbodies: ResMut<RigidBodySet>,
     colliders: Res<ColliderSet>,
     mut query: Query<(&mut Transform, &ColliderHandleComponent), With<Snake>>,
     grounds: Query<(&Transform, &ColliderHandleComponent), (With<Ground>, Without<Snake>)>,
@@ -265,17 +288,24 @@ pub fn snake_bounds(
                         let min = position - half_size;
                         let max = position + half_size;
 
-                        let (min, max) = collider.adjust_container_bounds(min, max, BOUNDS_OFFSET);
-
-                        let rigidbody = collider.parent();
-                        rigidbody.contain(&mut transform, min, max, SNAKE_WIDTH);
-                        rigidbody.bounds_repel(
-                            &transform,
+                        let (min, max) = adjust_container_bounds(
+                            from_vector(sbounds.extents()),
                             min,
                             max,
-                            BOUNDS_REPEL_ACCEL,
-                            SNAKE_WIDTH,
+                            BOUNDS_OFFSET,
                         );
+
+                        if let Some(rigidbody) = rigidbodies.get_mut(collider.parent()) {
+                            contain(rigidbody, &mut transform, min, max, SNAKE_WIDTH);
+                            bounds_repel(
+                                rigidbody,
+                                &transform,
+                                min,
+                                max,
+                                BOUNDS_REPEL_ACCEL,
+                                SNAKE_WIDTH,
+                            );
+                        }
                     }
                 }
             }
@@ -296,7 +326,8 @@ pub fn snake_repel(
             }
 
             if let Some(srigidbody) = rigidbodies.get_mut(srbhandle.handle()) {
-                srigidbody.repel(
+                repel(
+                    srigidbody,
                     transform,
                     stransform.translation.truncate(),
                     fish.repel_acceleration,

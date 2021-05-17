@@ -2,6 +2,10 @@
 
 use bevy::prelude::*;
 use bevy_inspector_egui::Inspectable;
+use bevy_rapier2d::rapier::dynamics::RigidBody;
+use num_traits::Float;
+
+use crate::util::to_vector;
 
 /// Physics step rate
 /// 50hz, the same as Unity
@@ -38,6 +42,128 @@ pub fn rk4_integrate(transform: &mut Transform, acceleration: Vec3, velocity: &m
 
     *velocity += dvdt * dt;
     transform.translation += dxdt * dt;
+}
+
+/// Contain a rigidbody inside bounds
+#[allow(dead_code)]
+pub fn contain(
+    rigidbody: &mut RigidBody,
+    transform: &mut Transform,
+    min: Vec2,
+    max: Vec2,
+    min_distance: f32,
+) {
+    if transform.translation.x <= min.x {
+        transform.translation.x = min.x + min_distance;
+
+        let mut velocity = *rigidbody.linvel();
+        velocity.x = 0.0;
+        rigidbody.set_linvel(velocity, true);
+    } else if transform.translation.x >= max.x {
+        transform.translation.x = max.x - min_distance;
+
+        let mut velocity = *rigidbody.linvel();
+        velocity.x = 0.0;
+        rigidbody.set_linvel(velocity, true);
+    }
+
+    if transform.translation.y <= min.y {
+        transform.translation.y = min.y + min_distance;
+
+        let mut velocity = *rigidbody.linvel();
+        velocity.y = 0.0;
+        rigidbody.set_linvel(velocity, true);
+    } else if transform.translation.y >= max.y {
+        transform.translation.y = max.y - min_distance;
+
+        let mut velocity = *rigidbody.linvel();
+        velocity.y = 0.0;
+        rigidbody.set_linvel(velocity, true);
+    }
+}
+
+fn attract_repel_force(
+    rigidbody: &RigidBody,
+    ab: Vec2,
+    acceleration: f32,
+    min_distance: f32,
+) -> Vec2 {
+    let distance = Float::max(min_distance, ab.length());
+    let direction = ab.normalize_or_zero();
+    let magnitude = (acceleration * rigidbody.mass()) / (distance * distance);
+
+    direction * magnitude
+}
+
+/// Repel a rigidbody inside bounds
+#[allow(dead_code)]
+pub fn bounds_repel(
+    rigidbody: &mut RigidBody,
+    transform: &Transform,
+    min: Vec2,
+    max: Vec2,
+    acceleration: f32,
+    min_distance: f32,
+) {
+    let force = attract_repel_force(
+        rigidbody,
+        Vec2::new(transform.translation.x - min.x, 0.0),
+        acceleration,
+        min_distance,
+    );
+    rigidbody.apply_force(to_vector(force), true);
+
+    let force = attract_repel_force(
+        rigidbody,
+        Vec2::new(transform.translation.x - max.x, 0.0),
+        acceleration,
+        min_distance,
+    );
+    rigidbody.apply_force(to_vector(force), true);
+
+    let force = attract_repel_force(
+        rigidbody,
+        Vec2::new(0.0, transform.translation.y - min.y),
+        acceleration,
+        min_distance,
+    );
+    rigidbody.apply_force(to_vector(force), true);
+
+    let force = attract_repel_force(
+        rigidbody,
+        Vec2::new(0.0, transform.translation.y - max.y),
+        acceleration,
+        min_distance,
+    );
+    rigidbody.apply_force(to_vector(force), true);
+}
+
+/// Repel a a rigidbody away from a point
+#[allow(dead_code)]
+pub fn repel(
+    rigidbody: &mut RigidBody,
+    transform: &Transform,
+    point: Vec2,
+    acceleration: f32,
+    min_distance: f32,
+) {
+    let force = attract_repel_force(
+        rigidbody,
+        transform.translation.truncate() - point,
+        acceleration,
+        min_distance,
+    );
+    rigidbody.apply_force(to_vector(force), true);
+}
+
+/// Adjusts the bounds that should contain a collider
+pub fn adjust_container_bounds(size: Vec2, min: Vec2, max: Vec2, offset: f32) -> (Vec2, Vec2) {
+    let size = size;
+    let offset = Vec2::splat(offset);
+    let min = min + size + offset;
+    let max = max - size - offset;
+
+    (min, max)
 }
 
 /// Oscillator
