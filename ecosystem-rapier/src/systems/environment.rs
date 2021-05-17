@@ -1,6 +1,10 @@
 //! Environment systems
 
 use bevy::prelude::*;
+use bevy_rapier2d::physics::ColliderHandleComponent;
+use bevy_rapier2d::rapier::dynamics::RigidBodySet;
+use bevy_rapier2d::rapier::geometry::ColliderSet;
+use bevy_rapier2d::rapier::parry::bounding_volume::BoundingVolume;
 
 use crate::components::creatures::*;
 use crate::components::environment::*;
@@ -15,37 +19,55 @@ pub enum EnvironmentsSystem {
 /// Water current
 pub fn water_current(
     noise: Res<PerlinNoise>,
-    mut query: Query<(&Transform, &Collider, &mut WaterCurrent), Without<Creature>>,
-    mut creatures: Query<(&mut Transform, &mut Rigidbody, &Collider), With<Creature>>,
+    mut rigidbodies: ResMut<RigidBodySet>,
+    colliders: Res<ColliderSet>,
+    mut query: Query<(&ColliderHandleComponent, &mut WaterCurrent), Without<Creature>>,
+    creatures: Query<&ColliderHandleComponent, With<Creature>>,
 ) {
-    for (transform, collider, mut current) in query.iter_mut() {
-        let force = current.force(&noise);
+    for (chandle, mut current) in query.iter_mut() {
+        if let Some(collider) = colliders.get(chandle.handle()) {
+            let force = current.force(&noise);
 
-        for (ctransform, mut rigidbody, ccollider) in creatures.iter_mut() {
-            if collider.collides(&transform, (&ctransform, ccollider)) {
-                rigidbody.apply_force(force);
+            for cchandle in creatures.iter() {
+                if let Some(ccollider) = colliders.get(cchandle.handle()) {
+                    if let Some(rigidbody) = rigidbodies.get_mut(ccollider.parent()) {
+                        let cbounds = ccollider.compute_aabb();
+                        if collider.compute_aabb().intersects(&cbounds) {
+                            rigidbody.apply_force(force.extend(0.0), true);
+                        }
+                    }
+                }
             }
-        }
 
-        current.update();
+            current.update();
+        }
     }
 }
 
 /// Wind
 pub fn wind(
     noise: Res<PerlinNoise>,
-    mut query: Query<(&Transform, &Collider, &mut Wind), Without<Creature>>,
-    mut creatures: Query<(&mut Transform, &mut Rigidbody, &Collider), With<Creature>>,
+    mut rigidbodies: ResMut<RigidBodySet>,
+    colliders: Res<ColliderSet>,
+    mut query: Query<(&ColliderHandleComponent, &mut Wind), Without<Creature>>,
+    creatures: Query<&ColliderHandleComponent, With<Creature>>,
 ) {
-    for (transform, collider, mut wind) in query.iter_mut() {
-        let force = wind.force(&noise);
+    for (chandle, mut wind) in query.iter_mut() {
+        if let Some(collider) = colliders.get(chandle.handle()) {
+            let force = wind.force(&noise);
 
-        for (ctransform, mut rigidbody, ccollider) in creatures.iter_mut() {
-            if collider.collides(&transform, (&ctransform, ccollider)) {
-                rigidbody.apply_force(force);
+            for cchandle in creatures.iter() {
+                if let Some(ccollider) = colliders.get(cchandle.handle()) {
+                    if let Some(rigidbody) = rigidbodies.get_mut(ccollider.parent()) {
+                        let cbounds = ccollider.compute_aabb();
+                        if collider.compute_aabb().intersects(&cbounds) {
+                            rigidbody.apply_force(force, true);
+                        }
+                    }
+                }
             }
-        }
 
-        wind.update();
+            wind.update();
+        }
     }
 }
