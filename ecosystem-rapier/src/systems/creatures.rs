@@ -139,6 +139,8 @@ pub fn fish_physics(
     mut rigidbodies: ResMut<RigidBodySet>,
     mut query: Query<(&RigidBodyHandleComponent, &Fish, &mut Creature)>,
 ) {
+    let dt = time.delta_seconds();
+
     for (rbhandle, fish, mut creature) in query.iter_mut() {
         if let Some(rigidbody) = rigidbodies.get_mut(rbhandle.handle()) {
             let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
@@ -148,12 +150,7 @@ pub fn fish_physics(
                 random.direction()
             } else {
                 let direction = to_vector(random.direction());
-                from_vector(
-                    rigidbody
-                        .linvel()
-                        .lerp(&direction, PHYSICS_STEP)
-                        .normalize(),
-                )
+                from_vector(rigidbody.linvel().lerp(&direction, dt).normalize())
             };
 
             let magnitude = fish.acceleration * rigidbody.mass(); // * _modifier;
@@ -245,6 +242,8 @@ pub fn snake_physics(
     mut rigidbodies: ResMut<RigidBodySet>,
     mut query: Query<(&RigidBodyHandleComponent, &Snake, &mut Creature)>,
 ) {
+    let dt = time.delta_seconds();
+
     for (rbhandle, snake, mut creature) in query.iter_mut() {
         if let Some(rigidbody) = rigidbodies.get_mut(rbhandle.handle()) {
             let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
@@ -254,12 +253,7 @@ pub fn snake_physics(
                 random.direction()
             } else {
                 let direction = to_vector(random.direction());
-                from_vector(
-                    rigidbody
-                        .linvel()
-                        .lerp(&direction, PHYSICS_STEP)
-                        .normalize(),
-                )
+                from_vector(rigidbody.linvel().lerp(&direction, dt).normalize())
             };
 
             let magnitude = snake.ground_acceleration * rigidbody.mass(); // * _modifier;

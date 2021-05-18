@@ -13,8 +13,10 @@ pub enum PhysicsSystem {
 }
 
 /// Updates an oscillator
-pub fn oscillator_update(mut query: Query<(&mut Transform, &mut Oscillator)>) {
+pub fn oscillator_update(time: Res<Time>, mut query: Query<(&mut Transform, &mut Oscillator)>) {
+    let dt = time.delta_seconds();
+
     for (mut transform, mut oscillator) in query.iter_mut() {
-        oscillator.update(&mut transform);
+        oscillator.update(dt, &mut transform);
     }
 }

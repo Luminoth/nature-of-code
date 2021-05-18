@@ -137,7 +137,6 @@ fn main() {
             // 2) PhysicsSystem::Update (oscillate, etc)
             // 3) CreaturesSystem::Bounds (rewind updates at borders, border repel)
             SystemSet::on_update(GameState::Game)
-                .with_run_criteria(FixedTimestep::step(PHYSICS_STEP as f64))
                 // core physics
                 .with_system(
                     oscillator_update

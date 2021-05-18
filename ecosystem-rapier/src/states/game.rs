@@ -1,6 +1,8 @@
 //! Game state systems
 
 use bevy::prelude::*;
+use bevy_rapier2d::physics::RapierConfiguration;
+use bevy_rapier2d::rapier::math::Vector;
 
 use crate::components::creatures::*;
 use crate::components::environment::*;
@@ -10,6 +12,7 @@ use crate::resources::*;
 /// Game setup
 pub fn setup(
     mut commands: Commands,
+    mut rapier_config: ResMut<RapierConfiguration>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut random: ResMut<Random>,
     simulation: Res<SimulationParams>,
@@ -29,6 +32,9 @@ pub fn setup(
         .spawn_bundle(UiCameraBundle::default())
         .insert(UiCamera)
         .insert(Name::new("UI Camera"));
+
+    // physics
+    rapier_config.gravity = Vector::zeros();
 
     // materials
     // TODO: wrap these in a struct to pass around (and store as a resource)

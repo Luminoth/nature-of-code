@@ -185,10 +185,7 @@ impl Default for Oscillator {
 }
 
 impl Oscillator {
-    pub fn update(&mut self, transform: &mut Transform) {
-        // https://github.com/bevyengine/bevy/issues/2041
-        let dt = PHYSICS_STEP;
-
+    pub fn update(&mut self, dt: f32, transform: &mut Transform) {
         self.angle += self.velocity * dt;
 
         transform.translation.x = self.angle.x.sin() * self.amplitude.x;
