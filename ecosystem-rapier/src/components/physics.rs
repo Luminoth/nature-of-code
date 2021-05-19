@@ -11,6 +11,13 @@ use crate::util::to_vector;
 /// 50hz, the same as Unity
 pub const PHYSICS_STEP: f32 = 0.02;
 
+/// Oscillator
+#[derive(Debug, Inspectable)]
+pub struct Physical {
+    #[inspectable(ignore)]
+    pub previous_position: Vec3,
+}
+
 #[derive(Debug, Default, Copy, Clone)]
 struct Derivative {
     acceleration: Vec3,
@@ -49,18 +56,30 @@ pub fn rk4_integrate(transform: &mut Transform, acceleration: Vec3, velocity: &m
 pub fn contain(
     rigidbody: &mut RigidBody,
     transform: &mut Transform,
+    physical: &Physical,
     min: Vec2,
     max: Vec2,
     min_distance: f32,
 ) {
+    // unwind to our previous position, if we can
+    // otherwise clamp to the min / max minus a little fudge
+
     if transform.translation.x <= min.x {
-        transform.translation.x = min.x + min_distance;
+        transform.translation.x = if physical.previous_position.x <= min.x {
+            min.x + min_distance
+        } else {
+            physical.previous_position.x
+        };
 
         let mut velocity = *rigidbody.linvel();
         velocity.x = 0.0;
         rigidbody.set_linvel(velocity, true);
     } else if transform.translation.x >= max.x {
-        transform.translation.x = max.x - min_distance;
+        transform.translation.x = if physical.previous_position.x >= max.x {
+            max.x - min_distance
+        } else {
+            physical.previous_position.x
+        };
 
         let mut velocity = *rigidbody.linvel();
         velocity.x = 0.0;
@@ -68,13 +87,21 @@ pub fn contain(
     }
 
     if transform.translation.y <= min.y {
-        transform.translation.y = min.y + min_distance;
+        transform.translation.y = if physical.previous_position.y <= min.y {
+            min.y + min_distance
+        } else {
+            physical.previous_position.y
+        };
 
         let mut velocity = *rigidbody.linvel();
         velocity.y = 0.0;
         rigidbody.set_linvel(velocity, true);
     } else if transform.translation.y >= max.y {
-        transform.translation.y = max.y - min_distance;
+        transform.translation.y = if physical.previous_position.y >= max.y {
+            max.y - min_distance
+        } else {
+            physical.previous_position.y
+        };
 
         let mut velocity = *rigidbody.linvel();
         velocity.y = 0.0;

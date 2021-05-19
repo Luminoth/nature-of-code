@@ -9,12 +9,14 @@ use bevy_rapier2d::rapier::parry::bounding_volume::BoundingVolume;
 use crate::components::creatures::*;
 use crate::components::environment::*;
 use crate::components::physics::*;
+use crate::components::*;
 use crate::resources::*;
 use crate::util::{from_vector, to_vector};
 
 /// Creature systems
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
 pub enum CreaturesSystem {
+    Think,
     Update,
     UpdateAfter,
     Physics,
@@ -31,13 +33,13 @@ pub fn creature_facing(
     rigidbodies: Res<RigidBodySet>,
     mut query: Query<(&mut Transform, &RigidBodyHandleComponent, &Creature)>,
 ) {
+    let dt = time.delta_seconds();
+
     for (mut transform, rbhandle, creature) in query.iter_mut() {
         if let Some(rigidbody) = rigidbodies.get(rbhandle.handle()) {
             let angle = -creature.acceleration_direction.angle_between(Vec2::Y);
             if rigidbody.linvel().magnitude_squared() != 0.0 {
-                transform.rotation = transform
-                    .rotation
-                    .slerp(Quat::from_rotation_z(angle), time.delta_seconds());
+                transform.rotation = transform.rotation.slerp(Quat::from_rotation_z(angle), dt);
             }
         }
     }
@@ -49,16 +51,22 @@ pub fn fly_update(mut query: Query<&mut Fly>) {
 }
 
 /// Fly behavior
+pub fn fly_think(mut random: ResMut<Random>, mut query: Query<&mut Creature, With<Fly>>) {
+    for mut creature in query.iter_mut() {
+        creature.acceleration_direction = random.direction();
+    }
+}
+
+/// Fly behavior
 pub fn fly_physics(
     mut random: ResMut<Random>,
     mut rigidbodies: ResMut<RigidBodySet>,
-    mut query: Query<(&RigidBodyHandleComponent, &Fly, &mut Creature)>,
+    mut query: Query<(&RigidBodyHandleComponent, &Fly, &Creature)>,
 ) {
-    for (rbhandle, fly, mut creature) in query.iter_mut() {
+    for (rbhandle, fly, creature) in query.iter_mut() {
         if let Some(rigidbody) = rigidbodies.get_mut(rbhandle.handle()) {
             let _modifier = random.random() as f32;
 
-            creature.acceleration_direction = random.direction();
             let magnitude = fly.acceleration * rigidbody.mass(); // * _modifier;
             rigidbody.apply_force(to_vector(creature.acceleration_direction * magnitude), true);
         }
@@ -70,12 +78,12 @@ pub fn fly_bounds(
     world_bounds: Res<WorldBounds>,
     mut rigidbodies: ResMut<RigidBodySet>,
     colliders: Res<ColliderSet>,
-    mut query: Query<(&mut Transform, &ColliderHandleComponent), With<Fly>>,
+    mut query: Query<(&mut Transform, &ColliderHandleComponent, &Physical), With<Fly>>,
 ) {
     let hw = world_bounds.width / 2.0;
     let hh = world_bounds.height / 2.0;
 
-    for (mut transform, chandle) in query.iter_mut() {
+    for (mut transform, chandle, physical) in query.iter_mut() {
         if let Some(collider) = colliders.get(chandle.handle()) {
             let bounds = collider.compute_aabb();
 
@@ -87,7 +95,7 @@ pub fn fly_bounds(
             );
 
             if let Some(rigidbody) = rigidbodies.get_mut(collider.parent()) {
-                contain(rigidbody, &mut transform, min, max, FLY_SIZE);
+                contain(rigidbody, &mut transform, physical, min, max, FLY_SIZE);
                 bounds_repel(
                     rigidbody,
                     &transform,
@@ -132,29 +140,37 @@ pub fn fish_update(mut query: Query<&mut Fish>) {
 }
 
 /// Fish behavior
+pub fn fish_think(
+    mut random: ResMut<Random>,
+    rigidbodies: Res<RigidBodySet>,
+    mut query: Query<(&RigidBodyHandleComponent, &mut Creature), With<Fish>>,
+) {
+    for (rbhandle, mut creature) in query.iter_mut() {
+        if let Some(rigidbody) = rigidbodies.get(rbhandle.handle()) {
+            creature.acceleration_direction = if rigidbody.linvel().magnitude_squared() == 0.0 {
+                random.direction()
+            } else {
+                let direction = to_vector(random.direction());
+                from_vector(rigidbody.linvel().lerp(&direction, THINK_STEP).normalize())
+            };
+        }
+    }
+}
+
+/// Fish behavior
 pub fn fish_physics(
     time: Res<Time>,
     mut random: ResMut<Random>,
     noise: Res<PerlinNoise>,
     mut rigidbodies: ResMut<RigidBodySet>,
-    mut query: Query<(&RigidBodyHandleComponent, &Fish, &mut Creature)>,
+    mut query: Query<(&RigidBodyHandleComponent, &Fish, &Creature)>,
 ) {
-    let dt = time.delta_seconds();
-
-    for (rbhandle, fish, mut creature) in query.iter_mut() {
+    for (rbhandle, fish, creature) in query.iter_mut() {
         if let Some(rigidbody) = rigidbodies.get_mut(rbhandle.handle()) {
             let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
             let _modifier = noise.get(t, random.random_range(0.5..0.75)) as f32;
 
-            creature.acceleration_direction = if rigidbody.linvel().magnitude_squared() == 0.0 {
-                random.direction()
-            } else {
-                let direction = to_vector(random.direction());
-                from_vector(rigidbody.linvel().lerp(&direction, dt).normalize())
-            };
-
             let magnitude = fish.acceleration * rigidbody.mass(); // * _modifier;
-
             rigidbody.apply_force(to_vector(creature.acceleration_direction * magnitude), true);
         }
     }
@@ -189,10 +205,10 @@ pub fn fish_repel(
 pub fn fish_bounds(
     mut rigidbodies: ResMut<RigidBodySet>,
     colliders: Res<ColliderSet>,
-    mut query: Query<(&mut Transform, &ColliderHandleComponent), With<Fish>>,
+    mut query: Query<(&mut Transform, &ColliderHandleComponent, &Physical), With<Fish>>,
     waters: Query<(&Transform, &ColliderHandleComponent), (With<Water>, Without<Fish>)>,
 ) {
-    for (mut transform, chandle) in query.iter_mut() {
+    for (mut transform, chandle, physical) in query.iter_mut() {
         for (wtransform, wchandle) in waters.iter() {
             if let Some(collider) = colliders.get(chandle.handle()) {
                 if let Some(fcollider) = colliders.get(wchandle.handle()) {
@@ -212,7 +228,7 @@ pub fn fish_bounds(
                         );
 
                         if let Some(rigidbody) = rigidbodies.get_mut(collider.parent()) {
-                            contain(rigidbody, &mut transform, min, max, FISH_WIDTH);
+                            contain(rigidbody, &mut transform, physical, min, max, FISH_WIDTH);
                             bounds_repel(
                                 rigidbody,
                                 &transform,
@@ -235,29 +251,37 @@ pub fn snake_update(mut query: Query<&mut Snake>) {
 }
 
 /// Snake behavior
+pub fn snake_think(
+    mut random: ResMut<Random>,
+    rigidbodies: Res<RigidBodySet>,
+    mut query: Query<(&RigidBodyHandleComponent, &mut Creature), With<Snake>>,
+) {
+    for (rbhandle, mut creature) in query.iter_mut() {
+        if let Some(rigidbody) = rigidbodies.get(rbhandle.handle()) {
+            creature.acceleration_direction = if rigidbody.linvel().magnitude_squared() == 0.0 {
+                random.direction()
+            } else {
+                let direction = to_vector(random.direction());
+                from_vector(rigidbody.linvel().lerp(&direction, THINK_STEP).normalize())
+            };
+        }
+    }
+}
+
+/// Snake behavior
 pub fn snake_physics(
     time: Res<Time>,
     mut random: ResMut<Random>,
     noise: Res<PerlinNoise>,
     mut rigidbodies: ResMut<RigidBodySet>,
-    mut query: Query<(&RigidBodyHandleComponent, &Snake, &mut Creature)>,
+    mut query: Query<(&RigidBodyHandleComponent, &Snake, &Creature)>,
 ) {
-    let dt = time.delta_seconds();
-
-    for (rbhandle, snake, mut creature) in query.iter_mut() {
+    for (rbhandle, snake, creature) in query.iter_mut() {
         if let Some(rigidbody) = rigidbodies.get_mut(rbhandle.handle()) {
             let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
             let _modifier = noise.get(t, random.random_range(0.25..0.5)) as f32;
 
-            creature.acceleration_direction = if rigidbody.linvel().magnitude_squared() == 0.0 {
-                random.direction()
-            } else {
-                let direction = to_vector(random.direction());
-                from_vector(rigidbody.linvel().lerp(&direction, dt).normalize())
-            };
-
             let magnitude = snake.ground_acceleration * rigidbody.mass(); // * _modifier;
-
             rigidbody.apply_force(to_vector(creature.acceleration_direction * magnitude), true);
         }
     }
@@ -267,10 +291,10 @@ pub fn snake_physics(
 pub fn snake_bounds(
     mut rigidbodies: ResMut<RigidBodySet>,
     colliders: Res<ColliderSet>,
-    mut query: Query<(&mut Transform, &ColliderHandleComponent), With<Snake>>,
+    mut query: Query<(&mut Transform, &ColliderHandleComponent, &Physical), With<Snake>>,
     grounds: Query<(&Transform, &ColliderHandleComponent), (With<Ground>, Without<Snake>)>,
 ) {
-    for (mut transform, chandle) in query.iter_mut() {
+    for (mut transform, chandle, physical) in query.iter_mut() {
         for (stransform, schandle) in grounds.iter() {
             if let Some(collider) = colliders.get(chandle.handle()) {
                 if let Some(scollider) = colliders.get(schandle.handle()) {
@@ -290,7 +314,7 @@ pub fn snake_bounds(
                         );
 
                         if let Some(rigidbody) = rigidbodies.get_mut(collider.parent()) {
-                            contain(rigidbody, &mut transform, min, max, SNAKE_WIDTH);
+                            contain(rigidbody, &mut transform, physical, min, max, SNAKE_WIDTH);
                             bounds_repel(
                                 rigidbody,
                                 &transform,

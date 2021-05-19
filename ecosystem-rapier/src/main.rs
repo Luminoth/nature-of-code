@@ -22,6 +22,7 @@ use bevy_rapier2d::physics::RapierPhysicsPlugin;
 use num_traits::Float;
 
 use components::physics::*;
+use components::*;
 use events::debug::*;
 use plugins::particles::*;
 use resources::debug::*;
@@ -132,18 +133,20 @@ fn main() {
             SystemSet::on_enter(GameState::Game).with_system(states::game::setup.system()),
         )
         .add_system_set(
+            // fixed (think) update
+            SystemSet::on_update(GameState::Game)
+                .with_run_criteria(FixedTimestep::step(THINK_STEP as f64))
+                .with_system(fly_think.system().label(CreaturesSystem::Think))
+                .with_system(fish_think.system().label(CreaturesSystem::Think))
+                .with_system(snake_think.system().label(CreaturesSystem::Think)),
+        )
+        .add_system_set(
             // fixed (physics) update
             // 1) all CreaturesSystem::Physics (before Physics, including repel)
             // 2) PhysicsSystem::Update (oscillate, etc)
             // 3) CreaturesSystem::Bounds (rewind updates at borders, border repel)
             SystemSet::on_update(GameState::Game)
-                // core physics
-                .with_system(
-                    oscillator_update
-                        .system()
-                        .label(Physics)
-                        .label(PhysicsSystem::Update),
-                )
+                .with_run_criteria(FixedTimestep::step(PHYSICS_STEP as f64))
                 // creaturue behaviors
                 .with_system(
                     fly_physics
@@ -214,6 +217,12 @@ fn main() {
         .add_system_set(
             // per-frame update
             SystemSet::on_update(GameState::Game)
+                .with_system(
+                    oscillator_update
+                        .system()
+                        .label(Physics)
+                        .label(PhysicsSystem::Update),
+                )
                 .with_system(fly_update.system().label(CreaturesSystem::Update))
                 .with_system(fish_update.system().label(CreaturesSystem::Update))
                 .with_system(snake_update.system().label(CreaturesSystem::Update))
@@ -227,6 +236,14 @@ fn main() {
         .add_system_set(
             SystemSet::on_exit(GameState::Game).with_system(states::game::teardown.system()),
         );
+
+    // physical stage
+    app.add_stage_before(
+        bevy_rapier2d::physics::TRANSFORM_SYNC_STAGE,
+        "physical",
+        SystemStage::single_threaded(),
+    )
+    .add_system_to_stage("physical", physical_update.system());
 
     // setup
     app.add_startup_system(setup.system())
@@ -243,6 +260,7 @@ fn main() {
 
     registry.register::<components::MainCamera>();
     registry.register::<components::UiCamera>();
+    registry.register::<components::physics::Physical>();
     registry.register::<components::physics::Oscillator>();
     registry.register::<components::particles::ParticleSystem>();
     registry.register::<components::particles::Particle>();

@@ -4,11 +4,14 @@ use bevy::prelude::*;
 use bevy_rapier2d::rapier::dynamics::RigidBodyBuilder;
 use bevy_rapier2d::rapier::geometry::ColliderBuilder;
 
+use crate::components::physics::*;
+
 /// Physics object
 #[derive(Bundle)]
 pub struct PhysicsBundle {
     pub rigidbody: RigidBodyBuilder,
     pub collider: ColliderBuilder,
+    pub physical: Physical,
 
     pub transform: Transform,
     pub global_transform: GlobalTransform,
@@ -21,6 +24,9 @@ impl PhysicsBundle {
                 .translation(position.x, position.y)
                 .additional_mass(mass),
             collider: ColliderBuilder::cuboid(size.x / 2.0, size.y / 2.0),
+            physical: Physical {
+                previous_position: position,
+            },
             transform: Transform::from_translation(position),
             global_transform: GlobalTransform::default(),
         }
@@ -32,6 +38,9 @@ impl PhysicsBundle {
             collider: ColliderBuilder::cuboid(size.x / 2.0, size.y / 2.0)
                 .sensor(true)
                 .friction(friction),
+            physical: Physical {
+                previous_position: position,
+            },
             transform: Transform::from_translation(position),
             global_transform: GlobalTransform::default(),
         }
@@ -43,6 +52,9 @@ impl PhysicsBundle {
             collider: ColliderBuilder::cuboid(size.x / 2.0, size.y / 2.0)
                 .sensor(true)
                 .density(density),
+            physical: Physical {
+                previous_position: position,
+            },
             transform: Transform::from_translation(position),
             global_transform: GlobalTransform::default(),
         }

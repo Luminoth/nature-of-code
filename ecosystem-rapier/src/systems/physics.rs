@@ -12,6 +12,13 @@ pub enum PhysicsSystem {
     Update,
 }
 
+/// Updates physicals
+pub fn physical_update(mut query: Query<(&Transform, &mut Physical)>) {
+    for (transform, mut physical) in query.iter_mut() {
+        physical.previous_position = transform.translation;
+    }
+}
+
 /// Updates an oscillator
 pub fn oscillator_update(time: Res<Time>, mut query: Query<(&mut Transform, &mut Oscillator)>) {
     let dt = time.delta_seconds();
