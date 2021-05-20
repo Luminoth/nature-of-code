@@ -39,19 +39,29 @@ where
 pub fn b2d_run<'a, S, D, U>(setup: S, mut draw: D) -> Result<(), ProcessingErr>
 where
     S: FnOnce() -> Result<(Screen<'a>, b2::World<U>), ProcessingErr>,
-    D: FnMut(&mut Screen, &b2::World<U>, f64) -> Result<(), ProcessingErr>,
+    D: FnMut(&mut Screen, &mut b2::World<U>, f64) -> Result<(), ProcessingErr>,
     U: UserDataTypes,
 {
-    let (mut screen, world) = setup()?;
+    let (mut screen, mut world) = setup()?;
 
     let mut prev = Instant::now();
     loop {
         input::update(&mut screen);
 
+        {
+            let time_step = 1.0 / 60.0;
+            world.step(time_step, 10, 8);
+            world.clear_forces();
+        }
+
         screen.reset_matrix();
 
         let now = Instant::now();
-        draw(&mut screen, &world, (Instant::now() - prev).as_secs_f64())?;
+        draw(
+            &mut screen,
+            &mut world,
+            (Instant::now() - prev).as_secs_f64(),
+        )?;
         prev = now;
 
         screen.reveal()?;
@@ -250,4 +260,17 @@ pub fn coord_pixels_to_world(screen: &Screen, px: f64, py: f64) -> b2::Vec2 {
         x: wx as f32,
         y: wy as f32,
     }
+}
+
+pub fn scalar_pixels_to_world(val: f64) -> f64 {
+    val / SCALE_FACTOR
+}
+
+pub fn scalar_world_to_pixels(val: f64) -> f64 {
+    val * SCALE_FACTOR
+}
+
+pub fn get_body_pixel_coord(screen: &Screen, b: &b2::Body) -> b2::Vec2 {
+    let xf = b.transform();
+    coord_world_to_pixels(screen, xf.pos.x as f64, xf.pos.y as f64)
 }
