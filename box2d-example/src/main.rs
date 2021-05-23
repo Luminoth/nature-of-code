@@ -9,6 +9,49 @@ use wrapped2d::user_data::NoUserData;
 type World = b2::World<NoUserData>;
 
 #[derive(Debug)]
+struct Surface {
+    vertices: Vec<b2::Vec2>,
+}
+
+impl Surface {
+    fn new(world: &mut World, screen: &Screen, vertices: impl AsRef<Vec<b2::Vec2>>) -> Self {
+        // convert to world coords
+        let mut surface = Vec::with_capacity(vertices.as_ref().len());
+        for vertex in vertices.as_ref() {
+            surface.push(core::coord_pixels_to_world(
+                &screen,
+                vertex.x as f64,
+                vertex.y as f64,
+            ));
+        }
+
+        let mut bd = b2::BodyDef::new();
+        bd.body_type = b2::BodyType::Static;
+        let body = world.create_body(&bd);
+
+        let cs = b2::ChainShape::new_chain(&surface);
+        world.body_mut(body).create_fast_fixture(&cs, 1.0);
+
+        Self { vertices: surface }
+    }
+
+    fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
+        screen.fill_off();
+        screen.stroke_weight(1.0);
+        core::stroke_grayscale(screen, 0.0);
+
+        // TODO:
+        //beginShape();
+        for _v in self.vertices.iter() {
+            //vertex(v.x, v.y);
+        }
+        //endShape();
+
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
 struct Boundary {
     body: Option<b2::BodyHandle>,
 
@@ -134,6 +177,7 @@ fn draw(
     _: f64,
     boxes: &mut Vec<BoxBox>,
     boundaries: &mut Vec<Boundary>,
+    surfaces: &mut Vec<Surface>,
 ) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 255.0);
 
@@ -151,12 +195,17 @@ fn draw(
         boundary.display(screen, world)?;
     }
 
+    for surface in surfaces.iter() {
+        surface.display(screen)?;
+    }
+
     Ok(())
 }
 
 fn main() -> Result<(), ProcessingErr> {
     let boxes = Rc::new(RefCell::new(None));
     let boundaries = Rc::new(RefCell::new(None));
+    let surfaces = Rc::new(RefCell::new(None));
 
     core::b2d_run(
         || {
@@ -164,14 +213,34 @@ fn main() -> Result<(), ProcessingErr> {
 
             *boxes.borrow_mut() = Some(vec![]);
 
+            let hw = screen.width() as f64 / 2.0;
+            let hh = screen.height() as f64 / 2.0;
+
             *boundaries.borrow_mut() = Some(vec![Boundary::new(
                 &mut world,
                 &screen,
-                screen.width() as f64 / 2.0 - 50.0,
-                screen.height() as f64 / 2.0,
+                hw - 50.0,
+                hh,
                 100.0,
                 10.0,
             )]);
+
+            let hw = screen.width() as f32 / 2.0;
+            let hh = screen.height() as f32 / 2.0;
+
+            let vertices = vec![
+                b2::Vec2 {
+                    x: 0.0,
+                    y: hh + 50.0,
+                },
+                b2::Vec2 {
+                    x: hw,
+                    y: hh + 50.0,
+                },
+                b2::Vec2 { x: hw, y: hh },
+            ];
+
+            *surfaces.borrow_mut() = Some(vec![Surface::new(&mut world, &screen, vertices)]);
 
             Ok((screen, world))
         },
@@ -182,6 +251,7 @@ fn main() -> Result<(), ProcessingErr> {
                 dt,
                 boxes.borrow_mut().as_mut().unwrap(),
                 boundaries.borrow_mut().as_mut().unwrap(),
+                surfaces.borrow_mut().as_mut().unwrap(),
             )
         },
     )?;
