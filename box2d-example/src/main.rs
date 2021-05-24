@@ -40,30 +40,27 @@ impl Surface {
     }
 
     fn display(&self, screen: &mut Screen, world: &World) -> Result<(), ProcessingErr> {
-        if let Some(body) = self.body {
-            if let Some(fixture) = self.fixture {
-                let body = world.body(body);
+        let body = world.body(self.body.unwrap());
+        let fixture = body.fixture(self.fixture.unwrap());
+        let shape = fixture.shape();
 
-                screen.fill_off();
-                screen.stroke_weight(1.0);
-                core::stroke_grayscale(screen, 0.0);
+        screen.fill_off();
+        screen.stroke_weight(1.0);
+        core::stroke_grayscale(screen, 0.0);
 
-                // TODO: beginShape();
+        // TODO: beginShape();
 
-                let fixture = body.fixture(fixture);
-                match &*fixture.shape() {
-                    b2::UnknownShape::Chain(shape) => {
-                        for vertex in shape.vertices() {
-                            let _v = core::vector_world_to_pixels(screen, *vertex);
-                            //vertex(v.x, v.y);
-                        }
-                    }
-                    _ => panic!("unexpected shape type {:?}", fixture.shape_type()),
-                };
+        let vertices = match &*shape {
+            b2::UnknownShape::Chain(shape) => shape.vertices(),
+            _ => panic!("unexpected shape type {:?}", fixture.shape_type()),
+        };
 
-                // TODO: endShape();
-            }
+        for vertex in vertices {
+            let _v = core::vector_world_to_pixels(screen, *vertex);
+            //vertex(v.x, v.y);
         }
+
+        // TODO: endShape();
 
         Ok(())
     }
@@ -99,16 +96,14 @@ impl Boundary {
     }
 
     fn display(&self, screen: &mut Screen, world: &World) -> Result<(), ProcessingErr> {
-        if let Some(body) = self.body {
-            let body = world.body(body);
-            let pos = core::get_body_pixel_coord(screen, &body);
+        let body = world.body(self.body.unwrap());
+        let pos = core::get_body_pixel_coord(screen, &body);
 
-            core::fill_grayscale(screen, 0.0);
-            core::stroke_grayscale(screen, 0.0);
+        core::fill_grayscale(screen, 0.0);
+        core::stroke_grayscale(screen, 0.0);
 
-            screen.rect_mode(&core::shapes::RectMode::Center.to_string());
-            core::shapes::rect(screen, pos.x as f64, pos.y as f64, self.w, self.h)?;
-        }
+        screen.rect_mode(&core::shapes::RectMode::Center.to_string());
+        core::shapes::rect(screen, pos.x as f64, pos.y as f64, self.w, self.h)?;
 
         Ok(())
     }
@@ -149,34 +144,29 @@ impl BoxBox {
     }
 
     fn display(&self, screen: &mut Screen, world: &World) -> Result<(), ProcessingErr> {
-        if let Some(body) = self.body {
-            let body = world.body(body);
-            let pos = core::get_body_pixel_coord(screen, &body);
-            let a = body.angle();
+        let body = world.body(self.body.unwrap());
+        let pos = core::get_body_pixel_coord(screen, &body);
+        let a = body.angle();
 
-            core::fill_grayscale(screen, 175.0);
-            core::stroke_grayscale(screen, 0.0);
+        core::fill_grayscale(screen, 175.0);
+        core::stroke_grayscale(screen, 0.0);
 
-            screen.push_matrix();
+        screen.push_matrix();
 
-            core::translate(screen, pos.x as f64, pos.y as f64);
-            core::rotate(screen, -a as f64);
+        core::translate(screen, pos.x as f64, pos.y as f64);
+        core::rotate(screen, -a as f64);
 
-            screen.rect_mode(&core::shapes::RectMode::Center.to_string());
-            core::shapes::rect(screen, 0.0, 0.0, self.w, self.h)?;
+        screen.rect_mode(&core::shapes::RectMode::Center.to_string());
+        core::shapes::rect(screen, 0.0, 0.0, self.w, self.h)?;
 
-            screen.pop_matrix();
-        }
+        screen.pop_matrix();
 
         Ok(())
     }
 
     #[allow(dead_code)]
     fn kill(&mut self, world: &mut World) {
-        let body = self.body.take();
-        if let Some(body) = body {
-            world.destroy_body(body);
-        }
+        world.destroy_body(self.body.take().unwrap());
     }
 }
 
