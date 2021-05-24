@@ -10,7 +10,8 @@ type World = b2::World<NoUserData>;
 
 #[derive(Debug)]
 struct Surface {
-    vertices: Vec<b2::Vec2>,
+    body: Option<b2::BodyHandle>,
+    fixture: Option<b2::FixtureHandle>,
 }
 
 impl Surface {
@@ -30,22 +31,38 @@ impl Surface {
         let body = world.create_body(&bd);
 
         let cs = b2::ChainShape::new_chain(&surface);
-        world.body_mut(body).create_fast_fixture(&cs, 1.0);
+        let fixture = world.body_mut(body).create_fast_fixture(&cs, 1.0);
 
-        Self { vertices: surface }
+        Self {
+            body: Some(body),
+            fixture: Some(fixture),
+        }
     }
 
-    fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
-        screen.fill_off();
-        screen.stroke_weight(1.0);
-        core::stroke_grayscale(screen, 0.0);
+    fn display(&self, screen: &mut Screen, world: &World) -> Result<(), ProcessingErr> {
+        if let Some(body) = self.body {
+            if let Some(fixture) = self.fixture {
+                let body = world.body(body);
 
-        // TODO:
-        //beginShape();
-        for _v in self.vertices.iter() {
-            //vertex(v.x, v.y);
+                screen.fill_off();
+                screen.stroke_weight(1.0);
+                core::stroke_grayscale(screen, 0.0);
+
+                // TODO: beginShape();
+
+                let fixture = body.fixture(fixture);
+                match &*fixture.shape() {
+                    b2::UnknownShape::Chain(shape) => {
+                        for _v in shape.vertices() {
+                            //vertex(v.x, v.y);
+                        }
+                    }
+                    _ => panic!("unexpected shape type {:?}", fixture.shape_type()),
+                };
+
+                // TODO: endShape();
+            }
         }
-        //endShape();
 
         Ok(())
     }
@@ -196,7 +213,7 @@ fn draw(
     }
 
     for surface in surfaces.iter() {
-        surface.display(screen)?;
+        surface.display(screen, world)?;
     }
 
     Ok(())
@@ -220,7 +237,7 @@ fn main() -> Result<(), ProcessingErr> {
                 &mut world,
                 &screen,
                 hw - 50.0,
-                hh,
+                hh - 50.0,
                 100.0,
                 10.0,
             )]);
