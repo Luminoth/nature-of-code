@@ -3,6 +3,7 @@ use std::rc::Rc;
 
 use processing::errors::ProcessingErr;
 use processing::Screen;
+use rand::Rng;
 use wrapped2d::b2;
 use wrapped2d::user_data::NoUserData;
 
@@ -110,6 +111,61 @@ impl Boundary {
 }
 
 #[derive(Debug)]
+struct Pair {
+    p1: BoxBox,
+    p2: BoxBox,
+
+    len: f64,
+}
+
+impl Pair {
+    fn new(world: &mut World, screen: &Screen, x: f64, y: f64) -> Self {
+        let mut rng = rand::thread_rng();
+
+        let len = 32.0;
+
+        let p1 = BoxBox::new(world, screen, x, y, 16.0, 16.0);
+        let p2 = BoxBox::new(
+            world,
+            screen,
+            x + rng.gen_range(-1.0..=1.0) as f64,
+            y + rng.gen_range(-1.0..=1.0) as f64,
+            16.0,
+            16.0,
+        );
+
+        let mut djd = b2::DistanceJointDef::new(p1.body.unwrap(), p2.body.unwrap());
+        djd.length = core::scalar_pixels_to_world(len) as f32;
+        world.create_joint(&djd);
+
+        Self { p1, p2, len }
+    }
+
+    fn display(&self, screen: &mut Screen, world: &World) -> Result<(), ProcessingErr> {
+        let p1 = world.body(self.p1.body.unwrap());
+        let pos1 = core::get_body_pixel_coord(screen, &p1);
+
+        let p2 = world.body(self.p2.body.unwrap());
+        let pos2 = core::get_body_pixel_coord(screen, &p2);
+
+        core::stroke_grayscale(screen, 0.0);
+
+        core::shapes::line(
+            screen,
+            pos1.x as f64,
+            pos1.y as f64,
+            pos2.x as f64,
+            pos2.y as f64,
+        )?;
+
+        self.p1.display(screen, world)?;
+        self.p2.display(screen, world)?;
+
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
 struct BoxBox {
     body: Option<b2::BodyHandle>,
 
@@ -184,8 +240,9 @@ fn draw(
     world: &mut World,
     _: f64,
     boxes: &mut Vec<BoxBox>,
-    boundaries: &mut Vec<Boundary>,
-    surfaces: &mut Vec<Surface>,
+    pairs: &Vec<Pair>,
+    boundaries: &Vec<Boundary>,
+    surfaces: &Vec<Surface>,
 ) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 255.0);
 
@@ -197,6 +254,10 @@ fn draw(
 
     for boxbox in boxes.iter() {
         boxbox.display(screen, world)?;
+    }
+
+    for pair in pairs.iter() {
+        pair.display(screen, world)?;
     }
 
     for boundary in boundaries.iter() {
@@ -212,6 +273,7 @@ fn draw(
 
 fn main() -> Result<(), ProcessingErr> {
     let boxes = Rc::new(RefCell::new(None));
+    let pairs = Rc::new(RefCell::new(None));
     let boundaries = Rc::new(RefCell::new(None));
     let surfaces = Rc::new(RefCell::new(None));
 
@@ -223,6 +285,8 @@ fn main() -> Result<(), ProcessingErr> {
 
             let hw = screen.width() as f64 / 2.0;
             let hh = screen.height() as f64 / 2.0;
+
+            *pairs.borrow_mut() = Some(vec![Pair::new(&mut world, &screen, hw + 30.0, hh - 30.0)]);
 
             *boundaries.borrow_mut() = Some(vec![Boundary::new(
                 &mut world,
@@ -258,6 +322,7 @@ fn main() -> Result<(), ProcessingErr> {
                 world,
                 dt,
                 boxes.borrow_mut().as_mut().unwrap(),
+                pairs.borrow_mut().as_mut().unwrap(),
                 boundaries.borrow_mut().as_mut().unwrap(),
                 surfaces.borrow_mut().as_mut().unwrap(),
             )
