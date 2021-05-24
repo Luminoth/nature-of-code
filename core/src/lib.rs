@@ -243,6 +243,19 @@ pub fn coord_world_to_pixels(screen: &Screen, wx: f64, wy: f64) -> b2::Vec2 {
     }
 }
 
+pub fn vector_world_to_pixels(screen: &Screen, v: b2::Vec2) -> b2::Vec2 {
+    coord_world_to_pixels(screen, v.x as f64, v.y as f64)
+}
+
+pub fn scalar_world_to_pixels(val: f64) -> f64 {
+    val * SCALE_FACTOR
+}
+
+pub fn get_body_pixel_coord(screen: &Screen, b: &b2::Body) -> b2::Vec2 {
+    let xf = b.transform();
+    coord_world_to_pixels(screen, xf.pos.x as f64, xf.pos.y as f64)
+}
+
 pub fn coord_pixels_to_world(screen: &Screen, px: f64, py: f64) -> b2::Vec2 {
     let hw = screen.width() as f64 / 2.0;
     let hh = screen.height() as f64 / 2.0;
@@ -262,15 +275,10 @@ pub fn coord_pixels_to_world(screen: &Screen, px: f64, py: f64) -> b2::Vec2 {
     }
 }
 
+pub fn vector_pixels_to_world(screen: &Screen, v: b2::Vec2) -> b2::Vec2 {
+    coord_pixels_to_world(screen, v.x as f64, v.y as f64)
+}
+
 pub fn scalar_pixels_to_world(val: f64) -> f64 {
     val / SCALE_FACTOR
-}
-
-pub fn scalar_world_to_pixels(val: f64) -> f64 {
-    val * SCALE_FACTOR
-}
-
-pub fn get_body_pixel_coord(screen: &Screen, b: &b2::Body) -> b2::Vec2 {
-    let xf = b.transform();
-    coord_world_to_pixels(screen, xf.pos.x as f64, xf.pos.y as f64)
 }

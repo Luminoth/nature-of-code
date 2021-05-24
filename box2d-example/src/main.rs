@@ -53,7 +53,8 @@ impl Surface {
                 let fixture = body.fixture(fixture);
                 match &*fixture.shape() {
                     b2::UnknownShape::Chain(shape) => {
-                        for _v in shape.vertices() {
+                        for vertex in shape.vertices() {
+                            let _v = core::vector_world_to_pixels(screen, *vertex);
                             //vertex(v.x, v.y);
                         }
                     }
