@@ -1,18 +1,69 @@
 use std::cell::RefCell;
+use std::ops::DerefMut;
 use std::rc::Rc;
 
 use processing::errors::ProcessingErr;
 use processing::Screen;
 use rand::Rng;
 use wrapped2d::b2;
+use wrapped2d::b2::Joint;
 use wrapped2d::user_data::NoUserData;
 
 type World = b2::World<NoUserData>;
 
 #[derive(Debug)]
+struct Windmill {
+    box1: BoxBox,
+    box2: BoxBox,
+
+    joint: b2::JointHandle,
+}
+
+impl Windmill {
+    #[allow(dead_code)]
+    fn new(world: &mut World, screen: &Screen, x: f64, y: f64) -> Self {
+        let box1 = BoxBox::new(world, screen, x, y, 120.0, 10.0);
+        let box2 = BoxBox::new(world, screen, x, y, 10.0, 40.0);
+
+        let mut rjd = b2::RevoluteJointDef::new(box1.body.unwrap(), box2.body.unwrap());
+        rjd.init(
+            world,
+            box1.body.unwrap(),
+            box2.body.unwrap(),
+            world.body(box1.body.unwrap()).world_center(),
+        );
+        rjd.motor_speed = std::f32::consts::PI * 2.0;
+        rjd.max_motor_torque = 1000.0;
+        rjd.enable_motor = true;
+        let joint = world.create_joint(&rjd);
+
+        Self { box1, box2, joint }
+    }
+
+    #[allow(dead_code)]
+    fn toggle_motor(&self, world: &mut World) {
+        let joint = &mut *world.joint_mut(self.joint);
+        match joint.deref_mut() {
+            b2::UnknownJoint::Revolute(joint) => {
+                joint.enable_motor(!joint.is_motor_enabled());
+            }
+            _ => panic!("unexpected joint type {:?}", joint.get_type()),
+        }
+    }
+
+    #[allow(dead_code)]
+    fn display(&self, screen: &mut Screen, world: &World) -> Result<(), ProcessingErr> {
+        self.box1.display(screen, world)?;
+        self.box2.display(screen, world)?;
+
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
 struct Surface {
-    body: Option<b2::BodyHandle>,
-    fixture: Option<b2::FixtureHandle>,
+    body: b2::BodyHandle,
+    fixture: b2::FixtureHandle,
 }
 
 impl Surface {
@@ -34,15 +85,12 @@ impl Surface {
         let cs = b2::ChainShape::new_chain(&surface);
         let fixture = world.body_mut(body).create_fast_fixture(&cs, 1.0);
 
-        Self {
-            body: Some(body),
-            fixture: Some(fixture),
-        }
+        Self { body, fixture }
     }
 
     fn display(&self, screen: &mut Screen, world: &World) -> Result<(), ProcessingErr> {
-        let body = world.body(self.body.unwrap());
-        let fixture = body.fixture(self.fixture.unwrap());
+        let body = world.body(self.body);
+        let fixture = body.fixture(self.fixture);
         let shape = fixture.shape();
 
         screen.fill_off();
@@ -69,7 +117,7 @@ impl Surface {
 
 #[derive(Debug)]
 struct Boundary {
-    body: Option<b2::BodyHandle>,
+    body: b2::BodyHandle,
 
     w: f64,
     h: f64,
@@ -89,15 +137,11 @@ impl Boundary {
 
         world.body_mut(body).create_fast_fixture(&ps, 1.0);
 
-        Self {
-            body: Some(body),
-            w,
-            h,
-        }
+        Self { body, w, h }
     }
 
     fn display(&self, screen: &mut Screen, world: &World) -> Result<(), ProcessingErr> {
-        let body = world.body(self.body.unwrap());
+        let body = world.body(self.body);
         let pos = core::get_body_pixel_coord(screen, &body);
 
         core::fill_grayscale(screen, 0.0);
@@ -240,9 +284,9 @@ fn draw(
     world: &mut World,
     _: f64,
     boxes: &mut Vec<BoxBox>,
-    pairs: &Vec<Pair>,
-    boundaries: &Vec<Boundary>,
-    surfaces: &Vec<Surface>,
+    pairs: impl AsRef<[Pair]>,
+    boundaries: impl AsRef<[Boundary]>,
+    surfaces: impl AsRef<[Surface]>,
 ) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 255.0);
 
@@ -256,15 +300,15 @@ fn draw(
         boxbox.display(screen, world)?;
     }
 
-    for pair in pairs.iter() {
+    for pair in pairs.as_ref().iter() {
         pair.display(screen, world)?;
     }
 
-    for boundary in boundaries.iter() {
+    for boundary in boundaries.as_ref().iter() {
         boundary.display(screen, world)?;
     }
 
-    for surface in surfaces.iter() {
+    for surface in surfaces.as_ref().iter() {
         surface.display(screen, world)?;
     }
 
