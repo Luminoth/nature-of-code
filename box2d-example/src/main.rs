@@ -243,6 +243,14 @@ impl BoxBox {
         }
     }
 
+    #[allow(dead_code)]
+    fn apply_force(&self, world: World, force: &b2::Vec2) {
+        let mut body = world.body_mut(self.body.unwrap());
+
+        let pos = *body.world_center();
+        body.apply_force(force, &pos, true);
+    }
+
     fn display(&self, screen: &mut Screen, world: &World) -> Result<(), ProcessingErr> {
         let body = world.body(self.body.unwrap());
         let pos = core::get_body_pixel_coord(screen, &body);
