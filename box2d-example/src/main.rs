@@ -7,6 +7,7 @@ use processing::Screen;
 use rand::Rng;
 use wrapped2d::b2;
 use wrapped2d::b2::Joint;
+use wrapped2d::dynamics::world::callbacks::ContactAccess;
 use wrapped2d::user_data::UserDataTypes;
 
 struct CustomUserData;
@@ -289,7 +290,11 @@ impl BoxBox {
 
 struct ContactListener;
 
-impl b2::ContactListener<CustomUserData> for ContactListener {}
+impl b2::ContactListener<CustomUserData> for ContactListener {
+    fn begin_contact(&mut self, _cp: ContactAccess<CustomUserData>) {
+        // TODO:
+    }
+}
 
 fn setup<'a>() -> Result<(Screen<'a>, World), ProcessingErr> {
     let screen = core::create_canvas(400, 300)?;
