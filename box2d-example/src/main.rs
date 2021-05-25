@@ -7,9 +7,18 @@ use processing::Screen;
 use rand::Rng;
 use wrapped2d::b2;
 use wrapped2d::b2::Joint;
-use wrapped2d::user_data::NoUserData;
+use wrapped2d::user_data::UserDataTypes;
 
-type World = b2::World<NoUserData>;
+struct CustomUserData;
+
+impl UserDataTypes for CustomUserData {
+    // TODO: no clue what we can actually use here
+    type BodyData = ();
+    type JointData = ();
+    type FixtureData = ();
+}
+
+type World = b2::World<CustomUserData>;
 
 #[derive(Debug)]
 struct Windmill {
@@ -80,7 +89,7 @@ impl Surface {
 
         let mut bd = b2::BodyDef::new();
         bd.body_type = b2::BodyType::Static;
-        let body = world.create_body(&bd);
+        let body = world.create_body_with(&bd, ());
 
         let cs = b2::ChainShape::new_chain(&surface);
         let fixture = world.body_mut(body).create_fast_fixture(&cs, 1.0);
@@ -128,7 +137,7 @@ impl Boundary {
         let mut bd = b2::BodyDef::new();
         bd.body_type = b2::BodyType::Static;
         bd.position = core::coord_pixels_to_world(&screen, x, y);
-        let body = world.create_body(&bd);
+        let body = world.create_body_with(&bd, ());
 
         let ps = b2::PolygonShape::new_box(
             core::scalar_pixels_to_world(w / 2.0) as f32,
@@ -222,7 +231,7 @@ impl BoxBox {
         let mut bd = b2::BodyDef::new();
         bd.body_type = b2::BodyType::Dynamic;
         bd.position = core::coord_pixels_to_world(&screen, x, y);
-        let body = world.create_body(&bd);
+        let body = world.create_body_with(&bd, ());
 
         let ps = b2::PolygonShape::new_box(
             core::scalar_pixels_to_world(w / 2.0) as f32,
@@ -278,11 +287,17 @@ impl BoxBox {
     }
 }
 
+struct ContactListener;
+
+impl b2::ContactListener<CustomUserData> for ContactListener {}
+
 fn setup<'a>() -> Result<(Screen<'a>, World), ProcessingErr> {
     let screen = core::create_canvas(400, 300)?;
 
     let gravity = b2::Vec2 { x: 0., y: -9.81 };
-    let world = World::new(&gravity);
+    let mut world = World::new(&gravity);
+
+    world.set_contact_listener(Box::new(ContactListener));
 
     Ok((screen, world))
 }
