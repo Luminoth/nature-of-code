@@ -24,11 +24,11 @@ use events::debug::*;
 use plugins::creatures::*;
 use plugins::environment::*;
 use plugins::particles::*;
+use plugins::physics::*;
 use resources::debug::*;
 use resources::*;
 use states::*;
 use systems::debug::*;
-use systems::physics::*;
 
 const WINDOW_WIDTH: f32 = 1024.0;
 const WINDOW_HEIGHT: f32 = 576.0;
@@ -119,7 +119,8 @@ fn main() {
     .add_plugin(WorldInspectorPlugin::new());
 
     // plugins
-    app.add_plugin(ParticleSystemPlugin)
+    app.add_plugin(PhysicsPlugin)
+        .add_plugin(ParticleSystemPlugin)
         .add_plugin(EnvironmentPlugin)
         .add_plugin(CreaturesPlugin);
 
@@ -132,25 +133,8 @@ fn main() {
             SystemSet::on_enter(GameState::Game).with_system(states::game::setup.system()),
         )
         .add_system_set(
-            // per-frame update
-            SystemSet::on_update(GameState::Game).with_system(
-                oscillator_update
-                    .system()
-                    .label(Physics)
-                    .label(PhysicsSystem::Update),
-            ),
-        )
-        .add_system_set(
             SystemSet::on_exit(GameState::Game).with_system(states::game::teardown.system()),
         );
-
-    // physical stage
-    app.add_stage_before(
-        bevy_rapier2d::physics::TRANSFORM_SYNC_STAGE,
-        "physical",
-        SystemStage::single_threaded(),
-    )
-    .add_system_to_stage("physical", physical_update.system());
 
     // setup
     app.add_startup_system(setup.system())
@@ -167,8 +151,6 @@ fn main() {
 
     registry.register::<components::MainCamera>();
     registry.register::<components::UiCamera>();
-    registry.register::<components::physics::Physical>();
-    registry.register::<components::physics::Oscillator>();
 
     app.run();
 }
