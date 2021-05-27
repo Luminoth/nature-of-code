@@ -12,7 +12,6 @@ mod states;
 mod systems;
 mod util;
 
-use bevy::core::FixedTimestep;
 use bevy::diagnostic::*;
 use bevy::prelude::*;
 use bevy_egui::{EguiPlugin, EguiSettings};
@@ -21,15 +20,14 @@ use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::physics::RapierPhysicsPlugin;
 use num_traits::Float;
 
-use components::physics::*;
 use events::debug::*;
 use plugins::creatures::*;
+use plugins::environment::*;
 use plugins::particles::*;
 use resources::debug::*;
 use resources::*;
 use states::*;
 use systems::debug::*;
-use systems::environment::*;
 use systems::physics::*;
 
 const WINDOW_WIDTH: f32 = 1024.0;
@@ -122,6 +120,7 @@ fn main() {
 
     // plugins
     app.add_plugin(ParticleSystemPlugin)
+        .add_plugin(EnvironmentPlugin)
         .add_plugin(CreaturesPlugin);
 
     // events
@@ -131,22 +130,6 @@ fn main() {
     app.add_state(GameState::Game)
         .add_system_set(
             SystemSet::on_enter(GameState::Game).with_system(states::game::setup.system()),
-        )
-        .add_system_set(
-            // fixed (physics) update
-            SystemSet::on_update(GameState::Game)
-                .with_run_criteria(FixedTimestep::step(PHYSICS_STEP as f64))
-                .with_system(
-                    water_current
-                        .system()
-                        .label(EnvironmentsSystem::Physics)
-                        .before(Physics),
-                )
-                .with_system(
-                    wind.system()
-                        .label(EnvironmentsSystem::Physics)
-                        .before(Physics),
-                ),
         )
         .add_system_set(
             // per-frame update
@@ -186,11 +169,6 @@ fn main() {
     registry.register::<components::UiCamera>();
     registry.register::<components::physics::Physical>();
     registry.register::<components::physics::Oscillator>();
-    registry.register::<components::environment::Ground>();
-    registry.register::<components::environment::Water>();
-    registry.register::<components::environment::WaterCurrent>();
-    registry.register::<components::environment::Air>();
-    registry.register::<components::environment::Wind>();
 
     app.run();
 }
