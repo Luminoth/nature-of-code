@@ -36,11 +36,10 @@ pub fn creature_facing(
     let dt = time.delta_seconds();
 
     for (mut transform, rbhandle, creature) in query.iter_mut() {
-        if let Some(rigidbody) = rigidbodies.get(rbhandle.handle()) {
+        let rigidbody = rigidbodies.get(rbhandle.handle()).unwrap();
+        if rigidbody.linvel().magnitude_squared() != 0.0 {
             let angle = -creature.acceleration_direction.angle_between(Vec2::Y);
-            if rigidbody.linvel().magnitude_squared() != 0.0 {
-                transform.rotation = transform.rotation.slerp(Quat::from_rotation_z(angle), dt);
-            }
+            transform.rotation = transform.rotation.slerp(Quat::from_rotation_z(angle), dt);
         }
     }
 }
@@ -64,12 +63,12 @@ pub fn fly_physics(
     mut query: Query<(&RigidBodyHandleComponent, &Fly, &Creature)>,
 ) {
     for (rbhandle, fly, creature) in query.iter_mut() {
-        if let Some(rigidbody) = rigidbodies.get_mut(rbhandle.handle()) {
-            let _modifier = random.random() as f32;
+        let rigidbody = rigidbodies.get_mut(rbhandle.handle()).unwrap();
 
-            let magnitude = fly.acceleration * rigidbody.mass(); // * _modifier;
-            rigidbody.apply_force(to_vector(creature.acceleration_direction * magnitude), true);
-        }
+        let _modifier = random.random() as f32;
+        let magnitude = fly.acceleration * rigidbody.mass(); // * _modifier;
+
+        rigidbody.apply_force(to_vector(creature.acceleration_direction * magnitude), true);
     }
 }
 
@@ -84,28 +83,26 @@ pub fn fly_bounds(
     let hh = world_bounds.height / 2.0;
 
     for (mut transform, chandle, physical) in query.iter_mut() {
-        if let Some(collider) = colliders.get(chandle.handle()) {
-            let bounds = collider.compute_aabb();
+        let collider = colliders.get(chandle.handle()).unwrap();
+        let bounds = collider.compute_aabb();
 
-            let (min, max) = adjust_container_bounds(
-                from_vector(bounds.extents()),
-                Vec2::new(-hw, -hh),
-                Vec2::new(hw, hh),
-                BOUNDS_OFFSET,
-            );
+        let (min, max) = adjust_container_bounds(
+            from_vector(bounds.extents()),
+            Vec2::new(-hw, -hh),
+            Vec2::new(hw, hh),
+            BOUNDS_OFFSET,
+        );
 
-            if let Some(rigidbody) = rigidbodies.get_mut(collider.parent()) {
-                contain(rigidbody, &mut transform, physical, min, max, FLY_SIZE);
-                bounds_repel(
-                    rigidbody,
-                    &transform,
-                    min,
-                    max,
-                    BOUNDS_REPEL_ACCEL,
-                    FLY_SIZE,
-                );
-            }
-        }
+        let rigidbody = rigidbodies.get_mut(collider.parent()).unwrap();
+        contain(rigidbody, &mut transform, physical, min, max, FLY_SIZE);
+        bounds_repel(
+            rigidbody,
+            &transform,
+            min,
+            max,
+            BOUNDS_REPEL_ACCEL,
+            FLY_SIZE,
+        );
     }
 }
 
@@ -121,15 +118,14 @@ pub fn fly_repel(
                 continue;
             }
 
-            if let Some(frigidbody) = rigidbodies.get_mut(frbhandle.handle()) {
-                repel(
-                    frigidbody,
-                    transform,
-                    ftransform.translation.truncate(),
-                    fish.repel_acceleration,
-                    FLY_SIZE,
-                );
-            }
+            let frigidbody = rigidbodies.get_mut(frbhandle.handle()).unwrap();
+            repel(
+                frigidbody,
+                transform,
+                ftransform.translation.truncate(),
+                fish.repel_acceleration,
+                FLY_SIZE,
+            );
         }
     }
 }
@@ -146,14 +142,13 @@ pub fn fish_think(
     mut query: Query<(&RigidBodyHandleComponent, &mut Creature), With<Fish>>,
 ) {
     for (rbhandle, mut creature) in query.iter_mut() {
-        if let Some(rigidbody) = rigidbodies.get(rbhandle.handle()) {
-            creature.acceleration_direction = if rigidbody.linvel().magnitude_squared() == 0.0 {
-                random.direction()
-            } else {
-                let direction = to_vector(random.direction());
-                from_vector(rigidbody.linvel().lerp(&direction, THINK_STEP).normalize())
-            };
-        }
+        let rigidbody = rigidbodies.get(rbhandle.handle()).unwrap();
+        creature.acceleration_direction = if rigidbody.linvel().magnitude_squared() == 0.0 {
+            random.direction()
+        } else {
+            let direction = to_vector(random.direction());
+            from_vector(rigidbody.linvel().lerp(&direction, THINK_STEP).normalize())
+        };
     }
 }
 
@@ -166,13 +161,13 @@ pub fn fish_physics(
     mut query: Query<(&RigidBodyHandleComponent, &Fish, &Creature)>,
 ) {
     for (rbhandle, fish, creature) in query.iter_mut() {
-        if let Some(rigidbody) = rigidbodies.get_mut(rbhandle.handle()) {
-            let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
-            let _modifier = noise.get(t, random.random_range(0.5..0.75)) as f32;
+        let rigidbody = rigidbodies.get_mut(rbhandle.handle()).unwrap();
 
-            let magnitude = fish.acceleration * rigidbody.mass(); // * _modifier;
-            rigidbody.apply_force(to_vector(creature.acceleration_direction * magnitude), true);
-        }
+        let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
+        let _modifier = noise.get(t, random.random_range(0.5..0.75)) as f32;
+        let magnitude = fish.acceleration * rigidbody.mass(); // * _modifier;
+
+        rigidbody.apply_force(to_vector(creature.acceleration_direction * magnitude), true);
     }
 }
 
@@ -188,15 +183,14 @@ pub fn fish_repel(
                 continue;
             }
 
-            if let Some(frigidbody) = rigidbodies.get_mut(frbhandle.handle()) {
-                repel(
-                    frigidbody,
-                    transform,
-                    ftransform.translation.truncate(),
-                    fish.repel_acceleration,
-                    FISH_WIDTH,
-                );
-            }
+            let frigidbody = rigidbodies.get_mut(frbhandle.handle()).unwrap();
+            repel(
+                frigidbody,
+                transform,
+                ftransform.translation.truncate(),
+                fish.repel_acceleration,
+                FISH_WIDTH,
+            );
         }
     }
 }
@@ -210,36 +204,34 @@ pub fn fish_bounds(
 ) {
     for (mut transform, chandle, physical) in query.iter_mut() {
         for (wtransform, wchandle) in waters.iter() {
-            if let Some(collider) = colliders.get(chandle.handle()) {
-                if let Some(fcollider) = colliders.get(wchandle.handle()) {
-                    let fbounds = fcollider.compute_aabb();
-                    if collider.compute_aabb().intersects(&fbounds) {
-                        let position = wtransform.translation.truncate();
-                        let half_size = from_vector(fbounds.half_extents());
+            let wcollider = colliders.get(wchandle.handle()).unwrap();
+            let wbounds = wcollider.compute_aabb();
 
-                        let min = position - half_size;
-                        let max = position + half_size;
+            let collider = colliders.get(chandle.handle()).unwrap();
+            if collider.compute_aabb().intersects(&wbounds) {
+                let position = wtransform.translation.truncate();
+                let half_size = from_vector(wbounds.half_extents());
 
-                        let (min, max) = adjust_container_bounds(
-                            from_vector(fbounds.extents()),
-                            min,
-                            max,
-                            BOUNDS_OFFSET,
-                        );
+                let min = position - half_size;
+                let max = position + half_size;
 
-                        if let Some(rigidbody) = rigidbodies.get_mut(collider.parent()) {
-                            contain(rigidbody, &mut transform, physical, min, max, FISH_WIDTH);
-                            bounds_repel(
-                                rigidbody,
-                                &transform,
-                                min,
-                                max,
-                                BOUNDS_REPEL_ACCEL,
-                                FISH_WIDTH,
-                            );
-                        }
-                    }
-                }
+                let (min, max) = adjust_container_bounds(
+                    from_vector(wbounds.extents()),
+                    min,
+                    max,
+                    BOUNDS_OFFSET,
+                );
+
+                let rigidbody = rigidbodies.get_mut(collider.parent()).unwrap();
+                contain(rigidbody, &mut transform, physical, min, max, FISH_WIDTH);
+                bounds_repel(
+                    rigidbody,
+                    &transform,
+                    min,
+                    max,
+                    BOUNDS_REPEL_ACCEL,
+                    FISH_WIDTH,
+                );
             }
         }
     }
@@ -257,14 +249,13 @@ pub fn snake_think(
     mut query: Query<(&RigidBodyHandleComponent, &mut Creature), With<Snake>>,
 ) {
     for (rbhandle, mut creature) in query.iter_mut() {
-        if let Some(rigidbody) = rigidbodies.get(rbhandle.handle()) {
-            creature.acceleration_direction = if rigidbody.linvel().magnitude_squared() == 0.0 {
-                random.direction()
-            } else {
-                let direction = to_vector(random.direction());
-                from_vector(rigidbody.linvel().lerp(&direction, THINK_STEP).normalize())
-            };
-        }
+        let rigidbody = rigidbodies.get(rbhandle.handle()).unwrap();
+        creature.acceleration_direction = if rigidbody.linvel().magnitude_squared() == 0.0 {
+            random.direction()
+        } else {
+            let direction = to_vector(random.direction());
+            from_vector(rigidbody.linvel().lerp(&direction, THINK_STEP).normalize())
+        };
     }
 }
 
@@ -277,13 +268,13 @@ pub fn snake_physics(
     mut query: Query<(&RigidBodyHandleComponent, &Snake, &Creature)>,
 ) {
     for (rbhandle, snake, creature) in query.iter_mut() {
-        if let Some(rigidbody) = rigidbodies.get_mut(rbhandle.handle()) {
-            let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
-            let _modifier = noise.get(t, random.random_range(0.25..0.5)) as f32;
+        let rigidbody = rigidbodies.get_mut(rbhandle.handle()).unwrap();
 
-            let magnitude = snake.ground_acceleration * rigidbody.mass(); // * _modifier;
-            rigidbody.apply_force(to_vector(creature.acceleration_direction * magnitude), true);
-        }
+        let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
+        let _modifier = noise.get(t, random.random_range(0.25..0.5)) as f32;
+        let magnitude = snake.ground_acceleration * rigidbody.mass(); // * _modifier;
+
+        rigidbody.apply_force(to_vector(creature.acceleration_direction * magnitude), true);
     }
 }
 
@@ -295,37 +286,35 @@ pub fn snake_bounds(
     grounds: Query<(&Transform, &ColliderHandleComponent), (With<Ground>, Without<Snake>)>,
 ) {
     for (mut transform, chandle, physical) in query.iter_mut() {
-        for (stransform, schandle) in grounds.iter() {
-            if let Some(collider) = colliders.get(chandle.handle()) {
-                if let Some(scollider) = colliders.get(schandle.handle()) {
-                    let sbounds = scollider.compute_aabb();
-                    if collider.compute_aabb().intersects(&sbounds) {
-                        let position = stransform.translation.truncate();
-                        let half_size = from_vector(sbounds.half_extents());
+        for (gtransform, gchandle) in grounds.iter() {
+            let gcollider = colliders.get(gchandle.handle()).unwrap();
+            let gbounds = gcollider.compute_aabb();
 
-                        let min = position - half_size;
-                        let max = position + half_size;
+            let collider = colliders.get(chandle.handle()).unwrap();
+            if collider.compute_aabb().intersects(&gbounds) {
+                let position = gtransform.translation.truncate();
+                let half_size = from_vector(gbounds.half_extents());
 
-                        let (min, max) = adjust_container_bounds(
-                            from_vector(sbounds.extents()),
-                            min,
-                            max,
-                            BOUNDS_OFFSET,
-                        );
+                let min = position - half_size;
+                let max = position + half_size;
 
-                        if let Some(rigidbody) = rigidbodies.get_mut(collider.parent()) {
-                            contain(rigidbody, &mut transform, physical, min, max, SNAKE_WIDTH);
-                            bounds_repel(
-                                rigidbody,
-                                &transform,
-                                min,
-                                max,
-                                BOUNDS_REPEL_ACCEL,
-                                SNAKE_WIDTH,
-                            );
-                        }
-                    }
-                }
+                let (min, max) = adjust_container_bounds(
+                    from_vector(gbounds.extents()),
+                    min,
+                    max,
+                    BOUNDS_OFFSET,
+                );
+
+                let rigidbody = rigidbodies.get_mut(collider.parent()).unwrap();
+                contain(rigidbody, &mut transform, physical, min, max, SNAKE_WIDTH);
+                bounds_repel(
+                    rigidbody,
+                    &transform,
+                    min,
+                    max,
+                    BOUNDS_REPEL_ACCEL,
+                    SNAKE_WIDTH,
+                );
             }
         }
     }
@@ -337,21 +326,20 @@ pub fn snake_repel(
     query: Query<(Entity, &Transform, &Snake)>,
     mut squery: Query<(Entity, &Transform, &RigidBodyHandleComponent), With<Snake>>,
 ) {
-    for (entity, transform, fish) in query.iter() {
+    for (entity, transform, snake) in query.iter() {
         for (sentity, stransform, srbhandle) in squery.iter_mut() {
             if entity == sentity {
                 continue;
             }
 
-            if let Some(srigidbody) = rigidbodies.get_mut(srbhandle.handle()) {
-                repel(
-                    srigidbody,
-                    transform,
-                    stransform.translation.truncate(),
-                    fish.repel_acceleration,
-                    SNAKE_WIDTH,
-                );
-            }
+            let srigidbody = rigidbodies.get_mut(srbhandle.handle()).unwrap();
+            repel(
+                srigidbody,
+                transform,
+                stransform.translation.truncate(),
+                snake.repel_acceleration,
+                SNAKE_WIDTH,
+            );
         }
     }
 }

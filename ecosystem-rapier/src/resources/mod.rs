@@ -12,16 +12,30 @@ use rand_distr::{Normal, StandardNormal};
 use crate::clampf;
 
 /// World boundary
+#[derive(Debug)]
 pub struct WorldBounds {
     pub width: f32,
     pub height: f32,
 }
 
+impl Default for WorldBounds {
+    fn default() -> Self {
+        Self {
+            width: 10.0,
+            height: 10.0,
+        }
+    }
+}
+
 /// Simulation parameters
+#[derive(Debug, Default)]
 pub struct SimulationParams {
     pub fly_count: usize,
     pub fish_count: usize,
     pub snake_count: usize,
+
+    pub enable_current: bool,
+    pub enable_wind: bool,
 }
 
 /// Random wrapper
@@ -128,6 +142,7 @@ impl Random {
 }
 
 /// Perlin noies wrapper
+#[derive(Debug)]
 pub struct PerlinNoise {
     perlin: Perlin,
 }
