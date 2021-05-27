@@ -22,13 +22,12 @@ use bevy_rapier2d::physics::RapierPhysicsPlugin;
 use num_traits::Float;
 
 use components::physics::*;
-use components::*;
 use events::debug::*;
+use plugins::creatures::*;
 use plugins::particles::*;
 use resources::debug::*;
 use resources::*;
 use states::*;
-use systems::creatures::*;
 use systems::debug::*;
 use systems::environment::*;
 use systems::physics::*;
@@ -122,7 +121,8 @@ fn main() {
     .add_plugin(WorldInspectorPlugin::new());
 
     // plugins
-    app.add_plugin(ParticleSystemPlugin);
+    app.add_plugin(ParticleSystemPlugin)
+        .add_plugin(CreaturesPlugin);
 
     // events
     app.add_event::<ToggleDebugEvent>();
@@ -133,75 +133,9 @@ fn main() {
             SystemSet::on_enter(GameState::Game).with_system(states::game::setup.system()),
         )
         .add_system_set(
-            // fixed (think) update
-            SystemSet::on_update(GameState::Game)
-                .with_run_criteria(FixedTimestep::step(THINK_STEP as f64))
-                .with_system(fly_think.system().label(CreaturesSystem::Think))
-                .with_system(fish_think.system().label(CreaturesSystem::Think))
-                .with_system(snake_think.system().label(CreaturesSystem::Think)),
-        )
-        .add_system_set(
             // fixed (physics) update
-            // 1) all CreaturesSystem::Physics (before Physics, including repel)
-            // 2) PhysicsSystem::Update (oscillate, etc)
-            // 3) CreaturesSystem::Bounds (rewind updates at borders, border repel)
             SystemSet::on_update(GameState::Game)
                 .with_run_criteria(FixedTimestep::step(PHYSICS_STEP as f64))
-                // creaturue behaviors
-                .with_system(
-                    fly_physics
-                        .system()
-                        .label(CreaturesSystem::Physics)
-                        .before(Physics),
-                )
-                .with_system(
-                    fly_repel
-                        .system()
-                        .label(CreaturesSystem::Physics)
-                        .before(Physics),
-                )
-                .with_system(
-                    fly_bounds
-                        .system()
-                        .label(CreaturesSystem::Bounds)
-                        .after(Physics),
-                )
-                .with_system(
-                    fish_physics
-                        .system()
-                        .label(CreaturesSystem::Physics)
-                        .before(Physics),
-                )
-                .with_system(
-                    fish_repel
-                        .system()
-                        .label(CreaturesSystem::Physics)
-                        .before(Physics),
-                )
-                .with_system(
-                    fish_bounds
-                        .system()
-                        .label(CreaturesSystem::Bounds)
-                        .after(Physics),
-                )
-                .with_system(
-                    snake_physics
-                        .system()
-                        .label(CreaturesSystem::Physics)
-                        .before(Physics),
-                )
-                .with_system(
-                    snake_repel
-                        .system()
-                        .label(CreaturesSystem::Physics)
-                        .before(Physics),
-                )
-                .with_system(
-                    snake_bounds
-                        .system()
-                        .label(CreaturesSystem::Bounds)
-                        .after(Physics),
-                )
                 .with_system(
                     water_current
                         .system()
@@ -216,22 +150,12 @@ fn main() {
         )
         .add_system_set(
             // per-frame update
-            SystemSet::on_update(GameState::Game)
-                .with_system(
-                    oscillator_update
-                        .system()
-                        .label(Physics)
-                        .label(PhysicsSystem::Update),
-                )
-                .with_system(fly_update.system().label(CreaturesSystem::Update))
-                .with_system(fish_update.system().label(CreaturesSystem::Update))
-                .with_system(snake_update.system().label(CreaturesSystem::Update))
-                .with_system(
-                    creature_facing
-                        .system()
-                        .label(CreaturesSystem::UpdateAfter)
-                        .after(CreaturesSystem::Update),
-                ),
+            SystemSet::on_update(GameState::Game).with_system(
+                oscillator_update
+                    .system()
+                    .label(Physics)
+                    .label(PhysicsSystem::Update),
+            ),
         )
         .add_system_set(
             SystemSet::on_exit(GameState::Game).with_system(states::game::teardown.system()),
@@ -262,13 +186,6 @@ fn main() {
     registry.register::<components::UiCamera>();
     registry.register::<components::physics::Physical>();
     registry.register::<components::physics::Oscillator>();
-    registry.register::<components::particles::ParticleSystem>();
-    registry.register::<components::particles::Particle>();
-    registry.register::<components::creatures::Creature>();
-    registry.register::<components::creatures::Fly>();
-    registry.register::<components::creatures::Firefly>();
-    registry.register::<components::creatures::Fish>();
-    registry.register::<components::creatures::Snake>();
     registry.register::<components::environment::Ground>();
     registry.register::<components::environment::Water>();
     registry.register::<components::environment::WaterCurrent>();
