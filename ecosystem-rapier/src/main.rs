@@ -20,15 +20,13 @@ use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::physics::RapierPhysicsPlugin;
 use num_traits::Float;
 
-use events::debug::*;
 use plugins::creatures::*;
+use plugins::debug::*;
 use plugins::environment::*;
 use plugins::particles::*;
 use plugins::physics::*;
-use resources::debug::*;
 use resources::*;
 use states::*;
-use systems::debug::*;
 
 const WINDOW_WIDTH: f32 = 1024.0;
 const WINDOW_HEIGHT: f32 = 576.0;
@@ -67,11 +65,6 @@ fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
     commands.insert_resource(PerlinNoise::default());
     commands.insert_resource(simulation);
     commands.insert_resource(world_bounds);
-}
-
-/// Debug setup
-fn setup_debug(mut commands: Commands) {
-    commands.insert_resource(DebugState::default());
 }
 
 /// Application entry
@@ -119,13 +112,11 @@ fn main() {
     .add_plugin(WorldInspectorPlugin::new());
 
     // plugins
-    app.add_plugin(PhysicsPlugin)
+    app.add_plugin(DebugPlugin)
+        .add_plugin(PhysicsPlugin)
         .add_plugin(ParticleSystemPlugin)
         .add_plugin(EnvironmentPlugin)
         .add_plugin(CreaturesPlugin);
-
-    // events
-    app.add_event::<ToggleDebugEvent>();
 
     // game states
     app.add_state(GameState::Game)
@@ -137,12 +128,7 @@ fn main() {
         );
 
     // setup
-    app.add_startup_system(setup.system())
-        .add_startup_system(setup_debug.system());
-
-    // debug
-    app.add_system(debug_system.system())
-        .add_system(debug_ui.system());
+    app.add_startup_system(setup.system());
 
     // register components for inspector
     let mut registry = app

@@ -8,6 +8,11 @@ use bevy_inspector_egui::WorldInspectorParams;
 use crate::events::debug::*;
 use crate::resources::debug::*;
 
+/// Debug setup
+pub(crate) fn setup_debug(mut commands: Commands) {
+    commands.insert_resource(DebugState::default());
+}
+
 /// Toggles debug on input
 ///
 /// Sends the ToggleDebugEvent
