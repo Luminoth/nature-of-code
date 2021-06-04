@@ -26,6 +26,9 @@ members = [
     # particle system
     "particle-system",
 
+    # vehicle
+    "vehicle-example",
+
     # chapters
     "intro/example1",
     "intro/example2",

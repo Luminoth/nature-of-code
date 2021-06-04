@@ -4685,6 +4685,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "vehicle-example"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "glam 0.14.0",
+ "processing",
+]
+
+[[package]]
 name = "version_check"
 version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
