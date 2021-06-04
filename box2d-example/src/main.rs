@@ -119,7 +119,7 @@ impl Surface {
             //vertex(v.x, v.y);
         }
 
-        // TODO: endShape();
+        // TODO: endShape(CLOSE);
 
         Ok(())
     }
