@@ -1,6 +1,7 @@
 use glam::DVec2;
 use processing::errors::ProcessingErr;
 use processing::Screen;
+use rand::Rng;
 
 #[derive(Debug)]
 struct Vehicle {
@@ -26,24 +27,43 @@ impl Vehicle {
         }
     }
 
-    fn seek(&mut self, target: DVec2) {
-        let desired = (target - self.location).normalize() * self.maxspeed;
+    fn wander(&mut self, target: DVec2, r: f64) {
+        let mut rng = rand::thread_rng();
 
+        // target a random point on a circle around the target
+        let theta = rng.gen_range(0.0..2.0 * std::f64::consts::PI);
+        let target = target + r * DVec2::new(theta.cos(), theta.sin());
+
+        self.seek(target);
+    }
+
+    fn seek(&mut self, target: DVec2) {
+        // desired velocity direction
+        let desired = target - self.location;
+
+        // desired velocity magnitude
+        let d = desired.length();
+        let m = if d < 100.0 {
+            // slow down on arrival
+            core::math::map(d, 0.0, 100.0, 0.0, self.maxspeed)
+        } else {
+            self.maxspeed
+        };
+
+        let desired = desired.normalize_or_zero() * m;
+
+        // apply the steering force
         let steer = (desired - self.velocity).clamp_length_max(self.maxforce);
         self.apply_force(steer);
     }
 
-    fn pursuit(&mut self, target: DVec2, target_velocity: DVec2, _dt: f64) {
-        let predicted = target + target_velocity; // * dt;
-
-        let desired = (predicted - self.location).normalize() * self.maxspeed;
-
-        let steer = (desired - self.velocity).clamp_length_max(self.maxforce);
-        self.apply_force(steer);
+    fn pursuit(&mut self, target: DVec2, velocity: DVec2, _dt: f64) {
+        let predicted = target + velocity; // * dt;
+        self.seek(predicted);
     }
 
     fn flee(&mut self, target: DVec2) {
-        let desired = -(target - self.location).normalize() * self.maxspeed;
+        let desired = -(target - self.location).normalize_or_zero() * self.maxspeed;
 
         let steer = (desired - self.velocity).clamp_length_max(self.maxforce);
         self.apply_force(steer);

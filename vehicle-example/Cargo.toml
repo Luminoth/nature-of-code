@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 glam = "0.14"
 processing = "0.3"
+rand = "0.8"
 
 [dependencies.core]
 path = "../core"
