@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use glam::DVec2;
 use processing::errors::ProcessingErr;
 use processing::Screen;
@@ -25,6 +27,15 @@ impl Vehicle {
             maxspeed: 4.0,
             maxforce: 0.1,
         }
+    }
+
+    fn follow(&mut self, flow: &FlowField) {
+        // desired velocity from the flow field
+        let desired = flow.lookup(self.location) * self.maxspeed;
+
+        // apply the steering force
+        let steer = (desired - self.velocity).clamp_length_max(self.maxforce);
+        self.apply_force(steer);
     }
 
     fn wander(&mut self, target: DVec2, r: f64) {
@@ -113,6 +124,62 @@ impl Vehicle {
         screen.pop_matrix();
 
         Ok(())
+    }
+}
+
+struct FlowField {
+    field: Vec<Vec<DVec2>>,
+    cols: usize,
+    rows: usize,
+    resolution: usize,
+}
+
+impl FlowField {
+    fn noise_field(cols: usize, rows: usize) -> Vec<Vec<DVec2>> {
+        let mut field = Vec::with_capacity(cols);
+
+        let mut xoff = 0.0;
+        for _ in 0..cols {
+            let mut row = Vec::with_capacity(rows);
+
+            let mut yoff = 0.0;
+            for _ in 0..rows {
+                let theta = core::math::map(
+                    core::noise2d([xoff, yoff], 0.5),
+                    0.0,
+                    1.0,
+                    0.0,
+                    2.0 * std::f64::consts::PI,
+                );
+                row.push(DVec2::new(theta.cos(), theta.sin()));
+
+                yoff += 0.1;
+            }
+            field.push(row);
+
+            xoff += 0.1;
+        }
+
+        field
+    }
+
+    fn new(screen: &Screen, resolution: usize) -> Self {
+        let cols = screen.width() as usize / resolution;
+        let rows = screen.height() as usize / resolution;
+
+        Self {
+            field: FlowField::noise_field(cols, rows),
+            cols,
+            rows,
+            resolution,
+        }
+    }
+
+    fn lookup(&self, pos: DVec2) -> DVec2 {
+        let col = core::math::clamp(pos.x as usize / self.resolution, 0, self.cols - 1);
+        let row = core::math::clamp(pos.y as usize / self.resolution, 0, self.rows - 1);
+
+        self.field[col][row]
     }
 }
 
