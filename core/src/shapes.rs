@@ -1,5 +1,6 @@
 use std::fmt;
 
+use glam::DVec2;
 use processing::errors::ProcessingErr;
 use processing::shapes::ellipse::Ellipse;
 use processing::shapes::line::Line;
@@ -36,6 +37,14 @@ pub fn point(screen: &mut Screen, x: f64, y: f64) -> Result<(), ProcessingErr> {
 pub fn line(screen: &mut Screen, x1: f64, y1: f64, x2: f64, y2: f64) -> Result<(), ProcessingErr> {
     let (x1, y1) = device_to_screen(screen, x1, y1);
     let (x2, y2) = device_to_screen(screen, x2, y2);
+
+    let line = Line::new(screen, &[x1], &[y1], &[0.0], &[x2], &[y2], &[0.0])?;
+    screen.draw(&line)
+}
+
+pub fn linev(screen: &mut Screen, v1: DVec2, v2: DVec2) -> Result<(), ProcessingErr> {
+    let (x1, y1) = device_to_screen(screen, v1.x, v1.y);
+    let (x2, y2) = device_to_screen(screen, v2.x, v2.y);
 
     let line = Line::new(screen, &[x1], &[y1], &[0.0], &[x2], &[y2], &[0.0])?;
     screen.draw(&line)

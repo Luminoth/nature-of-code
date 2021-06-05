@@ -29,13 +29,33 @@ impl Vehicle {
         }
     }
 
-    fn follow(&mut self, flow: &FlowField) {
+    fn follow_flow(&mut self, flow: &FlowField) {
         // desired velocity from the flow field
         let desired = flow.lookup(self.location) * self.maxspeed;
 
         // apply the steering force
         let steer = (desired - self.velocity).clamp_length_max(self.maxforce);
         self.apply_force(steer);
+    }
+
+    fn follow_path(&mut self, path: &Path, _dt: f64) {
+        // predict 25 pixels ahead
+        let predict = self.location + self.velocity.normalize_or_zero() * 25.0; // * dt;
+
+        // project the predicted point onto the path
+        let a = path.start;
+        let b = path.end;
+        let proj = core::math::project(predict, a, b);
+
+        // target 10 pixels out from the predicted point
+        let dir = (b - a).normalize_or_zero();
+        let target = proj + dir * 10.0;
+
+        // only seek the target if we're outside the path radius
+        let distance = proj.distance(predict);
+        if distance > path.radius {
+            self.seek(target);
+        }
     }
 
     fn wander(&mut self, target: DVec2, r: f64) {
@@ -180,6 +200,34 @@ impl FlowField {
         let row = core::math::clamp(pos.y as usize / self.resolution, 0, self.rows - 1);
 
         self.field[col][row]
+    }
+}
+
+struct Path {
+    start: DVec2,
+    end: DVec2,
+    radius: f64,
+}
+
+impl Path {
+    fn new(screen: &Screen) -> Self {
+        Self {
+            start: DVec2::new(0.0, screen.height() as f64 / 3.0),
+            end: DVec2::new(screen.width() as f64, 2.0 * screen.height() as f64 / 3.0),
+            radius: 20.0,
+        }
+    }
+
+    fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
+        screen.stroke_weight(self.radius as f32 * 2.0);
+        core::stroke_grayscale_alpha(screen, 0.0, 100.0);
+        core::shapes::linev(screen, self.start, self.end)?;
+
+        screen.stroke_weight(1.0);
+        core::stroke_grayscale(screen, 0.0);
+        core::shapes::linev(screen, self.start, self.end)?;
+
+        Ok(())
     }
 }
 

@@ -27,3 +27,12 @@ pub fn vector2_random() -> DVec2 {
     // TODO: should we take 2 frequencies here (one for x, one for y) ?
     DVec2::new(sample_noise2d(frequency), sample_noise2d(frequency)).normalize_or_zero()
 }*/
+
+/// Project ap onto ab
+pub fn project(p: DVec2, a: DVec2, b: DVec2) -> DVec2 {
+    let ap = p - a;
+    let ab = (b - a).normalize_or_zero();
+
+    let proj = ab * ap.dot(ab);
+    a + proj
+}
