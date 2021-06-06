@@ -42,19 +42,39 @@ impl Vehicle {
         // predict 25 pixels ahead
         let predict = self.location + self.velocity.normalize_or_zero() * 25.0; // * dt;
 
-        // project the predicted point onto the path
-        let a = path.start;
-        let b = path.end;
-        let proj = core::math::project(predict, a, b);
+        let mut target = None;
+        let mut world_record = 1000000.0;
 
-        // target 10 pixels out from the predicted point
-        let dir = (b - a).normalize_or_zero();
-        let target = proj + dir * 10.0;
+        // find the normal on the closest path segment
+        for i in 0..path.points.len() - 1 {
+            let a = path.points[i];
+            let b = path.points[i + 1];
+
+            // project the predicted point onto the segment
+            let mut proj = core::math::project(predict, a, b);
+
+            // this is cheaty, assuming path is always left to right
+            if proj.x < a.x || proj.x > b.x {
+                // use the end point of the segment as the normal
+                // since we aren't on the path ? weird hack...
+                proj = b;
+            }
+
+            let distance = predict.distance(proj);
+            if distance < world_record {
+                world_record = distance;
+
+                // target 10 pixels out from the predicted point
+                let dir = (b - a).normalize_or_zero();
+                target = Some(proj + dir * 10.0);
+            }
+        }
 
         // only seek the target if we're outside the path radius
-        let distance = proj.distance(predict);
-        if distance > path.radius {
-            self.seek(target);
+        if let Some(target) = target {
+            if world_record > path.radius {
+                self.seek(target);
+            }
         }
     }
 
@@ -139,7 +159,7 @@ impl Vehicle {
         //vertex(-self.r, self.r * 2.0);
         //vertex(self.r, self.r * 2.0);
 
-        // TODO: endShape(CLOSE);
+        // TODO: endShape();
 
         screen.pop_matrix();
 
@@ -204,28 +224,33 @@ impl FlowField {
 }
 
 struct Path {
-    start: DVec2,
-    end: DVec2,
+    points: Vec<DVec2>,
     radius: f64,
 }
 
 impl Path {
-    fn new(screen: &Screen) -> Self {
+    fn new() -> Self {
         Self {
-            start: DVec2::new(0.0, screen.height() as f64 / 3.0),
-            end: DVec2::new(screen.width() as f64, 2.0 * screen.height() as f64 / 3.0),
+            points: vec![],
             radius: 20.0,
         }
     }
 
-    fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
-        screen.stroke_weight(self.radius as f32 * 2.0);
-        core::stroke_grayscale_alpha(screen, 0.0, 100.0);
-        core::shapes::linev(screen, self.start, self.end)?;
+    fn add_point(&mut self, x: f64, y: f64) {
+        self.points.push(DVec2::new(x, y));
+    }
 
-        screen.stroke_weight(1.0);
+    fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
         core::stroke_grayscale(screen, 0.0);
-        core::shapes::linev(screen, self.start, self.end)?;
+        screen.fill_off();
+
+        // TODO: beginShape();
+
+        for _v in self.points.iter() {
+            //vertex(v.x, v.y);
+        }
+
+        // TODO: endShape(CLOSE);
 
         Ok(())
     }
