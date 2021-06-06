@@ -1,4 +1,5 @@
-#![allow(dead_code)]
+use std::cell::RefCell;
+use std::rc::Rc;
 
 use glam::DVec2;
 use processing::errors::ProcessingErr;
@@ -29,6 +30,7 @@ impl Vehicle {
         }
     }
 
+    #[allow(dead_code)]
     fn follow_flow(&mut self, flow: &FlowField) {
         // desired velocity from the flow field
         let desired = flow.lookup(self.location) * self.maxspeed;
@@ -38,6 +40,7 @@ impl Vehicle {
         self.apply_force(steer);
     }
 
+    #[allow(dead_code)]
     fn follow_path(&mut self, path: &Path, _dt: f64) {
         // predict 25 pixels ahead
         let predict = self.location + self.velocity.normalize_or_zero() * 25.0; // * dt;
@@ -76,6 +79,7 @@ impl Vehicle {
         }
     }
 
+    #[allow(dead_code)]
     fn wander(&mut self, target: DVec2, r: f64) {
         let mut rng = rand::thread_rng();
 
@@ -106,16 +110,53 @@ impl Vehicle {
         self.apply_force(steer);
     }
 
+    #[allow(dead_code)]
     fn pursuit(&mut self, target: DVec2, velocity: DVec2, _dt: f64) {
         let predicted = target + velocity; // * dt;
         self.seek(predicted);
     }
 
+    #[allow(dead_code)]
     fn flee(&mut self, target: DVec2) {
         let desired = -(target - self.location).normalize_or_zero() * self.maxspeed;
 
+        // apply the steering force
         let steer = (desired - self.velocity).clamp_length_max(self.maxforce);
         self.apply_force(steer);
+    }
+
+    fn separate(&mut self, vehicles: impl AsRef<[RefCell<Vehicle>]>) {
+        let desired_separation = self.r * 10.0;
+
+        let mut sum = DVec2::default();
+        let mut count = 0;
+
+        for other in vehicles.as_ref().iter() {
+            // this check should stop us comparing against ourself
+            if let Ok(other) = other.try_borrow() {
+                let d = self.location.distance(other.location);
+                if d < desired_separation {
+                    let mut diff = (self.location - other.location).normalize_or_zero();
+
+                    // weight how fast we flee by the distance
+                    diff /= d;
+
+                    sum += diff;
+                    count += 1;
+                }
+            }
+        }
+
+        if count > 0 {
+            sum /= count as f64;
+
+            // set the magnitude to the max speed
+            sum *= self.maxspeed / sum.length();
+
+            // apply the steering force
+            let steer = (sum - self.velocity).clamp_length_max(self.maxforce);
+            self.apply_force(steer);
+        }
     }
 
     fn apply_force(&mut self, force: DVec2) {
@@ -151,6 +192,7 @@ impl Vehicle {
         core::translate(screen, self.location.x, self.location.y);
         core::rotate(screen, theta);
 
+        /*
         // TODO: beginShape();
 
         //vertex(0, -self.r * 2.0);
@@ -158,6 +200,15 @@ impl Vehicle {
         //vertex(self.r, self.r * 2.0);
 
         // TODO: endShape();
+        */
+
+        core::shapes::ellipse(
+            screen,
+            self.location.x,
+            self.location.y,
+            self.r * 2.0,
+            self.r * 2.0,
+        )?;
 
         screen.pop_matrix();
 
@@ -173,6 +224,7 @@ struct FlowField {
 }
 
 impl FlowField {
+    #[allow(dead_code)]
     fn noise_field(cols: usize, rows: usize) -> Vec<Vec<DVec2>> {
         let mut field = Vec::with_capacity(cols);
 
@@ -201,6 +253,7 @@ impl FlowField {
         field
     }
 
+    #[allow(dead_code)]
     fn new(screen: &Screen, resolution: usize) -> Self {
         let cols = screen.width() as usize / resolution;
         let rows = screen.height() as usize / resolution;
@@ -227,6 +280,7 @@ struct Path {
 }
 
 impl Path {
+    #[allow(dead_code)]
     fn new() -> Self {
         Self {
             points: vec![],
@@ -234,10 +288,12 @@ impl Path {
         }
     }
 
+    #[allow(dead_code)]
     fn add_point(&mut self, x: f64, y: f64) {
         self.points.push(DVec2::new(x, y));
     }
 
+    #[allow(dead_code)]
     fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
         core::stroke_grayscale(screen, 0.0);
         screen.fill_off();
@@ -258,14 +314,48 @@ fn setup<'a>() -> Result<Screen<'a>, ProcessingErr> {
     core::create_canvas(640, 360)
 }
 
-fn draw(screen: &mut Screen, _dt: f64) -> Result<(), ProcessingErr> {
+fn draw(
+    screen: &mut Screen,
+    dt: f64,
+    vehicles: impl AsRef<[RefCell<Vehicle>]>,
+) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 255.0);
+
+    for v in vehicles.as_ref().iter() {
+        let mut v = v.borrow_mut();
+
+        v.separate(&vehicles);
+
+        v.update(dt);
+        v.display(screen)?;
+    }
 
     Ok(())
 }
 
 fn main() -> Result<(), ProcessingErr> {
-    core::run(setup, draw)?;
+    let vehicles = Rc::new(RefCell::new(None));
+
+    core::run(
+        || {
+            let mut rng = rand::thread_rng();
+
+            let screen = setup()?;
+
+            let mut vs = vec![];
+            for _ in 0..100 {
+                vs.push(RefCell::new(Vehicle::new(
+                    rng.gen_range(0..screen.width()) as f64,
+                    rng.gen_range(0..screen.height()) as f64,
+                )));
+            }
+
+            *vehicles.borrow_mut() = Some(vs);
+
+            Ok(screen)
+        },
+        |screen, dt| draw(screen, dt, vehicles.borrow_mut().as_mut().unwrap()),
+    )?;
 
     Ok(())
 }
