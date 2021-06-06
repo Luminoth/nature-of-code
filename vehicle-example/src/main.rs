@@ -31,17 +31,16 @@ impl Vehicle {
     }
 
     #[allow(dead_code)]
-    fn follow_flow(&mut self, flow: &FlowField) {
+    fn follow_flow(&self, flow: &FlowField) -> DVec2 {
         // desired velocity from the flow field
         let desired = flow.lookup(self.location) * self.maxspeed;
 
-        // apply the steering force
-        let steer = (desired - self.velocity).clamp_length_max(self.maxforce);
-        self.apply_force(steer);
+        // steering force
+        (desired - self.velocity).clamp_length_max(self.maxforce)
     }
 
     #[allow(dead_code)]
-    fn follow_path(&mut self, path: &Path, _dt: f64) {
+    fn follow_path(&self, path: &Path, _dt: f64) -> DVec2 {
         // predict 25 pixels ahead
         let predict = self.location + self.velocity.normalize_or_zero() * 25.0; // * dt;
 
@@ -74,23 +73,25 @@ impl Vehicle {
         // only seek the target if we're outside the path radius
         if let Some(target) = target {
             if world_record > path.radius {
-                self.seek(target);
+                return self.seek(target);
             }
         }
+
+        DVec2::default()
     }
 
     #[allow(dead_code)]
-    fn wander(&mut self, target: DVec2, r: f64) {
+    fn wander(&self, target: DVec2, r: f64) -> DVec2 {
         let mut rng = rand::thread_rng();
 
         // target a random point on a circle around the target
         let theta = rng.gen_range(0.0..2.0 * std::f64::consts::PI);
         let target = target + r * DVec2::new(theta.cos(), theta.sin());
 
-        self.seek(target);
+        self.seek(target)
     }
 
-    fn seek(&mut self, target: DVec2) {
+    fn seek(&self, target: DVec2) -> DVec2 {
         // desired velocity direction
         let desired = target - self.location;
 
@@ -105,27 +106,26 @@ impl Vehicle {
 
         let desired = desired.normalize_or_zero() * m;
 
-        // apply the steering force
-        let steer = (desired - self.velocity).clamp_length_max(self.maxforce);
-        self.apply_force(steer);
+        // steering force
+        (desired - self.velocity).clamp_length_max(self.maxforce)
     }
 
     #[allow(dead_code)]
-    fn pursuit(&mut self, target: DVec2, velocity: DVec2, _dt: f64) {
+    fn pursuit(&self, target: DVec2, velocity: DVec2, _dt: f64) -> DVec2 {
         let predicted = target + velocity; // * dt;
-        self.seek(predicted);
+        self.seek(predicted)
     }
 
     #[allow(dead_code)]
-    fn flee(&mut self, target: DVec2) {
+    fn flee(&self, target: DVec2) -> DVec2 {
         let desired = -(target - self.location).normalize_or_zero() * self.maxspeed;
 
-        // apply the steering force
-        let steer = (desired - self.velocity).clamp_length_max(self.maxforce);
-        self.apply_force(steer);
+        // steering force
+        (desired - self.velocity).clamp_length_max(self.maxforce)
     }
 
-    fn separate(&mut self, vehicles: impl AsRef<[RefCell<Vehicle>]>) {
+    #[allow(dead_code)]
+    fn separate(&self, vehicles: impl AsRef<[RefCell<Vehicle>]>) -> DVec2 {
         let desired_separation = self.r * 10.0;
 
         let mut sum = DVec2::default();
@@ -153,10 +153,11 @@ impl Vehicle {
             // set the magnitude to the max speed
             sum *= self.maxspeed / sum.length();
 
-            // apply the steering force
-            let steer = (sum - self.velocity).clamp_length_max(self.maxforce);
-            self.apply_force(steer);
+            // steering force
+            return (sum - self.velocity).clamp_length_max(self.maxforce);
         }
+
+        DVec2::default()
     }
 
     fn apply_force(&mut self, force: DVec2) {
@@ -166,6 +167,14 @@ impl Vehicle {
             force
         };
         self.acceleration += force;
+    }
+
+    fn apply_behaviors(&mut self, screen: &mut Screen, vehicles: impl AsRef<[RefCell<Vehicle>]>) {
+        let separate = self.separate(vehicles);
+        let seek = self.seek(DVec2::new(screen.mouse_x(), screen.mouse_y()));
+
+        self.apply_force(separate);
+        self.apply_force(seek);
     }
 
     fn update(&mut self, _dt: f64) {
@@ -324,7 +333,7 @@ fn draw(
     for v in vehicles.as_ref().iter() {
         let mut v = v.borrow_mut();
 
-        v.separate(&vehicles);
+        v.apply_behaviors(screen, &vehicles);
 
         v.update(dt);
         v.display(screen)?;
