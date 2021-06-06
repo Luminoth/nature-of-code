@@ -53,10 +53,8 @@ impl Vehicle {
             // project the predicted point onto the segment
             let mut proj = core::math::project(predict, a, b);
 
-            // this is cheaty, assuming path is always left to right
-            if proj.x < a.x || proj.x > b.x {
-                // use the end point of the segment as the normal
-                // since we aren't on the path ? weird hack...
+            // if we're not on this segment, hackily take the "end" as the normal
+            if proj.x < a.x.min(b.x) || proj.x > a.x.max(b.x) {
                 proj = b;
             }
 
