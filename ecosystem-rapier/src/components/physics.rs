@@ -2,7 +2,7 @@
 
 use bevy::prelude::*;
 use bevy_inspector_egui::Inspectable;
-use bevy_rapier2d::rapier::dynamics::RigidBody;
+use bevy_rapier2d::prelude::*;
 use num_traits::Float;
 
 use crate::util::to_vector;

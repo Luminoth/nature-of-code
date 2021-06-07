@@ -1,17 +1,13 @@
 //! Creature systems
 
 use bevy::prelude::*;
-use bevy_rapier2d::physics::{ColliderHandleComponent, RigidBodyHandleComponent};
-use bevy_rapier2d::rapier::dynamics::RigidBodySet;
-use bevy_rapier2d::rapier::geometry::ColliderSet;
-use bevy_rapier2d::rapier::parry::bounding_volume::BoundingVolume;
+use bevy_rapier2d::prelude::*;
 
 use crate::components::creatures::*;
 use crate::components::environment::*;
 use crate::components::physics::*;
 use crate::components::*;
 use crate::resources::*;
-use crate::util::{from_vector, to_vector};
 
 /// Creature systems
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
@@ -30,14 +26,12 @@ const BOUNDS_REPEL_ACCEL: f32 = 0.01;
 /// Creature facing
 pub fn creature_facing(
     time: Res<Time>,
-    rigidbodies: Res<RigidBodySet>,
-    mut query: Query<(&mut Transform, &RigidBodyHandleComponent, &Creature)>,
+    mut query: Query<(&mut Transform, &RigidBodyVelocity, &Creature)>,
 ) {
     let dt = time.delta_seconds();
 
-    for (mut transform, rbhandle, creature) in query.iter_mut() {
-        let rigidbody = rigidbodies.get(rbhandle.handle()).unwrap();
-        if rigidbody.linvel().magnitude_squared() != 0.0 {
+    for (mut transform, velocity, creature) in query.iter_mut() {
+        if velocity.linvel.magnitude_squared() != 0.0 {
             let angle = -creature.acceleration_direction.angle_between(Vec2::Y);
             transform.rotation = transform.rotation.slerp(Quat::from_rotation_z(angle), dt);
         }
@@ -59,35 +53,29 @@ pub fn fly_think(mut random: ResMut<Random>, mut query: Query<&mut Creature, Wit
 /// Fly behavior
 pub fn fly_physics(
     mut random: ResMut<Random>,
-    mut rigidbodies: ResMut<RigidBodySet>,
-    mut query: Query<(&RigidBodyHandleComponent, &Fly, &Creature)>,
+    mut query: Query<(&mut RigidBodyForces, &RigidBodyMassProps, &Fly, &Creature)>,
 ) {
-    for (rbhandle, fly, creature) in query.iter_mut() {
-        let rigidbody = rigidbodies.get_mut(rbhandle.handle()).unwrap();
-
+    for (mut forces, mass, fly, creature) in query.iter_mut() {
         let _modifier = random.random() as f32;
-        let magnitude = fly.acceleration * rigidbody.mass(); // * _modifier;
+        let magnitude = fly.acceleration * mass.mass(); // * _modifier;
 
-        rigidbody.apply_force(to_vector(creature.acceleration_direction * magnitude), true);
+        forces.force = (creature.acceleration_direction * magnitude).into();
     }
 }
 
 /// Keep flies inside the window
 pub fn fly_bounds(
     world_bounds: Res<WorldBounds>,
-    mut rigidbodies: ResMut<RigidBodySet>,
-    colliders: Res<ColliderSet>,
-    mut query: Query<(&mut Transform, &ColliderHandleComponent, &Physical), With<Fly>>,
+    mut query: Query<(&mut Transform, &ColliderPosition, &ColliderShape, &Physical), With<Fly>>,
 ) {
     let hw = world_bounds.width / 2.0;
     let hh = world_bounds.height / 2.0;
 
-    for (mut transform, chandle, physical) in query.iter_mut() {
-        let collider = colliders.get(chandle.handle()).unwrap();
-        let bounds = collider.compute_aabb();
+    for (mut transform, collider_position, shape, physical) in query.iter_mut() {
+        let bounds = shape.compute_aabb(collider_position);
 
         let (min, max) = adjust_container_bounds(
-            from_vector(bounds.extents()),
+            bounds.extents().into(),
             Vec2::new(-hw, -hh),
             Vec2::new(hw, hh),
             BOUNDS_OFFSET,

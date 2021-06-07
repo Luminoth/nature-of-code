@@ -17,7 +17,7 @@ use bevy::prelude::*;
 use bevy_egui::{EguiPlugin, EguiSettings};
 use bevy_inspector_egui::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
 use bevy_prototype_lyon::prelude::*;
-use bevy_rapier2d::physics::RapierPhysicsPlugin;
+use bevy_rapier2d::prelude::*;
 use num_traits::Float;
 
 use plugins::creatures::*;
@@ -97,7 +97,7 @@ fn main() {
     .add_plugin(FrameTimeDiagnosticsPlugin);
 
     // rapier
-    app.add_plugin(RapierPhysicsPlugin);
+    app.add_plugin(RapierPhysicsPlugin::<NoUserData>::default());
 
     // prototype lyon
     app.add_plugin(ShapePlugin);

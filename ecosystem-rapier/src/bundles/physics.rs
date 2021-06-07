@@ -1,16 +1,18 @@
 //! Physics bundles
 
 use bevy::prelude::*;
-use bevy_rapier2d::rapier::dynamics::RigidBodyBuilder;
-use bevy_rapier2d::rapier::geometry::ColliderBuilder;
+use bevy_rapier2d::prelude::*;
 
 use crate::components::physics::*;
 
 /// Physics object
 #[derive(Bundle)]
 pub struct PhysicsBundle {
-    pub rigidbody: RigidBodyBuilder,
-    pub collider: ColliderBuilder,
+    #[bundle]
+    pub rigidbody: RigidBodyBundle,
+    #[bundle]
+    pub collider: ColliderBundle,
+
     pub physical: Physical,
 
     pub transform: Transform,
@@ -20,10 +22,14 @@ pub struct PhysicsBundle {
 impl PhysicsBundle {
     pub fn new_dynamic(position: Vec3, size: Vec2, mass: f32) -> Self {
         Self {
-            rigidbody: RigidBodyBuilder::new_dynamic()
-                .translation(position.x, position.y)
-                .additional_mass(mass),
-            collider: ColliderBuilder::cuboid(size.x / 2.0, size.y / 2.0),
+            rigidbody: RigidBodyBundle {
+                position: position.into(),
+                ..Default::default()
+            },
+            collider: ColliderBundle {
+                shape: ColliderShape::cuboid(size.x / 2.0, size.y / 2.0),
+                ..Default::default()
+            },
             physical: Physical {
                 previous_position: position,
             },
@@ -34,10 +40,20 @@ impl PhysicsBundle {
 
     pub fn new_surface(position: Vec3, size: Vec2, friction: f32) -> Self {
         Self {
-            rigidbody: RigidBodyBuilder::new_static().translation(position.x, position.y),
-            collider: ColliderBuilder::cuboid(size.x / 2.0, size.y / 2.0)
-                .sensor(true)
-                .friction(friction),
+            rigidbody: RigidBodyBundle {
+                body_type: RigidBodyType::Static,
+                position: position.into(),
+                ..Default::default()
+            },
+            collider: ColliderBundle {
+                shape: ColliderShape::cuboid(size.x / 2.0, size.y / 2.0),
+                collider_type: ColliderType::Sensor,
+                material: ColliderMaterial {
+                    friction,
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
             physical: Physical {
                 previous_position: position,
             },
@@ -48,10 +64,17 @@ impl PhysicsBundle {
 
     pub fn new_fluid(position: Vec3, size: Vec2, density: f32) -> Self {
         Self {
-            rigidbody: RigidBodyBuilder::new_static().translation(position.x, position.y),
-            collider: ColliderBuilder::cuboid(size.x / 2.0, size.y / 2.0)
-                .sensor(true)
-                .density(density),
+            rigidbody: RigidBodyBundle {
+                body_type: RigidBodyType::Static,
+                position: position.into(),
+                ..Default::default()
+            },
+            collider: ColliderBundle {
+                shape: ColliderShape::cuboid(size.x / 2.0, size.y / 2.0),
+                collider_type: ColliderType::Sensor,
+                mass_properties: ColliderMassProps::Density(density),
+                ..Default::default()
+            },
             physical: Physical {
                 previous_position: position,
             },
