@@ -1,6 +1,7 @@
 //! Creature systems
 
 use bevy::prelude::*;
+use bevy_rapier2d::na::UnitComplex;
 use bevy_rapier2d::prelude::*;
 use bevy_rapier2d::rapier::parry::bounding_volume::BoundingVolume;
 
@@ -27,15 +28,15 @@ const BOUNDS_REPEL_ACCEL: f32 = 0.01;
 /// Creature facing
 pub fn creature_facing(
     time: Res<Time>,
-    mut query: Query<(&mut Transform, &RigidBodyVelocity, &Creature)>,
+    mut query: Query<(&mut RigidBodyPosition, &RigidBodyVelocity, &Creature)>,
 ) {
     let dt = time.delta_seconds();
 
-    for (mut transform, rbvelocity, creature) in query.iter_mut() {
+    for (mut rbposition, rbvelocity, creature) in query.iter_mut() {
         if rbvelocity.linvel.magnitude_squared() != 0.0 {
             let angle = -creature.acceleration_direction.angle_between(Vec2::Y);
-            // TODO: this is wrong, we have to modify something else
-            transform.rotation = transform.rotation.slerp(Quat::from_rotation_z(angle), dt);
+            let v = UnitComplex::new(angle);
+            rbposition.position.rotation = rbposition.position.rotation.slerp(&v, dt);
         }
     }
 }
