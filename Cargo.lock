@@ -319,9 +319,9 @@ checksum = "5bc705295fc79159a6d96888ed20de42ed143da50a31b72b3060b2c5099fb024"
 dependencies = [
  "bevy",
  "bevy-inspector-egui-derive",
- "bevy_egui 0.4.2",
+ "bevy_egui",
  "bevy_rapier2d 0.9.0",
- "emath 0.11.0",
+ "emath",
  "image 0.23.14",
  "nalgebra 0.25.4",
  "pretty-type-name",
@@ -491,21 +491,7 @@ checksum = "f3de8da8d35ee092c04816725eb9ab9f4dc809f0c1ad2cda4de74042fa8a3454"
 dependencies = [
  "bevy",
  "clipboard",
- "egui 0.11.0",
- "thread_local",
- "webbrowser",
- "winit 0.24.0",
-]
-
-[[package]]
-name = "bevy_egui"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "deb8eba352b755e7b5b934a7ceade017dde82ecea6585ffd65f6690abbf1ff20"
-dependencies = [
- "bevy",
- "clipboard",
- "egui 0.12.0",
+ "egui",
  "thread_local",
  "webbrowser",
  "winit 0.24.0",
@@ -1656,7 +1642,7 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy-inspector-egui",
- "bevy_egui 0.4.2",
+ "bevy_egui",
  "bevy_prototype_lyon",
  "derivative",
  "noise",
@@ -1671,7 +1657,7 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy-inspector-egui",
- "bevy_egui 0.5.0",
+ "bevy_egui",
  "bevy_prototype_lyon",
  "bevy_rapier2d 0.10.0",
  "derivative",
@@ -1687,16 +1673,7 @@ version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2d7d6535c3ecdc8627a72c1c52d052d66cd9f71c238428690cc46bef9d1f2bce"
 dependencies = [
- "epaint 0.11.0",
-]
-
-[[package]]
-name = "egui"
-version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "788148861d80b87d28d64440a3d31cae190e50ccc3ea585597466d38428365d7"
-dependencies = [
- "epaint 0.12.0",
+ "epaint",
 ]
 
 [[package]]
@@ -1710,12 +1687,6 @@ name = "emath"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4ed72c14666517e5c0198490864adea871081abe4f5523af8c3f4f56595142e"
-
-[[package]]
-name = "emath"
-version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e73d6c8c70eadb71756fbbc3c303ab25e163b46b656886dd250de5636efea12"
 
 [[package]]
 name = "enum_primitive"
@@ -1744,20 +1715,7 @@ checksum = "2a19eff631454edbe5abe4693be00be0c1ea9832d727dc385c16841caa2d0162"
 dependencies = [
  "ahash 0.7.4",
  "atomic_refcell",
- "emath 0.11.0",
- "ordered-float",
- "rusttype",
-]
-
-[[package]]
-name = "epaint"
-version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80e2db640801230bdda80629bc3a063927a462f5eaf38a98da676954e78ccb99"
-dependencies = [
- "ahash 0.7.4",
- "atomic_refcell",
- "emath 0.12.0",
+ "emath",
  "ordered-float",
  "rusttype",
 ]
