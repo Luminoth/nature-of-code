@@ -14,7 +14,6 @@ pub struct PhysicsBundle {
 
     #[bundle]
     pub collider: ColliderBundle,
-    pub csync: ColliderPositionSync,
 
     pub physical: Physical,
 
@@ -35,7 +34,6 @@ impl PhysicsBundle {
                 shape: ColliderShape::cuboid(size.x / 2.0, size.y / 2.0),
                 ..Default::default()
             },
-            csync: ColliderPositionSync::Discrete,
             physical: Physical {
                 previous_position: position,
             },
@@ -61,7 +59,6 @@ impl PhysicsBundle {
                 },
                 ..Default::default()
             },
-            csync: ColliderPositionSync::Discrete,
             physical: Physical {
                 previous_position: position,
             },
@@ -84,7 +81,6 @@ impl PhysicsBundle {
                 mass_properties: ColliderMassProps::Density(density),
                 ..Default::default()
             },
-            csync: ColliderPositionSync::Discrete,
             physical: Physical {
                 previous_position: position,
             },
