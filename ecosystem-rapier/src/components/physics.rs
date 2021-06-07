@@ -5,8 +5,6 @@ use bevy_inspector_egui::Inspectable;
 use bevy_rapier2d::prelude::*;
 use num_traits::Float;
 
-use crate::util::to_vector;
-
 /// Physics step rate
 /// 50hz, the same as Unity
 pub const PHYSICS_STEP: f32 = 0.02;
@@ -54,7 +52,7 @@ pub fn rk4_integrate(transform: &mut Transform, acceleration: Vec3, velocity: &m
 /// Contain a rigidbody inside bounds
 #[allow(dead_code)]
 pub fn contain(
-    rigidbody: &mut RigidBody,
+    rbvelocity: &mut RigidBodyVelocity,
     transform: &mut Transform,
     physical: &Physical,
     min: Vec2,
@@ -71,9 +69,9 @@ pub fn contain(
             physical.previous_position.x
         };
 
-        let mut velocity = *rigidbody.linvel();
+        let mut velocity: Vec2 = rbvelocity.linvel.into();
         velocity.x = 0.0;
-        rigidbody.set_linvel(velocity, true);
+        rbvelocity.linvel = velocity.into();
     } else if transform.translation.x >= max.x {
         transform.translation.x = if physical.previous_position.x >= max.x {
             max.x - min_distance
@@ -81,9 +79,9 @@ pub fn contain(
             physical.previous_position.x
         };
 
-        let mut velocity = *rigidbody.linvel();
+        let mut velocity: Vec2 = rbvelocity.linvel.into();
         velocity.x = 0.0;
-        rigidbody.set_linvel(velocity, true);
+        rbvelocity.linvel = velocity.into();
     }
 
     if transform.translation.y <= min.y {
@@ -93,9 +91,9 @@ pub fn contain(
             physical.previous_position.y
         };
 
-        let mut velocity = *rigidbody.linvel();
+        let mut velocity: Vec2 = rbvelocity.linvel.into();
         velocity.y = 0.0;
-        rigidbody.set_linvel(velocity, true);
+        rbvelocity.linvel = velocity.into();
     } else if transform.translation.y >= max.y {
         transform.translation.y = if physical.previous_position.y >= max.y {
             max.y - min_distance
@@ -103,21 +101,21 @@ pub fn contain(
             physical.previous_position.y
         };
 
-        let mut velocity = *rigidbody.linvel();
+        let mut velocity: Vec2 = rbvelocity.linvel.into();
         velocity.y = 0.0;
-        rigidbody.set_linvel(velocity, true);
+        rbvelocity.linvel = velocity.into();
     }
 }
 
 fn attract_repel_force(
-    rigidbody: &RigidBody,
+    rbmass: &RigidBodyMassProps,
     ab: Vec2,
     acceleration: f32,
     min_distance: f32,
 ) -> Vec2 {
     let distance = Float::max(min_distance, ab.length());
     let direction = ab.normalize_or_zero();
-    let magnitude = (acceleration * rigidbody.mass()) / (distance * distance);
+    let magnitude = (acceleration * rbmass.mass()) / (distance * distance);
 
     direction * magnitude
 }
@@ -125,62 +123,64 @@ fn attract_repel_force(
 /// Repel a rigidbody inside bounds
 #[allow(dead_code)]
 pub fn bounds_repel(
-    rigidbody: &mut RigidBody,
+    rbmass: &RigidBodyMassProps,
+    rbforces: &mut RigidBodyForces,
     transform: &Transform,
     min: Vec2,
     max: Vec2,
     acceleration: f32,
     min_distance: f32,
 ) {
-    let force = attract_repel_force(
-        rigidbody,
+    let mut total_force = Vec2::default();
+
+    total_force += attract_repel_force(
+        rbmass,
         Vec2::new(transform.translation.x - min.x, 0.0),
         acceleration,
         min_distance,
     );
-    rigidbody.apply_force(to_vector(force), true);
 
-    let force = attract_repel_force(
-        rigidbody,
+    total_force += attract_repel_force(
+        rbmass,
         Vec2::new(transform.translation.x - max.x, 0.0),
         acceleration,
         min_distance,
     );
-    rigidbody.apply_force(to_vector(force), true);
 
-    let force = attract_repel_force(
-        rigidbody,
+    total_force += attract_repel_force(
+        rbmass,
         Vec2::new(0.0, transform.translation.y - min.y),
         acceleration,
         min_distance,
     );
-    rigidbody.apply_force(to_vector(force), true);
 
-    let force = attract_repel_force(
-        rigidbody,
+    total_force += attract_repel_force(
+        rbmass,
         Vec2::new(0.0, transform.translation.y - max.y),
         acceleration,
         min_distance,
     );
-    rigidbody.apply_force(to_vector(force), true);
+
+    rbforces.force += Vector::<Real>::from(total_force);
 }
 
 /// Repel a a rigidbody away from a point
 #[allow(dead_code)]
 pub fn repel(
-    rigidbody: &mut RigidBody,
+    rbmass: &RigidBodyMassProps,
+    rbforces: &mut RigidBodyForces,
     transform: &Transform,
     point: Vec2,
     acceleration: f32,
     min_distance: f32,
 ) {
     let force = attract_repel_force(
-        rigidbody,
+        rbmass,
         transform.translation.truncate() - point,
         acceleration,
         min_distance,
     );
-    rigidbody.apply_force(to_vector(force), true);
+    rbforces.force += Vector::<Real>::from(force);
 }
 
 /// Adjusts the bounds that should contain a collider

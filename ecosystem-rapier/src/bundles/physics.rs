@@ -10,8 +10,11 @@ use crate::components::physics::*;
 pub struct PhysicsBundle {
     #[bundle]
     pub rigidbody: RigidBodyBundle,
+    pub rbsync: RigidBodyPositionSync,
+
     #[bundle]
     pub collider: ColliderBundle,
+    pub csync: ColliderPositionSync,
 
     pub physical: Physical,
 
@@ -20,16 +23,19 @@ pub struct PhysicsBundle {
 }
 
 impl PhysicsBundle {
-    pub fn new_dynamic(position: Vec3, size: Vec2, mass: f32) -> Self {
+    // TODO: how do we set the mass?
+    pub fn new_dynamic(position: Vec3, size: Vec2, _mass: f32) -> Self {
         Self {
             rigidbody: RigidBodyBundle {
                 position: position.into(),
                 ..Default::default()
             },
+            rbsync: RigidBodyPositionSync::Discrete,
             collider: ColliderBundle {
                 shape: ColliderShape::cuboid(size.x / 2.0, size.y / 2.0),
                 ..Default::default()
             },
+            csync: ColliderPositionSync::Discrete,
             physical: Physical {
                 previous_position: position,
             },
@@ -45,6 +51,7 @@ impl PhysicsBundle {
                 position: position.into(),
                 ..Default::default()
             },
+            rbsync: RigidBodyPositionSync::Discrete,
             collider: ColliderBundle {
                 shape: ColliderShape::cuboid(size.x / 2.0, size.y / 2.0),
                 collider_type: ColliderType::Sensor,
@@ -54,6 +61,7 @@ impl PhysicsBundle {
                 },
                 ..Default::default()
             },
+            csync: ColliderPositionSync::Discrete,
             physical: Physical {
                 previous_position: position,
             },
@@ -69,12 +77,14 @@ impl PhysicsBundle {
                 position: position.into(),
                 ..Default::default()
             },
+            rbsync: RigidBodyPositionSync::Discrete,
             collider: ColliderBundle {
                 shape: ColliderShape::cuboid(size.x / 2.0, size.y / 2.0),
                 collider_type: ColliderType::Sensor,
                 mass_properties: ColliderMassProps::Density(density),
                 ..Default::default()
             },
+            csync: ColliderPositionSync::Discrete,
             physical: Physical {
                 previous_position: position,
             },

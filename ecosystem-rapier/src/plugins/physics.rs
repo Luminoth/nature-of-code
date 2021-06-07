@@ -2,6 +2,7 @@
 
 use bevy::prelude::*;
 use bevy_inspector_egui::InspectableRegistry;
+use bevy_rapier2d::physics::PhysicsStages;
 
 use crate::components::physics::*;
 use crate::states::*;
@@ -23,7 +24,7 @@ impl Plugin for PhysicsPlugin {
 
         // physical stage
         app.add_stage_before(
-            bevy_rapier2d::physics::TRANSFORM_SYNC_STAGE,
+            PhysicsStages::SyncTransforms,
             "physical",
             SystemStage::single_threaded(),
         )

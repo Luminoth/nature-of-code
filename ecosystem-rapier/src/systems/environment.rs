@@ -1,15 +1,12 @@
 //! Environment systems
 
 use bevy::prelude::*;
-use bevy_rapier2d::physics::ColliderHandleComponent;
-use bevy_rapier2d::rapier::dynamics::RigidBodySet;
-use bevy_rapier2d::rapier::geometry::ColliderSet;
+use bevy_rapier2d::prelude::*;
 use bevy_rapier2d::rapier::parry::bounding_volume::BoundingVolume;
 
 use crate::components::creatures::*;
 use crate::components::environment::*;
 use crate::resources::*;
-use crate::util::to_vector;
 
 /// Environment systems
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemLabel)]
@@ -21,26 +18,20 @@ pub enum EnvironmentsSystem {
 pub fn water_current(
     noise: Res<PerlinNoise>,
     simulation: Res<SimulationParams>,
-    mut rigidbodies: ResMut<RigidBodySet>,
-    colliders: Res<ColliderSet>,
-    mut query: Query<(&ColliderHandleComponent, &mut WaterCurrent), Without<Creature>>,
-    creatures: Query<&ColliderHandleComponent, With<Creature>>,
+    mut query: Query<(&ColliderPosition, &ColliderShape, &mut WaterCurrent), Without<Creature>>,
+    mut creatures: Query<(&mut RigidBodyForces, &ColliderPosition, &ColliderShape), With<Creature>>,
 ) {
     if !simulation.enable_current {
         return;
     }
 
-    for (chandle, mut current) in query.iter_mut() {
-        let collider = colliders.get(chandle.handle()).unwrap();
+    for (cposition, cshape, mut current) in query.iter_mut() {
         let force = current.force(&noise);
 
-        for cchandle in creatures.iter() {
-            let ccollider = colliders.get(cchandle.handle()).unwrap();
-            let rigidbody = rigidbodies.get_mut(ccollider.parent()).unwrap();
-
-            let cbounds = ccollider.compute_aabb();
-            if collider.compute_aabb().intersects(&cbounds) {
-                rigidbody.apply_force(to_vector(force), true);
+        for (mut rbforces, ccposition, ccshape) in creatures.iter_mut() {
+            let cbounds = ccshape.compute_aabb(ccposition);
+            if cshape.compute_aabb(cposition).intersects(&cbounds) {
+                rbforces.force += Vector::<Real>::from(force);
             }
         }
 
@@ -52,26 +43,20 @@ pub fn water_current(
 pub fn wind(
     noise: Res<PerlinNoise>,
     simulation: Res<SimulationParams>,
-    mut rigidbodies: ResMut<RigidBodySet>,
-    colliders: Res<ColliderSet>,
-    mut query: Query<(&ColliderHandleComponent, &mut Wind), Without<Creature>>,
-    creatures: Query<&ColliderHandleComponent, With<Creature>>,
+    mut query: Query<(&ColliderPosition, &ColliderShape, &mut Wind), Without<Creature>>,
+    mut creatures: Query<(&mut RigidBodyForces, &ColliderPosition, &ColliderShape), With<Creature>>,
 ) {
     if !simulation.enable_wind {
         return;
     }
 
-    for (chandle, mut wind) in query.iter_mut() {
-        let collider = colliders.get(chandle.handle()).unwrap();
+    for (cposition, cshape, mut wind) in query.iter_mut() {
         let force = wind.force(&noise);
 
-        for cchandle in creatures.iter() {
-            let ccollider = colliders.get(cchandle.handle()).unwrap();
-            let rigidbody = rigidbodies.get_mut(ccollider.parent()).unwrap();
-
-            let cbounds = ccollider.compute_aabb();
-            if collider.compute_aabb().intersects(&cbounds) {
-                rigidbody.apply_force(to_vector(force), true);
+        for (mut rbforces, ccposition, ccshape) in creatures.iter_mut() {
+            let cbounds = ccshape.compute_aabb(ccposition);
+            if cshape.compute_aabb(cposition).intersects(&cbounds) {
+                rbforces.force += Vector::<Real>::from(force);
             }
         }
 
