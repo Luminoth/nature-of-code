@@ -23,15 +23,26 @@ pub struct PhysicsBundle {
 
 impl PhysicsBundle {
     // TODO: how do we set the mass?
-    pub fn new_dynamic(position: Vec3, size: Vec2, _mass: f32) -> Self {
+    pub fn new_dynamic(position: Vec3, size: Vec2, mass: f32, drag: f32) -> Self {
         Self {
             rigidbody: RigidBodyBundle {
                 position: position.into(),
+                mass_properties: RigidBodyMassProps {
+                    flags: RigidBodyMassPropsFlags::ROTATION_LOCKED_X
+                        | RigidBodyMassPropsFlags::ROTATION_LOCKED_Y,
+                    local_mprops: MassProperties::new(Vec2::default().into(), mass, 0.0),
+                    ..Default::default()
+                },
+                damping: RigidBodyDamping {
+                    linear_damping: drag,
+                    ..Default::default()
+                },
                 ..Default::default()
             },
             rbsync: RigidBodyPositionSync::Discrete,
             collider: ColliderBundle {
                 shape: ColliderShape::cuboid(size.x / 2.0, size.y / 2.0),
+                mass_properties: ColliderMassProps::Density(0.0),
                 ..Default::default()
             },
             physical: Physical {
@@ -47,6 +58,10 @@ impl PhysicsBundle {
             rigidbody: RigidBodyBundle {
                 body_type: RigidBodyType::Static,
                 position: position.into(),
+                mass_properties: RigidBodyMassProps {
+                    flags: RigidBodyMassPropsFlags::ROTATION_LOCKED,
+                    ..Default::default()
+                },
                 ..Default::default()
             },
             rbsync: RigidBodyPositionSync::Discrete,
@@ -72,6 +87,10 @@ impl PhysicsBundle {
             rigidbody: RigidBodyBundle {
                 body_type: RigidBodyType::Static,
                 position: position.into(),
+                mass_properties: RigidBodyMassProps {
+                    flags: RigidBodyMassPropsFlags::ROTATION_LOCKED,
+                    ..Default::default()
+                },
                 ..Default::default()
             },
             rbsync: RigidBodyPositionSync::Discrete,

@@ -44,9 +44,15 @@ pub fn clampf<F: Float>(v: F, min: F, max: F) -> F {
 }
 
 /// Misc setup
-fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
+fn setup(
+    mut commands: Commands,
+    _asset_server: Res<AssetServer>,
+    mut rapier_config: ResMut<RapierConfiguration>,
+) {
     #[cfg(debug_assertions)]
     _asset_server.watch_for_changes().unwrap();
+
+    rapier_config.gravity = Vector::default();
 
     let mut random = Random::default();
 
