@@ -151,7 +151,7 @@ impl Vehicle {
             sum /= count as f64;
 
             // set the magnitude to the max speed
-            sum *= self.maxspeed / sum.length();
+            sum = sum.normalize_or_zero() * self.maxspeed;
 
             // steering force
             return (sum - self.velocity).clamp_length_max(self.maxforce);
@@ -220,6 +220,107 @@ impl Vehicle {
         )?;
 
         screen.pop_matrix();
+
+        Ok(())
+    }
+}
+
+type Boid = Vehicle;
+
+impl Boid {
+    fn flock(&mut self, boids: impl AsRef<[RefCell<Boid>]>) {
+        let separate = self.separate(boids.as_ref()) * 1.5;
+        let align = self.align(boids.as_ref()) * 1.0;
+        let cohesion = self.cohesion(boids.as_ref()) * 1.0;
+
+        self.apply_force(separate);
+        self.apply_force(align);
+        self.apply_force(cohesion);
+    }
+
+    fn align(&self, boids: impl AsRef<[RefCell<Boid>]>) -> DVec2 {
+        let neighbordist = 50.0;
+
+        let mut sum = DVec2::default();
+        let mut count = 0;
+
+        for other in boids.as_ref().iter() {
+            // this check should stop us comparing against ourself
+            if let Ok(other) = other.try_borrow() {
+                let d = self.location.distance(other.location);
+                if d < neighbordist {
+                    sum += other.velocity;
+                    count += 1;
+                }
+            }
+        }
+
+        if count > 0 {
+            sum /= count as f64;
+
+            // set the magnitude to the max speed
+            sum = sum.normalize_or_zero() * self.maxspeed;
+
+            return (sum - self.velocity).clamp_length_max(self.maxforce);
+        }
+
+        DVec2::default()
+    }
+
+    fn cohesion(&self, boids: impl AsRef<[RefCell<Boid>]>) -> DVec2 {
+        let neighbordist = 50.0;
+
+        let mut sum = DVec2::default();
+        let mut count = 0;
+
+        for other in boids.as_ref().iter() {
+            // this check should stop us comparing against ourself
+            if let Ok(other) = other.try_borrow() {
+                let d = self.location.distance(other.location);
+                if d < neighbordist {
+                    sum += other.location;
+                    count += 1;
+                }
+            }
+        }
+
+        if count > 0 {
+            sum /= count as f64;
+            return self.seek(sum);
+        }
+
+        DVec2::default()
+    }
+
+    fn run(
+        &mut self,
+        screen: &mut Screen,
+        boids: impl AsRef<[RefCell<Boid>]>,
+        dt: f64,
+    ) -> Result<(), ProcessingErr> {
+        self.flock(boids);
+        self.update(dt);
+
+        self.display(screen)?;
+
+        Ok(())
+    }
+}
+
+#[derive(Debug, Default)]
+struct Flock {
+    boids: Vec<RefCell<Boid>>,
+}
+
+impl Flock {
+    fn add_boid(&mut self, boid: Boid) {
+        self.boids.push(RefCell::new(boid));
+    }
+
+    fn run(&mut self, screen: &mut Screen, dt: f64) -> Result<(), ProcessingErr> {
+        for boid in self.boids.iter() {
+            boid.borrow_mut().run(screen, &self.boids, dt)?;
+        }
 
         Ok(())
     }
@@ -327,6 +428,7 @@ fn draw(
     screen: &mut Screen,
     dt: f64,
     vehicles: impl AsRef<[RefCell<Vehicle>]>,
+    flock: &mut Flock,
 ) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 255.0);
 
@@ -339,11 +441,14 @@ fn draw(
         v.display(screen)?;
     }
 
+    flock.run(screen, dt)?;
+
     Ok(())
 }
 
 fn main() -> Result<(), ProcessingErr> {
     let vehicles = Rc::new(RefCell::new(None));
+    let flock = Rc::new(RefCell::new(None));
 
     core::run(
         || {
@@ -361,9 +466,27 @@ fn main() -> Result<(), ProcessingErr> {
 
             *vehicles.borrow_mut() = Some(vs);
 
+            let mut f = Flock::default();
+
+            for _ in 0..100 {
+                f.add_boid(Boid::new(
+                    screen.width() as f64 / 2.0,
+                    screen.height() as f64 / 2.0,
+                ));
+            }
+
+            *flock.borrow_mut() = Some(f);
+
             Ok(screen)
         },
-        |screen, dt| draw(screen, dt, vehicles.borrow_mut().as_mut().unwrap()),
+        |screen, dt| {
+            draw(
+                screen,
+                dt,
+                vehicles.borrow_mut().as_mut().unwrap(),
+                flock.borrow_mut().as_mut().unwrap(),
+            )
+        },
     )?;
 
     Ok(())
