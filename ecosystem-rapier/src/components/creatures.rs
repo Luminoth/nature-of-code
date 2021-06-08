@@ -121,10 +121,12 @@ impl Fly {
             bundle
                 .insert(Name::new(format!("Firefly {}", i)))
                 .with_children(|parent| {
-                    parent.spawn_bundle(FireflyBundle {
-                        particles: Self::firefly_particles(random, material),
-                        ..Default::default()
-                    });
+                    parent
+                        .spawn_bundle(FireflyBundle {
+                            particles: Self::firefly_particles(random, material),
+                            ..Default::default()
+                        })
+                        .insert(Name::new("Particles"));
                 });
         } else {
             bundle.insert(Name::new(format!("Fly {}", i)));
@@ -215,11 +217,13 @@ impl Fish {
                         amplitude: Vec2::new(0.1, 0.0),
                     });
 
-                parent.spawn_bundle(FishParticlesBundle {
-                    particles: Self::particles(random, material),
-                    transform: Transform::from_translation(Vec3::new(0.0, -size.y * 0.5, 1.0)),
-                    ..Default::default()
-                });
+                parent
+                    .spawn_bundle(FishParticlesBundle {
+                        particles: Self::particles(random, material),
+                        transform: Transform::from_translation(Vec3::new(0.0, -size.y * 0.5, 1.0)),
+                        ..Default::default()
+                    })
+                    .insert(Name::new("Particles"));
             });
     }
 }
