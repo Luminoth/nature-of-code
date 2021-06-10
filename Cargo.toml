@@ -29,6 +29,9 @@ members = [
     # vehicle
     "vehicle-example",
 
+    # cellular automata
+    "cellular-automata",
+
     # chapters
     "intro/example1",
     "intro/example2",
