@@ -5,6 +5,8 @@ use processing::Screen;
 struct CA {
     cells: Vec<i8>,
     ruleset: [i8; 8],
+    cell_size: f64,
+    generation: u32,
 }
 
 impl CA {
@@ -15,7 +17,12 @@ impl CA {
 
         let ruleset = [0, 1, 0, 1, 1, 0, 1, 0];
 
-        Self { cells, ruleset }
+        Self {
+            cells,
+            ruleset,
+            cell_size: 10.0,
+            generation: 0,
+        }
     }
 
     fn generate(&mut self) {
@@ -27,12 +34,34 @@ impl CA {
             next_gen[i] = self.rules(left, me, right);
         }
         self.cells = next_gen;
+
+        self.generation += 1;
     }
 
     fn rules(&self, a: i8, b: i8, c: i8) -> i8 {
         let s = format!("{}{}{}", a, b, c);
         let index = s.parse::<usize>().unwrap();
         self.ruleset[index]
+    }
+
+    fn draw(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
+        for i in 0..self.cells.len() {
+            if self.cells[i] == 1 {
+                core::fill_grayscale(screen, 0.0);
+            } else {
+                core::fill_grayscale(screen, 255.0);
+            }
+
+            core::shapes::rect(
+                screen,
+                i as f64 * self.cell_size,
+                self.generation as f64 * self.cell_size,
+                self.cell_size,
+                self.cell_size,
+            )?;
+        }
+
+        Ok(())
     }
 }
 
