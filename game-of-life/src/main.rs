@@ -23,14 +23,17 @@ impl LifeCell {
         }
     }
 
+    #[inline]
     fn is_alive(&self) -> bool {
         self.state == 1
     }
 
+    #[inline]
     fn was_born(&self) -> bool {
         self.previous_state == 0 && self.is_alive()
     }
 
+    #[inline]
     fn died(&self) -> bool {
         self.previous_state == 1 && !self.is_alive()
     }
