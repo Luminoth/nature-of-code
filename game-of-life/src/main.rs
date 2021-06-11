@@ -39,6 +39,8 @@ impl GameOfLife {
     }
 
     fn generate(&mut self) {
+        // TODO: instead of allocating every generation
+        // keep 2 boards and flip between them
         let mut next = vec![vec![0; self.rows]; self.columns];
         for x in 1..self.columns - 1 {
             for y in 1..self.rows - 1 {
@@ -73,19 +75,19 @@ impl GameOfLife {
     }
 
     fn draw(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
-        for i in 0..self.columns {
-            for j in 0..self.rows {
-                if self.board[i][j] == 1 {
+        for x in 0..self.columns {
+            for y in 0..self.rows {
+                if self.board[x][y] == 1 {
                     core::fill_grayscale(screen, 0.0);
                 } else {
                     core::fill_grayscale(screen, 255.0);
                 }
-                core::stroke_grayscale(screen, 0.0);
+                //core::stroke_grayscale(screen, 0.0);
 
                 core::shapes::rect(
                     screen,
-                    i as f64 * self.cell_size,
-                    j as f64 * self.cell_size,
+                    x as f64 * self.cell_size,
+                    y as f64 * self.cell_size,
                     self.cell_size,
                     self.cell_size,
                 )?;
