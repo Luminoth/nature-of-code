@@ -26,6 +26,14 @@ impl LifeCell {
     fn is_alive(&self) -> bool {
         self.state == 1
     }
+
+    fn was_born(&self) -> bool {
+        self.previous_state == 0 && self.is_alive()
+    }
+
+    fn died(&self) -> bool {
+        self.previous_state == 1 && !self.is_alive()
+    }
 }
 
 #[derive(Debug)]
@@ -103,12 +111,15 @@ impl GameOfLife {
     fn draw(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
         for x in 0..self.columns {
             for y in 0..self.rows {
-                if self.board[x][y].is_alive() {
+                if self.board[x][y].was_born() {
+                    core::fill_rgb(screen, 0.0, 0.0, 255.0);
+                } else if self.board[x][y].is_alive() {
                     core::fill_grayscale(screen, 0.0);
+                } else if self.board[x][y].died() {
+                    core::fill_rgb(screen, 255.0, 0.0, 0.0);
                 } else {
                     core::fill_grayscale(screen, 255.0);
                 }
-                //core::stroke_grayscale(screen, 0.0);
 
                 core::shapes::rect(
                     screen,
