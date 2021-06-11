@@ -5,28 +5,50 @@ use processing::errors::ProcessingErr;
 use processing::Screen;
 use rand::Rng;
 
+#[derive(Debug, Default, Copy, Clone)]
+struct LifeCell {
+    state: i8,
+    previous_state: i8,
+}
+
+impl LifeCell {
+    fn new() -> Self {
+        let mut rng = rand::thread_rng();
+
+        let state = rng.gen_range(0..=1);
+
+        Self {
+            state,
+            previous_state: state,
+        }
+    }
+
+    fn is_alive(&self) -> bool {
+        self.state == 1
+    }
+}
+
 #[derive(Debug)]
 struct GameOfLife {
     columns: usize,
     rows: usize,
 
-    board: Vec<Vec<i8>>,
+    board: Vec<Vec<LifeCell>>,
     cell_size: f64,
 }
 
 impl GameOfLife {
     fn new(screen: &Screen) -> Self {
-        let mut rng = rand::thread_rng();
-
         let cell_size = 10;
 
         let columns = (screen.width() / cell_size) as usize;
         let rows = (screen.height() / cell_size) as usize;
 
-        let mut board = vec![vec![0; rows]; columns];
+        // TODO: is there a better way to init a 2d vec?
+        let mut board = vec![vec![LifeCell::default(); rows]; columns];
         for x in 0..columns {
             for y in 0..rows {
-                board[x][y] = rng.gen_range(0..=1);
+                board[x][y] = LifeCell::new();
             }
         }
 
@@ -39,9 +61,13 @@ impl GameOfLife {
     }
 
     fn generate(&mut self) {
-        // TODO: instead of allocating every generation
-        // keep 2 boards and flip between them
-        let mut next = vec![vec![0; self.rows]; self.columns];
+        // copy the current state to the previous state
+        for row in self.board.iter_mut() {
+            for cell in row.iter_mut() {
+                cell.previous_state = cell.state;
+            }
+        }
+
         for x in 1..self.columns - 1 {
             for y in 1..self.rows - 1 {
                 // add up the neighbor states to get the count of live neighbors
@@ -49,35 +75,35 @@ impl GameOfLife {
                 // TODO: not sure how to iterate a negative range
                 for i in 0..=2 {
                     for j in 0..=2 {
-                        neighbors += self.board[x + i - 1][y + j - 1];
+                        neighbors += self.board[x + i - 1][y + j - 1].previous_state;
                     }
                 }
 
-                // remove the current cell's value
-                neighbors -= self.board[x][y];
+                // remove the current cell's value that was added in
+                neighbors -= self.board[x][y].previous_state;
 
-                next[x][y] = if self.board[x][y] == 1 && neighbors < 2 {
+                // set the cell's new state
+                self.board[x][y].state = if self.board[x][y].is_alive() && neighbors < 2 {
                     // lonely death
                     0
-                } else if self.board[x][y] == 1 && neighbors > 3 {
+                } else if self.board[x][y].is_alive() && neighbors > 3 {
                     // overpopulation death
                     0
-                } else if self.board[x][y] == 0 && neighbors == 3 {
+                } else if !self.board[x][y].is_alive() && neighbors == 3 {
                     // birth
                     1
                 } else {
                     // stasis
-                    self.board[x][y]
+                    self.board[x][y].previous_state
                 };
             }
         }
-        self.board = next;
     }
 
     fn draw(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
         for x in 0..self.columns {
             for y in 0..self.rows {
-                if self.board[x][y] == 1 {
+                if self.board[x][y].is_alive() {
                     core::fill_grayscale(screen, 0.0);
                 } else {
                     core::fill_grayscale(screen, 255.0);
