@@ -33,6 +33,9 @@ members = [
     "cellular-automata",
     "game-of-life",
 
+    # fractals
+    "fractal-example",
+
     # chapters
     "intro/example1",
     "intro/example2",
