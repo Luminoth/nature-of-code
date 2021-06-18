@@ -132,8 +132,7 @@ fn main() -> Result<(), ProcessingErr> {
         || {
             let screen = setup()?;
 
-            let mut ruleset = vec![];
-            ruleset.push(Rule::new('F', "FF+[+F-F-F]-[-F+F+F]"));
+            let ruleset = vec![Rule::new('F', "FF+[+F-F-F]-[-F+F+F]")];
 
             *lsys.borrow_mut() = Some(LSystem::new("F", ruleset));
 

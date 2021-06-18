@@ -31,11 +31,16 @@ impl CA {
 
     fn generate(&mut self) {
         let mut next_gen = Vec::with_capacity(self.cells.len());
-        for i in 1..self.cells.len() - 1 {
+        for (i, next) in next_gen
+            .iter_mut()
+            .enumerate()
+            .take(self.cells.len() - 1)
+            .skip(1)
+        {
             let left = self.cells[i - 1];
             let me = self.cells[i];
             let right = self.cells[i + 1];
-            next_gen[i] = self.rules(left, me, right);
+            *next = self.rules(left, me, right);
         }
         self.cells = next_gen;
 
