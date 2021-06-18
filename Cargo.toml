@@ -35,6 +35,7 @@ members = [
 
     # fractals
     "fractal-example",
+    "l-system-example",
 
     # chapters
     "intro/example1",
