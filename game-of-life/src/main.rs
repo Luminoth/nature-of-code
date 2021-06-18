@@ -57,9 +57,9 @@ impl GameOfLife {
 
         // TODO: is there a better way to init a 2d vec?
         let mut board = vec![vec![LifeCell::default(); rows]; columns];
-        for x in 0..columns {
-            for y in 0..rows {
-                board[x][y] = LifeCell::new();
+        for column in board.iter_mut().take(columns) {
+            for row in column.iter_mut().take(rows) {
+                *row = LifeCell::new();
             }
         }
 
@@ -71,6 +71,7 @@ impl GameOfLife {
         }
     }
 
+    #[allow(clippy::if_same_then_else)]
     fn generate(&mut self) {
         // copy the current state to the previous state
         for row in self.board.iter_mut() {

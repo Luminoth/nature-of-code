@@ -1,3 +1,7 @@
+#![allow(dead_code)]
+
+// TODO: finish this
+
 use processing::errors::ProcessingErr;
 use processing::Screen;
 

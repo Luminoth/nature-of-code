@@ -60,6 +60,7 @@ struct KochLines {
 }
 
 impl KochLines {
+    #[allow(clippy::many_single_char_names)]
     fn generate(&mut self) {
         let mut lines = vec![];
         for line in self.lines.iter() {
