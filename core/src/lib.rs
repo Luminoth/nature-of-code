@@ -130,6 +130,21 @@ pub fn fill_rgba(screen: &mut Screen, r: f32, g: f32, b: f32, a: f32) {
     screen.fill(&[r / 255.0], &[g / 255.0], &[b / 255.0], &[a / 255.0]);
 }
 
+/* text */
+
+pub fn text(
+    screen: &mut Screen,
+    text: impl AsRef<str>,
+    x: f64,
+    y: f64,
+) -> Result<(), ProcessingErr> {
+    let (_x, _y) = device_to_screen(screen, x, y);
+
+    //screen.text(text.as_ref(), &[x], &[y])
+    println!("{}", text.as_ref());
+    Ok(())
+}
+
 /* image */
 
 pub fn image(

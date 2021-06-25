@@ -37,6 +37,9 @@ members = [
     "fractal-example",
     "l-system-example",
 
+    # genetic algorithms
+    "genetic-algorithm",
+
     # chapters
     "intro/example1",
     "intro/example2",
