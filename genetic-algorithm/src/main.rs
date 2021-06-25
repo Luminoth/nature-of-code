@@ -84,7 +84,8 @@ impl Dna {
     fn crossover(&self, partner: &Dna, method: CrossoverMethod) -> Dna {
         let mut rng = rand::thread_rng();
 
-        let mut child = Dna::new(TARGET);
+        assert_eq!(self.target, partner.target);
+        let mut child = Dna::new(self.target);
 
         match method {
             CrossoverMethod::Midpoint => {
