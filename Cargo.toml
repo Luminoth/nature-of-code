@@ -39,6 +39,7 @@ members = [
 
     # genetic algorithms
     "genetic-algorithm",
+    "smart-rocket",
 
     # chapters
     "intro/example1",

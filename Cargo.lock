@@ -4387,6 +4387,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "smart-rocket"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "glam 0.14.0",
+ "processing",
+ "rand 0.8.3",
+]
+
+[[package]]
 name = "spaceship-example"
 version = "0.1.0"
 dependencies = [
