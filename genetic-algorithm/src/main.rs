@@ -6,30 +6,57 @@ use processing::Screen;
 use rand::Rng;
 
 const TARGET: &str = "to be or not to be";
-const MUTATION_RATE: f32 = 0.01;
+
+// key variables to tweak for a GA
+// these values were chosen specifically
+// to get a solution on average in 1000 generations
+// larger populations will solve problems faster
+// (1000 solves in 71 generations, 50,000 in 27 generations)
+// time to solve can increase as iteration requirements go up
+const MUTATION_RATE: f32 = 0.01; // 1% chance to mutate
 const TOTAL_POPULATION: usize = 150;
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Copy, Clone)]
+enum CrossoverMethod {
+    #[allow(dead_code)]
+    Midpoint,
+
+    #[allow(dead_code)]
+    Coin,
+}
+
+#[derive(Debug, Clone)]
 struct Dna {
-    // 18 genes for "to be or not to be"
-    genes: [char; 18],
+    target: &'static str,
+    genes: Vec<char>,
 
     fitness: f32,
     generation: usize,
 }
 
 impl Dna {
-    fn new() -> Self {
+    fn new(target: &'static str) -> Self {
+        Self {
+            target,
+            genes: vec!['.'; target.len()],
+            fitness: 0.0,
+            generation: 0,
+        }
+    }
+
+    fn random(target: &'static str) -> Self {
         let mut rng = rand::thread_rng();
 
-        let mut genes = ['.'; 18];
-        for gene in genes.iter_mut() {
-            *gene = rng.gen_range(32..128).into();
+        let mut genes = Vec::with_capacity(target.len());
+        for _ in 0..genes.capacity() {
+            genes.push(rng.gen_range(32..128).into());
         }
 
         Self {
+            target,
             genes,
-            ..Default::default()
+            fitness: 0.0,
+            generation: 0,
         }
     }
 
@@ -37,41 +64,49 @@ impl Dna {
         self.genes.iter().collect()
     }
 
-    fn fitness(&mut self, target: impl AsRef<str>) {
-        let target = target.as_ref();
-
+    fn fitness(&mut self) {
         let mut score = 0;
         for i in 0..self.genes.len() {
-            if self.genes[i] == target.chars().nth(i).unwrap() {
+            if self.genes[i] == self.target.chars().nth(i).unwrap() {
                 score += 1;
             }
         }
-        self.fitness = score as f32 / target.len() as f32;
+
+        // exponential fitness score
+        self.fitness = (score * score) as f32;
+
+        // normalize to 0..1 for the mating pool
+        self.fitness /= (self.target.len() * self.target.len()) as f32;
+
+        assert!(self.fitness <= 1.0);
     }
 
-    fn crossover(&self, partner: &Dna) -> Dna {
+    fn crossover(&self, partner: &Dna, method: CrossoverMethod) -> Dna {
         let mut rng = rand::thread_rng();
 
-        let mut child = Dna::default();
+        let mut child = Dna::new(TARGET);
 
-        // random midpoint method
-        /*let midpoint = rng.gen_range(0..self.genes.len());
-        for i in 0..self.genes.len() {
-            child.genes[i] = if i > midpoint {
-                self.genes[i]
-            } else {
-                partner.genes[i]
-            };
-        }*/
-
-        // coin method
-        for i in 0..self.genes.len() {
-            let coin = rng.gen_range(0..=1);
-            child.genes[i] = if coin == 0 {
-                self.genes[i]
-            } else {
-                partner.genes[i]
-            };
+        match method {
+            CrossoverMethod::Midpoint => {
+                let midpoint = rng.gen_range(0..self.genes.len());
+                for i in 0..self.genes.len() {
+                    child.genes[i] = if i > midpoint {
+                        self.genes[i]
+                    } else {
+                        partner.genes[i]
+                    };
+                }
+            }
+            CrossoverMethod::Coin => {
+                for i in 0..self.genes.len() {
+                    let coin = rng.gen_range(0..=1);
+                    child.genes[i] = if coin == 0 {
+                        self.genes[i]
+                    } else {
+                        partner.genes[i]
+                    };
+                }
+            }
         }
 
         child.generation = self.generation + 1;
@@ -108,12 +143,17 @@ fn draw(screen: &mut Screen, _: f64, population: &mut Vec<Dna>) -> Result<(), Pr
     // since we overwrite their population entries
     // when they reproduce
     for dna in population.iter_mut() {
-        dna.fitness(TARGET);
+        dna.fitness();
 
         let n = (dna.fitness * 100.0) as usize;
         for _ in 0..n {
             mating_pool.push(dna.clone());
         }
+    }
+
+    if mating_pool.len() == 0 {
+        println!("population unfit for mating!");
+        return Ok(());
     }
 
     for dna in population.iter_mut() {
@@ -127,13 +167,13 @@ fn draw(screen: &mut Screen, _: f64, population: &mut Vec<Dna>) -> Result<(), Pr
         let parent_a = &mating_pool[a];
         let parent_b = &mating_pool[b];
 
-        let mut child = parent_a.crossover(parent_b);
+        let mut child = parent_a.crossover(parent_b, CrossoverMethod::Coin);
         child.mutate(MUTATION_RATE);
 
         *dna = child;
 
         // calculate the new fitness for the best phrase check
-        dna.fitness(TARGET);
+        dna.fitness();
     }
 
     let mut best_phrase = 0;
@@ -152,7 +192,7 @@ fn draw(screen: &mut Screen, _: f64, population: &mut Vec<Dna>) -> Result<(), Pr
         0.0,
     )?;
 
-    if fittest.fitness == 1.0 {
+    if (fittest.fitness - 1.0).abs() < 0.01 {
         println!("Generated target in {} generations", fittest.generation);
         std::process::exit(0);
     }
@@ -170,7 +210,7 @@ fn main() -> Result<(), ProcessingErr> {
             let mut p: Vec<Dna> = vec![];
 
             for _ in 0..TOTAL_POPULATION {
-                p.push(Dna::new());
+                p.push(Dna::random(TARGET));
             }
 
             *population.borrow_mut() = Some(p);
