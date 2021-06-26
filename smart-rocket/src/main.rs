@@ -58,9 +58,13 @@ impl Dna {
         }
     }
 
-    fn fitness(&mut self, location: DVec2, target: DVec2) {
-        let d = location.distance_squared(target);
+    fn fitness(&mut self, rocket: &Rocket, target: DVec2) {
+        let d = rocket.location.distance_squared(target);
         self.fitness = (1.0 / d).powf(2.0);
+
+        if rocket.stopped {
+            self.fitness *= 0.1;
+        }
     }
 
     fn crossover(&self, partner: &Dna, method: CrossoverMethod) -> Dna {
@@ -115,8 +119,10 @@ struct Rocket {
 
     r: f64,
 
-    dna: Dna,
+    dna: RefCell<Dna>,
     gene_counter: usize,
+
+    stopped: bool,
 }
 
 impl Rocket {
@@ -128,13 +134,24 @@ impl Rocket {
 
             r: 4.0,
 
-            dna: Dna::random(lifetime),
+            dna: RefCell::new(Dna::random(lifetime)),
             gene_counter: 0,
+
+            stopped: false,
         }
     }
 
     fn heading(&self) -> f64 {
         self.velocity.x.atan2(self.velocity.y)
+    }
+
+    fn obstacles(&mut self, obstacles: impl AsRef<[Obstacle]>) {
+        for obstacle in obstacles.as_ref().iter() {
+            if obstacle.contains(self.location) {
+                self.stopped = true;
+                return;
+            }
+        }
     }
 
     fn apply_force(&mut self, force: DVec2) {
@@ -182,13 +199,52 @@ impl Rocket {
         Ok(())
     }
 
-    fn run(&mut self, screen: &mut Screen) -> Result<(), ProcessingErr> {
-        self.apply_force(self.dna.genes[self.gene_counter]);
-        self.gene_counter = (self.gene_counter + 1) % self.dna.genes.len();
+    fn run(
+        &mut self,
+        screen: &mut Screen,
+        obstacles: impl AsRef<[Obstacle]>,
+    ) -> Result<(), ProcessingErr> {
+        if self.stopped {
+            return Ok(());
+        }
+
+        let gene = self.dna.borrow().genes[self.gene_counter];
+        self.apply_force(gene);
+        self.gene_counter = (self.gene_counter + 1) % self.dna.borrow().genes.len();
 
         self.update();
 
+        self.obstacles(obstacles);
+
         self.display(screen)?;
+
+        Ok(())
+    }
+}
+
+struct Obstacle {
+    location: DVec2,
+    w: f64,
+    h: f64,
+}
+
+impl Obstacle {
+    fn new(location: DVec2, w: f64, h: f64) -> Self {
+        Self { location, w, h }
+    }
+
+    fn contains(&self, v: DVec2) -> bool {
+        v.x > self.location.x
+            && v.x < self.location.x + self.w
+            && v.y > self.location.y
+            && v.y < self.location.y + self.h
+    }
+
+    fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
+        core::stroke_grayscale(screen, 0.0);
+        core::fill_grayscale(screen, 0.0);
+
+        core::shapes::rect(screen, self.location.x, self.location.y, self.w, self.h)?;
 
         Ok(())
     }
@@ -231,8 +287,8 @@ impl Population {
     }
 
     fn fitness(&mut self) {
-        for member in self.population.iter_mut() {
-            member.dna.fitness(member.location, self.target);
+        for member in self.population.iter() {
+            member.dna.borrow_mut().fitness(member, self.target);
         }
     }
 
@@ -245,9 +301,11 @@ impl Population {
         // since we overwrite their population entries
         // when they reproduce
         for member in self.population.iter() {
-            let n = (member.dna.fitness * 100.0) as usize;
+            let dna = member.dna.borrow();
+
+            let n = (dna.fitness * 100.0) as usize;
             for _ in 0..n {
-                self.mating_pool.push(member.dna.clone());
+                self.mating_pool.push(dna.clone());
             }
         }
     }
@@ -274,27 +332,35 @@ impl Population {
             let mut child = parent_a.crossover(&parent_b, CrossoverMethod::Coin);
             child.mutate(self.mutation_rate);
 
-            member.dna = child;
+            *member.dna.borrow_mut() = child;
         }
 
         self.generations += 1;
     }
 
-    fn live(&mut self, screen: &mut Screen) -> Result<(), ProcessingErr> {
+    fn live(
+        &mut self,
+        screen: &mut Screen,
+        obstacles: impl AsRef<[Obstacle]>,
+    ) -> Result<(), ProcessingErr> {
         for member in self.population.iter_mut() {
-            member.run(screen)?;
+            member.run(screen, obstacles.as_ref())?;
         }
 
         Ok(())
     }
 
-    fn run(&mut self, screen: &mut Screen) -> Result<(), ProcessingErr> {
+    fn run(
+        &mut self,
+        screen: &mut Screen,
+        obstacles: impl AsRef<[Obstacle]>,
+    ) -> Result<(), ProcessingErr> {
         // target
         core::fill_grayscale(screen, 0.0);
         core::shapes::ellipse(screen, self.target.x, self.target.y, 24.0, 24.0)?;
 
         if self.life_counter < self.lifetime {
-            self.live(screen)?;
+            self.live(screen, obstacles)?;
             self.life_counter += 1;
         } else {
             self.life_counter = 0;
@@ -312,10 +378,19 @@ fn setup<'a>() -> Result<Screen<'a>, ProcessingErr> {
     core::create_canvas(640, 360)
 }
 
-fn draw(screen: &mut Screen, _: f64, population: &mut Population) -> Result<(), ProcessingErr> {
+fn draw(
+    screen: &mut Screen,
+    _: f64,
+    population: &mut Population,
+    obstacles: impl AsRef<[Obstacle]>,
+) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 255.0);
 
-    population.run(screen)?;
+    for obstacle in obstacles.as_ref().iter() {
+        obstacle.display(screen)?;
+    }
+
+    population.run(screen, obstacles)?;
 
     /*let mut best_phrase = 0;
     for i in 1..population.len() {
@@ -343,6 +418,7 @@ fn draw(screen: &mut Screen, _: f64, population: &mut Population) -> Result<(), 
 
 fn main() -> Result<(), ProcessingErr> {
     let population = Rc::new(RefCell::new(None));
+    let obstacles = Rc::new(RefCell::new(None));
 
     core::run(
         || {
@@ -358,9 +434,27 @@ fn main() -> Result<(), ProcessingErr> {
                 LIFETIME,
             ));
 
+            let obs = vec![Obstacle::new(
+                DVec2::new(
+                    screen.width() as f64 / 2.0,
+                    screen.height() as f64 / 2.0 - 40.0,
+                ),
+                100.0,
+                10.0,
+            )];
+
+            *obstacles.borrow_mut() = Some(obs);
+
             Ok(screen)
         },
-        |screen, dt| draw(screen, dt, population.borrow_mut().as_mut().unwrap()),
+        |screen, dt| {
+            draw(
+                screen,
+                dt,
+                population.borrow_mut().as_mut().unwrap(),
+                obstacles.borrow().as_ref().unwrap(),
+            )
+        },
     )?;
 
     Ok(())
