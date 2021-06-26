@@ -152,7 +152,7 @@ fn draw(screen: &mut Screen, _: f64, population: &mut Vec<Dna>) -> Result<(), Pr
         }
     }
 
-    if mating_pool.len() == 0 {
+    if mating_pool.is_empty() {
         println!("population unfit for mating!");
         return Ok(());
     }

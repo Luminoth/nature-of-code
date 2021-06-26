@@ -166,7 +166,7 @@ impl Rocket {
     }
 
     fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
-        let theta = self.heading() + std::f64::consts::FRAC_PI_2;
+        let _theta = self.heading() + std::f64::consts::FRAC_PI_2;
 
         core::stroke_grayscale(screen, 0.0);
         core::fill_grayscale_alpha(screen, 200.0, 100.0);
@@ -311,7 +311,7 @@ impl Population {
     }
 
     fn reproduction(&mut self) {
-        if self.mating_pool.len() == 0 {
+        if self.mating_pool.is_empty() {
             println!("population unfit for mating!");
             return;
         }

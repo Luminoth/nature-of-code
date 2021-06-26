@@ -1,4 +1,4 @@
-//! Nature of Code Ecosystem Project
+//! Nature of Code Ecosystem Project (Rapier Physics)
 
 // bevy queries can produce a lot of this
 #![allow(clippy::type_complexity)]
@@ -87,7 +87,7 @@ fn main() {
 
     // basic bevy
     app.insert_resource(WindowDescriptor {
-        title: "Ecosystem".to_owned(),
+        title: "Ecosystem - Rapier".to_owned(),
         width: WINDOW_WIDTH,
         height: WINDOW_HEIGHT,
         vsync: false,

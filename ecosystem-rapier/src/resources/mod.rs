@@ -105,14 +105,11 @@ impl Random {
         Vec2::new(self.random_range(xrange), self.random_range(yrange))
     }
 
-    /// Generates a uniform random direction vector, never 0 length
+    /// Generates a uniform random direction vector
     #[allow(dead_code)]
     pub fn direction(&mut self) -> Vec2 {
-        let mut direction = (self.vec2() * 2.0 - Vec2::new(1.0, 1.0)).normalize();
-        while !direction.is_finite() {
-            direction = (self.vec2() * 2.0 - Vec2::new(1.0, 1.0)).normalize();
-        }
-        direction
+        let theta = self.random() as f32 * std::f32::consts::PI * 2.0;
+        Vec2::new(theta.cos(), theta.sin())
     }
 
     /// Generates a random value with the given normal distribution
@@ -195,14 +192,11 @@ impl PerlinNoise {
         Vec2::new(x, y)
     }
 
-    /// Generates a noisey random direction vector, never 0 length
+    /// Generates a noisey random direction vector
     /// Untested
     #[allow(dead_code)]
-    pub fn direction(&self, random: &mut Random, point: f64, frequency: f64) -> Vec2 {
-        let mut direction = self.vec2(random, point, frequency).normalize();
-        while !direction.is_finite() {
-            direction = self.vec2(random, point, frequency).normalize();
-        }
-        direction
+    pub fn direction(&self, point: f64, frequency: f64) -> Vec2 {
+        let theta = self.get(point, frequency) as f32;
+        Vec2::new(theta.cos(), theta.sin())
     }
 }
