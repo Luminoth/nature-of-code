@@ -55,4 +55,5 @@ members = [
     # final project
     "ecosystem",
     "ecosystem-rapier",
+    "ecosystem-genetic",
 ]

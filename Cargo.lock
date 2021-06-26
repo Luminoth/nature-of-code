@@ -1662,6 +1662,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "ecosystem-genetic"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy-inspector-egui",
+ "bevy_egui",
+ "noise",
+ "num-traits 0.2.14",
+ "rand 0.8.3",
+ "rand_distr",
+]
+
+[[package]]
 name = "ecosystem-rapier"
 version = "0.1.0"
 dependencies = [
