@@ -174,7 +174,7 @@ impl Rocket {
         screen.push_matrix();
 
         core::translate(screen, self.location.x, self.location.y);
-        core::rotate(screen, theta);
+        //core::rotate(screen, theta);
 
         // thrusters
         screen.rect_mode(&core::shapes::RectMode::Center.to_string());
