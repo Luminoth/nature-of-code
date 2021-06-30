@@ -41,6 +41,9 @@ members = [
     "genetic-algorithm",
     "smart-rocket",
 
+    # neural networks
+    "perceptron",
+
     # chapters
     "intro/example1",
     "intro/example2",

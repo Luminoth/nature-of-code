@@ -3714,6 +3714,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d4fd5641d01c8f18a23da7b6fe29298ff4b55afcccdf78973b24cf3175fee32e"
 
 [[package]]
+name = "perceptron"
+version = "0.1.0"
+dependencies = [
+ "core",
+ "processing",
+ "rand 0.8.3",
+]
+
+[[package]]
 name = "perlin-example"
 version = "0.1.0"
 dependencies = [
