@@ -29,8 +29,8 @@ impl Perceptron {
         assert_eq!(self.weights.len(), inputs.len());
 
         let mut sum = 0.0;
-        for i in 0..self.weights.len() {
-            sum += inputs[i] * self.weights[i];
+        for (i, input) in inputs.iter().enumerate().take(self.weights.len()) {
+            sum += input * self.weights[i];
         }
         self.activate(sum)
     }
@@ -46,8 +46,8 @@ impl Perceptron {
     fn train(&mut self, inputs: impl AsRef<[f32]>, desired: isize) {
         let guess = self.feedforward(&inputs);
         let error = desired - guess;
-        for i in 0..self.weights.len() {
-            self.weights[i] = self.c * error as f32 * inputs.as_ref()[i] as f32;
+        for (i, input) in inputs.as_ref().iter().enumerate().take(self.weights.len()) {
+            self.weights[i] += self.c * error as f32 * input;
         }
     }
 }
@@ -75,7 +75,13 @@ fn setup<'a>() -> Result<Screen<'a>, ProcessingErr> {
     core::create_canvas(640, 360)
 }
 
-fn draw(screen: &mut Screen, _: f64) -> Result<(), ProcessingErr> {
+fn draw(
+    screen: &mut Screen,
+    _: f64,
+    ptron: &mut Perceptron,
+    training: impl AsRef<[Trainer]>,
+    current: &mut usize,
+) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 255.0);
 
     core::translate(
@@ -84,23 +90,41 @@ fn draw(screen: &mut Screen, _: f64) -> Result<(), ProcessingErr> {
         screen.height() as f64 / 2.0,
     );
 
-    // TODO:
+    let training = training.as_ref();
+    ptron.train(training[*current].inputs, training[*current].answer);
+    *current = (*current + 1) % training.len();
+
+    for trainer in training.iter().take(*current) {
+        core::stroke_grayscale(screen, 0.0);
+        let guess = ptron.feedforward(trainer.inputs);
+        if guess > 0 {
+            screen.fill_off();
+        } else {
+            core::fill_grayscale(screen, 0.0);
+        }
+
+        core::shapes::ellipse(
+            screen,
+            trainer.inputs[0] as f64,
+            trainer.inputs[1] as f64,
+            8.0,
+            8.0,
+        )?;
+    }
 
     Ok(())
 }
 
 fn main() -> Result<(), ProcessingErr> {
-    let ptron = Rc::new(RefCell::new(None));
+    let mut ptron = Perceptron::new(3);
     let training = Rc::new(RefCell::new(None));
+    let mut current = 0;
 
     core::run(
         || {
             let mut rng = rand::thread_rng();
 
             let screen = setup()?;
-
-            let p = Perceptron::new(3);
-            *ptron.borrow_mut() = Some(p);
 
             let mut t = vec![];
             for _ in 0..2000 {
@@ -114,7 +138,17 @@ fn main() -> Result<(), ProcessingErr> {
 
             Ok(screen)
         },
-        draw,
+        |screen, dt| {
+            draw(
+                screen,
+                dt,
+                &mut ptron,
+                training.borrow().as_ref().unwrap(),
+                &mut current,
+            )?;
+
+            Ok(())
+        },
     )?;
 
     Ok(())
