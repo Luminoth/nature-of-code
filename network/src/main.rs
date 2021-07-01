@@ -16,6 +16,8 @@ struct Neuron {
     location: DVec2,
 
     connections: Vec<Connection>,
+
+    sum: f32,
 }
 
 impl Neuron {
@@ -23,11 +25,26 @@ impl Neuron {
         Self {
             location: DVec2::new(x, y),
             connections: vec![],
+            sum: 0.0,
         }
     }
 
     fn add_connection(&mut self, connection: Connection) {
         self.connections.push(connection);
+    }
+
+    fn feedforward(&mut self, input: f32) {
+        self.sum += input;
+        if self.sum > 1.0 {
+            self.fire();
+            self.sum = 0.0;
+        }
+    }
+
+    fn fire(&self) {
+        for connection in self.connections.iter() {
+            connection.feedforward(self.sum);
+        }
     }
 
     fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
@@ -57,6 +74,10 @@ impl Connection {
             b: to,
             weight,
         }
+    }
+
+    fn feedforward(&self, v: f32) {
+        self.b.borrow_mut().feedforward(v);
     }
 
     fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
@@ -100,6 +121,10 @@ impl Network {
 
         a.borrow_mut()
             .add_connection(Connection::new(a.clone(), b, rng.gen_range(0.0..1.0)));
+    }
+
+    fn feedforward(&self, input: f32) {
+        self.neurons[0].borrow_mut().feedforward(input);
     }
 
     fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
@@ -147,6 +172,9 @@ fn main() -> Result<(), ProcessingErr> {
             n.connect(a, c.clone());
             n.connect(b, d.clone());
             n.connect(c, d);
+
+            let mut rng = rand::thread_rng();
+            n.feedforward(rng.gen_range(0.0..1.0));
 
             *network.borrow_mut() = Some(n);
 
