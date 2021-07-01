@@ -43,6 +43,7 @@ members = [
 
     # neural networks
     "perceptron",
+    "network",
 
     # chapters
     "intro/example1",

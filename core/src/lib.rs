@@ -5,6 +5,7 @@ pub mod shapes;
 use std::fmt;
 use std::time::Instant;
 
+use glam::DVec2;
 use noise::{NoiseFn, Perlin, Seedable};
 use once_cell::sync::Lazy;
 use processing::errors::ProcessingErr;
@@ -76,6 +77,12 @@ pub fn create_canvas<'a>(width: u32, height: u32) -> Result<Screen<'a>, Processi
 
 pub fn translate(screen: &mut Screen, x: f64, y: f64) {
     let (x, y) = device_to_screen(screen, x, y);
+
+    screen.translate(1.0 + x as f32, -1.0 + y as f32, 0.0);
+}
+
+pub fn translatev(screen: &mut Screen, p: DVec2) {
+    let (x, y) = device_to_screen(screen, p.x, p.y);
 
     screen.translate(1.0 + x as f32, -1.0 + y as f32, 0.0);
 }
