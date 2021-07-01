@@ -5,6 +5,11 @@ use processing::errors::ProcessingErr;
 use processing::Screen;
 use rand::Rng;
 
+// lower learning constant produces a slower,
+// more visually interesting solution
+// (default is 0.01)
+const C: f32 = 0.00001;
+
 #[derive(Debug)]
 struct Perceptron {
     weights: Vec<f32>,
@@ -21,7 +26,7 @@ impl Perceptron {
             weights.push(rng.gen_range(-1.0..1.0));
         }
 
-        Self { weights, c: 0.01 }
+        Self { weights, c: C }
     }
 
     fn feedforward(&self, inputs: impl AsRef<[f32]>) -> isize {
@@ -84,11 +89,27 @@ fn draw(
 ) -> Result<(), ProcessingErr> {
     core::background_grayscale(screen, 255.0);
 
-    core::translate(
+    let hw = screen.width() as f64 / 2.0;
+    let hh = screen.width() as f64 / 2.0;
+
+    core::translate(screen, hw, hh);
+
+    // draw the target line
+    screen.stroke_weight(4.0);
+    core::stroke_grayscale(screen, 127.0);
+    core::shapes::line(screen, -hw, f(-hw as f32) as f64, hw, f(hw as f32) as f64)?;
+
+    // draw the line based on the current weights
+    // formula is weights[0]*x + weights[1]*y + weights[2] = 0
+    screen.stroke_weight(1.0);
+    core::stroke_grayscale(screen, 0.0);
+    core::shapes::line(
         screen,
-        screen.width() as f64 / 2.0,
-        screen.height() as f64 / 2.0,
-    );
+        -hw,
+        ((-ptron.weights[2] - ptron.weights[0] * -hw as f32) / ptron.weights[1]) as f64,
+        hw,
+        ((-ptron.weights[2] - ptron.weights[0] * hw as f32) / ptron.weights[1]) as f64,
+    )?;
 
     let training = training.as_ref();
     ptron.train(training[*current].inputs, training[*current].answer);
