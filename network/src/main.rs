@@ -15,7 +15,7 @@ const C: f32 = 0.00001;
 struct Neuron {
     location: DVec2,
 
-    connections: Vec<(Rc<RefCell<Neuron>>, f32)>,
+    connections: Vec<Connection>,
 }
 
 impl Neuron {
@@ -26,29 +26,50 @@ impl Neuron {
         }
     }
 
-    fn add_connection(&mut self, b: Rc<RefCell<Neuron>>, weight: f32) {
-        self.connections.push((b, weight));
+    fn add_connection(&mut self, connection: Connection) {
+        self.connections.push(connection);
     }
 
     fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
-        // connections
-        core::stroke_grayscale(screen, 0.0);
-        for b in self.connections.iter() {
-            screen.stroke_weight(b.1 * 4.0);
-
-            core::shapes::line(
-                screen,
-                self.location.x,
-                self.location.y,
-                b.0.borrow().location.x,
-                b.0.borrow().location.y,
-            )?;
-        }
-
-        // neuron
         core::stroke_grayscale(screen, 0.0);
         core::fill_grayscale(screen, 0.0);
         core::shapes::ellipse(screen, self.location.x, self.location.y, 16.0, 16.0)?;
+
+        for connection in self.connections.iter() {
+            connection.display(screen)?;
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
+struct Connection {
+    a: Rc<RefCell<Neuron>>,
+    b: Rc<RefCell<Neuron>>,
+    weight: f32,
+}
+
+impl Connection {
+    fn new(from: Rc<RefCell<Neuron>>, to: Rc<RefCell<Neuron>>, weight: f32) -> Self {
+        Self {
+            a: from,
+            b: to,
+            weight,
+        }
+    }
+
+    fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
+        core::stroke_grayscale(screen, 0.0);
+        screen.stroke_weight(self.weight * 4.0);
+
+        core::shapes::line(
+            screen,
+            self.a.borrow().location.x,
+            self.a.borrow().location.y,
+            self.b.borrow().location.x,
+            self.b.borrow().location.y,
+        )?;
 
         Ok(())
     }
@@ -74,10 +95,11 @@ impl Network {
         self.neurons.last().unwrap().clone()
     }
 
-    fn connect(&self, a: &mut Neuron, b: Rc<RefCell<Neuron>>) {
+    fn connect(&self, a: Rc<RefCell<Neuron>>, b: Rc<RefCell<Neuron>>) {
         let mut rng = rand::thread_rng();
 
-        a.add_connection(b, rng.gen_range(0.0..1.0));
+        a.borrow_mut()
+            .add_connection(Connection::new(a.clone(), b, rng.gen_range(0.0..1.0)));
     }
 
     fn display(&self, screen: &mut Screen) -> Result<(), ProcessingErr> {
@@ -121,10 +143,10 @@ fn main() -> Result<(), ProcessingErr> {
             let c = n.add_neuron(Neuron::new(0.0, -100.0));
             let d = n.add_neuron(Neuron::new(200.0, 0.0));
 
-            n.connect(&mut a.borrow_mut(), b.clone());
-            n.connect(&mut a.borrow_mut(), c.clone());
-            n.connect(&mut b.borrow_mut(), d.clone());
-            n.connect(&mut c.borrow_mut(), d);
+            n.connect(a.clone(), b.clone());
+            n.connect(a, c.clone());
+            n.connect(b, d.clone());
+            n.connect(c, d);
 
             *network.borrow_mut() = Some(n);
 
