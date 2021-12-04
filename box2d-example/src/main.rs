@@ -82,7 +82,7 @@ impl Surface {
         let mut surface = Vec::with_capacity(vertices.as_ref().len());
         for vertex in vertices.as_ref() {
             surface.push(core::coord_pixels_to_world(
-                &screen,
+                screen,
                 vertex.x as f64,
                 vertex.y as f64,
             ));
@@ -137,7 +137,7 @@ impl Boundary {
     fn new(world: &mut World, screen: &Screen, x: f64, y: f64, w: f64, h: f64) -> Self {
         let mut bd = b2::BodyDef::new();
         bd.body_type = b2::BodyType::Static;
-        bd.position = core::coord_pixels_to_world(&screen, x, y);
+        bd.position = core::coord_pixels_to_world(screen, x, y);
         let body = world.create_body_with(&bd, ());
 
         let ps = b2::PolygonShape::new_box(
@@ -168,8 +168,6 @@ impl Boundary {
 struct Pair {
     p1: BoxBox,
     p2: BoxBox,
-
-    len: f64,
 }
 
 impl Pair {
@@ -192,7 +190,7 @@ impl Pair {
         djd.length = core::scalar_pixels_to_world(len) as f32;
         world.create_joint(&djd);
 
-        Self { p1, p2, len }
+        Self { p1, p2 }
     }
 
     fn display(&self, screen: &mut Screen, world: &World) -> Result<(), ProcessingErr> {
@@ -231,7 +229,7 @@ impl BoxBox {
     fn new(world: &mut World, screen: &Screen, x: f64, y: f64, w: f64, h: f64) -> Self {
         let mut bd = b2::BodyDef::new();
         bd.body_type = b2::BodyType::Dynamic;
-        bd.position = core::coord_pixels_to_world(&screen, x, y);
+        bd.position = core::coord_pixels_to_world(screen, x, y);
         let body = world.create_body_with(&bd, ());
 
         let ps = b2::PolygonShape::new_box(

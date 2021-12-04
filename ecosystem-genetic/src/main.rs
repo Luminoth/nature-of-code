@@ -34,7 +34,7 @@ fn setup(mut commands: Commands, _asset_server: Res<AssetServer>) {
     #[cfg(debug_assertions)]
     _asset_server.watch_for_changes().unwrap();
 
-    let mut random = Random::default();
+    let random = Random::default();
 
     let simulation = SimulationParams {};
 

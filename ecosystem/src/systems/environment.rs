@@ -23,7 +23,7 @@ pub fn water_current(
         let force = current.force(&noise);
 
         for (ctransform, mut rigidbody, ccollider) in creatures.iter_mut() {
-            if collider.collides(&transform, (&ctransform, ccollider)) {
+            if collider.collides(transform, (&ctransform, ccollider)) {
                 rigidbody.apply_force(force);
             }
         }
@@ -42,7 +42,7 @@ pub fn wind(
         let force = wind.force(&noise);
 
         for (ctransform, mut rigidbody, ccollider) in creatures.iter_mut() {
-            if collider.collides(&transform, (&ctransform, ccollider)) {
+            if collider.collides(transform, (&ctransform, ccollider)) {
                 rigidbody.apply_force(force);
             }
         }

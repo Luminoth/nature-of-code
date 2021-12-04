@@ -329,7 +329,7 @@ impl Population {
             let parent_a = &self.mating_pool[a];
             let parent_b = &self.mating_pool[b];
 
-            let mut child = parent_a.crossover(&parent_b, CrossoverMethod::Coin);
+            let mut child = parent_a.crossover(parent_b, CrossoverMethod::Coin);
             child.mutate(self.mutation_rate);
 
             *member.dna.borrow_mut() = child;
