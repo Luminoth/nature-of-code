@@ -18,8 +18,22 @@ pub enum EnvironmentsSystem {
 pub fn water_current(
     noise: Res<PerlinNoise>,
     simulation: Res<SimulationParams>,
-    mut query: Query<(&ColliderPosition, &ColliderShape, &mut WaterCurrent), Without<Creature>>,
-    mut creatures: Query<(&mut RigidBodyForces, &ColliderPosition, &ColliderShape), With<Creature>>,
+    mut query: Query<
+        (
+            &ColliderPositionComponent,
+            &ColliderShapeComponent,
+            &mut WaterCurrent,
+        ),
+        Without<Creature>,
+    >,
+    mut creatures: Query<
+        (
+            &mut RigidBodyForcesComponent,
+            &ColliderPositionComponent,
+            &ColliderShapeComponent,
+        ),
+        With<Creature>,
+    >,
 ) {
     if !simulation.enable_current {
         return;
@@ -43,8 +57,22 @@ pub fn water_current(
 pub fn wind(
     noise: Res<PerlinNoise>,
     simulation: Res<SimulationParams>,
-    mut query: Query<(&ColliderPosition, &ColliderShape, &mut Wind), Without<Creature>>,
-    mut creatures: Query<(&mut RigidBodyForces, &ColliderPosition, &ColliderShape), With<Creature>>,
+    mut query: Query<
+        (
+            &ColliderPositionComponent,
+            &ColliderShapeComponent,
+            &mut Wind,
+        ),
+        Without<Creature>,
+    >,
+    mut creatures: Query<
+        (
+            &mut RigidBodyForcesComponent,
+            &ColliderPositionComponent,
+            &ColliderShapeComponent,
+        ),
+        With<Creature>,
+    >,
 ) {
     if !simulation.enable_wind {
         return;

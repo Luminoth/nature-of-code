@@ -26,7 +26,7 @@ pub fn update_particle_systems(
 }
 
 /// Updates all of the particles
-pub fn update_particles(time: Res<Time>, query: Query<&mut Particle>) {
+pub fn update_particles(time: Res<Time>, mut query: Query<&mut Particle>) {
     let dt = time.delta_seconds();
 
     query.for_each_mut(|mut particle| {
@@ -35,7 +35,7 @@ pub fn update_particles(time: Res<Time>, query: Query<&mut Particle>) {
 }
 
 /// Updates particle physics
-pub fn update_particle_physics(query: Query<(&mut Transform, &mut Particle)>) {
+pub fn update_particle_physics(mut query: Query<(&mut Transform, &mut Particle)>) {
     query.for_each_mut(|(mut transform, mut particle)| {
         particle.update_physics(&mut transform);
     });

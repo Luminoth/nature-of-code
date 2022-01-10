@@ -10,7 +10,7 @@ use num_traits::Float;
 pub const PHYSICS_STEP: f32 = 0.02;
 
 /// Oscillator
-#[derive(Debug, Inspectable)]
+#[derive(Debug, Component, Inspectable)]
 pub struct Physical {
     #[inspectable(ignore)]
     pub previous_position: Vec3,
@@ -194,7 +194,7 @@ pub fn adjust_container_bounds(size: Vec2, min: Vec2, max: Vec2, offset: f32) ->
 }
 
 /// Oscillator
-#[derive(Debug, Inspectable)]
+#[derive(Debug, Component, Inspectable)]
 pub struct Oscillator {
     pub angle: Vec2,
     pub velocity: Vec2,

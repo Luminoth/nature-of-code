@@ -22,7 +22,7 @@ const GROUND_COLOR: Color = Color::DARK_GREEN;
 const GROUND_FRICTION: f32 = 15.0;
 
 /// Ground
-#[derive(Debug, Inspectable, Default)]
+#[derive(Debug, Default, Component, Inspectable)]
 pub struct Ground;
 
 impl Ground {
@@ -47,12 +47,13 @@ impl Ground {
                 parent
                     .spawn_bundle(GeometryBuilder::build_as(
                         &shapes::Rectangle {
-                            width: size.x,
-                            height: size.y,
+                            extents: size,
                             origin: shapes::RectangleOrigin::Center,
                         },
-                        ShapeColors::new(GROUND_COLOR),
-                        DrawMode::Fill(FillOptions::default()),
+                        DrawMode::Fill(FillMode {
+                            color: GROUND_COLOR,
+                            options: FillOptions::default(),
+                        }),
                         Transform::default(),
                     ))
                     .insert(Name::new("Model"));
@@ -61,7 +62,7 @@ impl Ground {
 }
 
 /// Water
-#[derive(Debug, Inspectable, Default)]
+#[derive(Debug, Default, Component, Inspectable)]
 pub struct Water;
 
 impl Water {
@@ -88,12 +89,13 @@ impl Water {
                 parent
                     .spawn_bundle(GeometryBuilder::build_as(
                         &shapes::Rectangle {
-                            width: size.x,
-                            height: size.y,
+                            extents: size,
                             origin: shapes::RectangleOrigin::Center,
                         },
-                        ShapeColors::new(WATER_COLOR),
-                        DrawMode::Fill(FillOptions::default()),
+                        DrawMode::Fill(FillMode {
+                            color: WATER_COLOR,
+                            options: FillOptions::default(),
+                        }),
                         Transform::default(),
                     ))
                     .insert(Name::new("Model"));
@@ -102,7 +104,7 @@ impl Water {
 }
 
 /// WaterCurrent
-#[derive(Debug, Inspectable, Default)]
+#[derive(Debug, Default, Component, Inspectable)]
 pub struct WaterCurrent {
     pub accumulator: Vec2,
 
@@ -126,7 +128,7 @@ impl WaterCurrent {
 }
 
 /// Air
-#[derive(Debug, Inspectable, Default)]
+#[derive(Debug, Default, Component, Inspectable)]
 pub struct Air;
 
 impl Air {
@@ -153,12 +155,13 @@ impl Air {
                 parent
                     .spawn_bundle(GeometryBuilder::build_as(
                         &shapes::Rectangle {
-                            width: size.x,
-                            height: size.y,
+                            extents: size,
                             origin: shapes::RectangleOrigin::Center,
                         },
-                        ShapeColors::new(WATER_COLOR),
-                        DrawMode::Fill(FillOptions::default()),
+                        DrawMode::Fill(FillMode {
+                            color: WATER_COLOR,
+                            options: FillOptions::default(),
+                        }),
                         Transform::default(),
                     ))
                     .insert(Name::new("Model"));
@@ -167,7 +170,7 @@ impl Air {
 }
 
 /// Wind
-#[derive(Debug, Inspectable, Default)]
+#[derive(Debug, Default, Component, Inspectable)]
 pub struct Wind {
     pub accumulator: Vec2,
 

@@ -66,7 +66,7 @@ pub fn sympletic_euler_integrate(
 }
 
 /// Rigidbody state
-#[derive(Debug, Inspectable)]
+#[derive(Debug, Component, Inspectable)]
 pub struct Rigidbody {
     #[inspectable(ignore)]
     pub(crate) previous_position: Vec3,
@@ -302,7 +302,7 @@ impl BoxCollider {
 }
 
 /// Colliders collide
-#[derive(Debug, Copy, Clone, Inspectable)]
+#[derive(Debug, Copy, Clone, Component, Inspectable)]
 pub enum Collider {
     Box(BoxCollider, CollisionLayer),
 }
@@ -355,7 +355,7 @@ impl Collider {
 }
 
 /// Surface state
-#[derive(Debug, Inspectable, Default)]
+#[derive(Debug, Default, Component, Inspectable)]
 pub struct Surface {
     pub c: f32,
 }
@@ -372,7 +372,7 @@ impl Surface {
 }
 
 /// Fluid state
-#[derive(Debug, Inspectable, Default)]
+#[derive(Debug, Default, Component, Inspectable)]
 pub struct Fluid {
     pub density: f32,
 }
@@ -390,7 +390,7 @@ impl Fluid {
 }
 
 /// Oscillator
-#[derive(Debug, Inspectable)]
+#[derive(Debug, Component, Inspectable)]
 pub struct Oscillator {
     pub angle: Vec2,
     pub velocity: Vec2,

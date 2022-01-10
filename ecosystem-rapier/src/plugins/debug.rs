@@ -8,15 +8,14 @@ use crate::systems::debug::*;
 pub struct DebugPlugin;
 
 impl Plugin for DebugPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         // events
         app.add_event::<ToggleDebugEvent>();
 
         // setup
-        app.add_startup_system(setup_debug.system());
+        app.add_startup_system(setup_debug);
 
         // systems
-        app.add_system(debug_system.system())
-            .add_system(debug_ui.system());
+        app.add_system(debug_system).add_system(debug_ui);
     }
 }

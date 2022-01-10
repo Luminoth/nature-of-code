@@ -11,7 +11,7 @@ use super::physics::*;
 // https://learn.unity.com/tutorial/introduction-to-particle-systems#6025fdd9edbc2a112d4f0135
 
 /// Particle system component
-#[derive(Debug, Inspectable, Default)]
+#[derive(Debug, Default, Component, Inspectable)]
 pub struct ParticleSystem {
     #[inspectable(read_only)]
     name: String,
@@ -25,7 +25,7 @@ pub struct ParticleSystem {
     pub mass: f32,
     pub drag: f32,
     pub size: Vec2,
-    pub material: Handle<ColorMaterial>,
+    pub color: Color,
 
     #[inspectable(read_only)]
     next_spawn: f64,
@@ -39,11 +39,7 @@ pub struct ParticleSystem {
 
 impl ParticleSystem {
     /// Create a new particle system with a pool of the given capacity
-    pub fn with_capacity(
-        name: impl Into<String>,
-        material: Handle<ColorMaterial>,
-        capacity: usize,
-    ) -> Self {
+    pub fn with_capacity(name: impl Into<String>, color: Color, capacity: usize) -> Self {
         Self {
             name: name.into(),
             capacity,
@@ -53,7 +49,7 @@ impl ParticleSystem {
             mass: 1.0,
             drag: 0.0,
             size: Vec2::splat(0.1),
-            material,
+            color,
             next_spawn: 0.0,
             pool: Vec::with_capacity(capacity),
             live: Vec::with_capacity(capacity),
@@ -98,8 +94,11 @@ impl ParticleSystem {
             // TODO: this should be a child of the particle
             // but not sure how to remove it if we do that
             .insert_bundle(SpriteBundle {
-                material: self.material.clone(),
-                sprite: Sprite::new(self.size),
+                sprite: Sprite {
+                    color: self.color,
+                    custom_size: Some(self.size),
+                    ..Default::default()
+                },
                 transform,
                 ..Default::default()
             });
@@ -145,7 +144,8 @@ impl ParticleSystem {
 }
 
 /// Particle component
-#[derive(Debug, Inspectable)]
+#[derive(Debug, Component, Inspectable)]
+#[component(storage = "SparseSet")]
 pub struct Particle {
     pub acceleration: Vec3,
     pub velocity: Vec3,

@@ -1,7 +1,7 @@
 //! Physics plugin
 
 use bevy::prelude::*;
-use bevy_inspector_egui::InspectableRegistry;
+use bevy_inspector_egui::RegisterInspectable;
 use bevy_rapier2d::physics::PhysicsStages;
 
 use crate::components::physics::*;
@@ -11,12 +11,11 @@ use crate::systems::physics::*;
 pub struct PhysicsPlugin;
 
 impl Plugin for PhysicsPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_system_set(
             // per-frame update
             SystemSet::on_update(GameState::Game).with_system(
                 oscillator_update
-                    .system()
                     .label(Physics)
                     .label(PhysicsSystem::Update),
             ),
@@ -28,14 +27,10 @@ impl Plugin for PhysicsPlugin {
             "physical",
             SystemStage::single_threaded(),
         )
-        .add_system_to_stage("physical", physical_update.system());
+        .add_system_to_stage("physical", physical_update);
 
         // register components for inspector
-        let mut registry = app
-            .world_mut()
-            .get_resource_or_insert_with(InspectableRegistry::default);
-
-        registry.register::<Physical>();
-        registry.register::<Oscillator>();
+        app.register_inspectable::<Physical>()
+            .register_inspectable::<Oscillator>();
     }
 }

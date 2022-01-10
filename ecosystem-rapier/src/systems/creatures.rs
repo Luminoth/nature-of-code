@@ -28,7 +28,11 @@ const BOUNDS_REPEL_ACCEL: f32 = 0.01;
 /// Creature facing
 pub fn creature_facing(
     time: Res<Time>,
-    mut query: Query<(&mut RigidBodyPosition, &RigidBodyVelocity, &Creature)>,
+    mut query: Query<(
+        &mut RigidBodyPositionComponent,
+        &RigidBodyVelocityComponent,
+        &Creature,
+    )>,
 ) {
     let dt = time.delta_seconds();
 
@@ -56,7 +60,12 @@ pub fn fly_think(mut random: ResMut<Random>, mut query: Query<&mut Creature, Wit
 /// Fly behavior
 pub fn fly_physics(
     mut random: ResMut<Random>,
-    mut query: Query<(&RigidBodyMassProps, &mut RigidBodyForces, &Fly, &Creature)>,
+    mut query: Query<(
+        &RigidBodyMassPropsComponent,
+        &mut RigidBodyForcesComponent,
+        &Fly,
+        &Creature,
+    )>,
 ) {
     for (rbmass, mut forces, fly, creature) in query.iter_mut() {
         let _modifier = random.random() as f32;
@@ -72,11 +81,11 @@ pub fn fly_bounds(
     mut query: Query<
         (
             &mut Transform,
-            &RigidBodyMassProps,
-            &mut RigidBodyVelocity,
-            &mut RigidBodyForces,
-            &ColliderPosition,
-            &ColliderShape,
+            &RigidBodyMassPropsComponent,
+            &mut RigidBodyVelocityComponent,
+            &mut RigidBodyForcesComponent,
+            &ColliderPositionComponent,
+            &ColliderShapeComponent,
             &Physical,
         ),
         With<Fly>,
@@ -125,8 +134,8 @@ pub fn fly_repel(
         (
             Entity,
             &Transform,
-            &RigidBodyMassProps,
-            &mut RigidBodyForces,
+            &RigidBodyMassPropsComponent,
+            &mut RigidBodyForcesComponent,
         ),
         With<Fly>,
     >,
@@ -157,7 +166,7 @@ pub fn fish_update(mut query: Query<&mut Fish>) {
 /// Fish behavior
 pub fn fish_think(
     mut random: ResMut<Random>,
-    mut query: Query<(&RigidBodyVelocity, &mut Creature), With<Fish>>,
+    mut query: Query<(&RigidBodyVelocityComponent, &mut Creature), With<Fish>>,
 ) {
     for (rbvelocity, mut creature) in query.iter_mut() {
         creature.acceleration_direction = if rbvelocity.linvel.magnitude_squared() == 0.0 {
@@ -178,7 +187,12 @@ pub fn fish_physics(
     time: Res<Time>,
     mut random: ResMut<Random>,
     noise: Res<PerlinNoise>,
-    mut query: Query<(&RigidBodyMassProps, &mut RigidBodyForces, &Fish, &Creature)>,
+    mut query: Query<(
+        &RigidBodyMassPropsComponent,
+        &mut RigidBodyForcesComponent,
+        &Fish,
+        &Creature,
+    )>,
 ) {
     for (rbmass, mut rbforces, fish, creature) in query.iter_mut() {
         let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
@@ -194,16 +208,23 @@ pub fn fish_bounds(
     mut query: Query<
         (
             &mut Transform,
-            &RigidBodyMassProps,
-            &mut RigidBodyVelocity,
-            &mut RigidBodyForces,
-            &ColliderPosition,
-            &ColliderShape,
+            &RigidBodyMassPropsComponent,
+            &mut RigidBodyVelocityComponent,
+            &mut RigidBodyForcesComponent,
+            &ColliderPositionComponent,
+            &ColliderShapeComponent,
             &Physical,
         ),
         With<Fish>,
     >,
-    waters: Query<(&Transform, &ColliderPosition, &ColliderShape), (With<Water>, Without<Fish>)>,
+    waters: Query<
+        (
+            &Transform,
+            &ColliderPositionComponent,
+            &ColliderShapeComponent,
+        ),
+        (With<Water>, Without<Fish>),
+    >,
 ) {
     for (mut transform, rbmass, mut rbvelocity, mut rbforces, cposition, cshape, physical) in
         query.iter_mut()
@@ -213,7 +234,7 @@ pub fn fish_bounds(
 
             if cshape.compute_aabb(cposition).intersects(&wbounds) {
                 let position = wtransform.translation.truncate();
-                let half_size = wbounds.half_extents().into();
+                let half_size: Vec2 = wbounds.half_extents().into();
 
                 let min = position - half_size;
                 let max = position + half_size;
@@ -251,8 +272,8 @@ pub fn fish_repel(
         (
             Entity,
             &Transform,
-            &RigidBodyMassProps,
-            &mut RigidBodyForces,
+            &RigidBodyMassPropsComponent,
+            &mut RigidBodyForcesComponent,
         ),
         With<Fish>,
     >,
@@ -283,7 +304,7 @@ pub fn snake_update(mut query: Query<&mut Snake>) {
 /// Snake behavior
 pub fn snake_think(
     mut random: ResMut<Random>,
-    mut query: Query<(&RigidBodyVelocity, &mut Creature), With<Snake>>,
+    mut query: Query<(&RigidBodyVelocityComponent, &mut Creature), With<Snake>>,
 ) {
     for (rbvelocity, mut creature) in query.iter_mut() {
         creature.acceleration_direction = if rbvelocity.linvel.magnitude_squared() == 0.0 {
@@ -304,7 +325,12 @@ pub fn snake_physics(
     time: Res<Time>,
     mut random: ResMut<Random>,
     noise: Res<PerlinNoise>,
-    mut query: Query<(&RigidBodyMassProps, &mut RigidBodyForces, &Snake, &Creature)>,
+    mut query: Query<(
+        &RigidBodyMassPropsComponent,
+        &mut RigidBodyForcesComponent,
+        &Snake,
+        &Creature,
+    )>,
 ) {
     for (rbmass, mut rbforces, snake, creature) in query.iter_mut() {
         let t = time.seconds_since_startup() + random.random_range(0.0..0.5);
@@ -320,16 +346,23 @@ pub fn snake_bounds(
     mut query: Query<
         (
             &mut Transform,
-            &RigidBodyMassProps,
-            &mut RigidBodyVelocity,
-            &mut RigidBodyForces,
-            &ColliderPosition,
-            &ColliderShape,
+            &RigidBodyMassPropsComponent,
+            &mut RigidBodyVelocityComponent,
+            &mut RigidBodyForcesComponent,
+            &ColliderPositionComponent,
+            &ColliderShapeComponent,
             &Physical,
         ),
         With<Snake>,
     >,
-    grounds: Query<(&Transform, &ColliderPosition, &ColliderShape), (With<Ground>, Without<Snake>)>,
+    grounds: Query<
+        (
+            &Transform,
+            &ColliderPositionComponent,
+            &ColliderShapeComponent,
+        ),
+        (With<Ground>, Without<Snake>),
+    >,
 ) {
     for (mut transform, rbmass, mut rbvelocity, mut rbforces, cposition, cshape, physical) in
         query.iter_mut()
@@ -339,7 +372,7 @@ pub fn snake_bounds(
 
             if cshape.compute_aabb(cposition).intersects(&gbounds) {
                 let position = gtransform.translation.truncate();
-                let half_size = gbounds.half_extents().into();
+                let half_size: Vec2 = gbounds.half_extents().into();
 
                 let min = position - half_size;
                 let max = position + half_size;
@@ -377,8 +410,8 @@ pub fn snake_repel(
         (
             Entity,
             &Transform,
-            &RigidBodyMassProps,
-            &mut RigidBodyForces,
+            &RigidBodyMassPropsComponent,
+            &mut RigidBodyForcesComponent,
         ),
         With<Snake>,
     >,

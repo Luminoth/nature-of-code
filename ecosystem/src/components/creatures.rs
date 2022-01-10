@@ -44,24 +44,24 @@ const SNAKE_GROUND_ACCEL: f32 = 8.0;
 //const SNAKE_WATER_ACCEL: f32 = 1.0;
 
 /// Shared creature component
-#[derive(Debug, Inspectable, Default)]
+#[derive(Debug, Default, Component, Inspectable)]
 pub struct Creature {
     #[inspectable(read_only)]
     pub acceleration_direction: Vec2,
 }
 
 /// Flies fly
-#[derive(Debug, Inspectable, Default)]
+#[derive(Debug, Default, Component, Inspectable)]
 pub struct Fly {
     pub acceleration: f32,
     pub repel_acceleration: f32,
 }
 
 impl Fly {
-    fn firefly_particles(random: &mut Random, material: Handle<ColorMaterial>) -> ParticleSystem {
+    fn firefly_particles(random: &mut Random, color: Color) -> ParticleSystem {
         // TODO: we can calculate the required capacity
         // from the spawn rate and lifespan
-        let mut particles = ParticleSystem::with_capacity("Firefly", material, 20);
+        let mut particles = ParticleSystem::with_capacity("Firefly", color, 20);
         particles.spawn_rate = 0.05;
         particles.particle_lifespan = 0.5;
         particles.max_speed = random.normal(0.5, 0.1);
@@ -77,7 +77,7 @@ impl Fly {
         random: &mut Random,
         i: usize,
         position: Vec2,
-        material: Handle<ColorMaterial>,
+        color: Color,
     ) {
         let is_firefly = random.coin();
         if is_firefly {
@@ -117,8 +117,10 @@ impl Fly {
                         radii: size * 0.5,
                         ..Default::default()
                     },
-                    ShapeColors::new(if is_firefly { FIREFLY_COLOR } else { FLY_COLOR }),
-                    DrawMode::Fill(FillOptions::default()),
+                    DrawMode::Fill(FillMode {
+                        color: if is_firefly { FIREFLY_COLOR } else { FLY_COLOR },
+                        options: FillOptions::default(),
+                    }),
                     Transform::default(),
                 ))
                 .insert(Name::new("Model"))
@@ -134,7 +136,7 @@ impl Fly {
                 .insert(Name::new(format!("Firefly {}", i)))
                 .with_children(|parent| {
                     parent.spawn_bundle(FireflyBundle {
-                        particles: Self::firefly_particles(random, material),
+                        particles: Self::firefly_particles(random, color),
                         ..Default::default()
                     });
                 });
@@ -145,21 +147,21 @@ impl Fly {
 }
 
 /// Fireflies fly... and glow
-#[derive(Debug, Inspectable, Default)]
+#[derive(Debug, Default, Component, Inspectable)]
 pub struct Firefly;
 
 /// Fish swim
-#[derive(Debug, Inspectable, Default)]
+#[derive(Debug, Default, Component, Inspectable)]
 pub struct Fish {
     pub acceleration: f32,
     pub repel_acceleration: f32,
 }
 
 impl Fish {
-    pub fn particles(random: &mut Random, material: Handle<ColorMaterial>) -> ParticleSystem {
+    pub fn particles(random: &mut Random, color: Color) -> ParticleSystem {
         // TODO: we can calculate the required capacity
         // from the spawn rate and lifespan
-        let mut particles = ParticleSystem::with_capacity("Fish", material, 20);
+        let mut particles = ParticleSystem::with_capacity("Fish", color, 20);
         particles.spawn_rate = 0.05;
         particles.particle_lifespan = 0.5;
         particles.max_speed = random.normal(0.3, 0.1);
@@ -174,7 +176,7 @@ impl Fish {
         random: &mut Random,
         i: usize,
         position: Vec2,
-        material: Handle<ColorMaterial>,
+        color: Color,
     ) {
         info!("spawning fish {} at {}", i, position);
 
@@ -211,8 +213,10 @@ impl Fish {
                             radii: size * 0.5,
                             ..Default::default()
                         },
-                        ShapeColors::new(FISH_BODY_COLOR),
-                        DrawMode::Fill(FillOptions::default()),
+                        DrawMode::Fill(FillMode {
+                            color: FISH_BODY_COLOR,
+                            options: FillOptions::default(),
+                        }),
                         Transform::default(),
                     ))
                     .insert(Name::new("Model"))
@@ -223,8 +227,10 @@ impl Fish {
                                     radii: head_size * 0.5,
                                     ..Default::default()
                                 },
-                                ShapeColors::new(FISH_HEAD_COLOR),
-                                DrawMode::Fill(FillOptions::default()),
+                                DrawMode::Fill(FillMode {
+                                    color: FISH_HEAD_COLOR,
+                                    options: FillOptions::default(),
+                                }),
                                 Transform::from_translation(Vec3::new(
                                     0.0,
                                     size.y * 0.5 - head_size.y * 0.5,
@@ -240,7 +246,7 @@ impl Fish {
                     });
 
                 parent.spawn_bundle(FishParticlesBundle {
-                    particles: Self::particles(random, material),
+                    particles: Self::particles(random, color),
                     transform: Transform::from_translation(Vec3::new(0.0, -size.y * 0.5, 1.0)),
                     ..Default::default()
                 });
@@ -249,7 +255,7 @@ impl Fish {
 }
 
 /// Snakes snek
-#[derive(Debug, Inspectable, Default)]
+#[derive(Debug, Default, Component, Inspectable)]
 pub struct Snake {
     pub ground_acceleration: f32,
     pub repel_acceleration: f32,
@@ -294,8 +300,10 @@ impl Snake {
                             radii: size * 0.5,
                             ..Default::default()
                         },
-                        ShapeColors::new(SNAKE_BODY_COLOR),
-                        DrawMode::Fill(FillOptions::default()),
+                        DrawMode::Fill(FillMode {
+                            color: SNAKE_BODY_COLOR,
+                            options: FillOptions::default(),
+                        }),
                         Transform::default(),
                     ))
                     .insert(Name::new("Model"))
@@ -306,8 +314,10 @@ impl Snake {
                                     radii: head_size * 0.5,
                                     ..Default::default()
                                 },
-                                ShapeColors::new(SNAKE_HEAD_COLOR),
-                                DrawMode::Fill(FillOptions::default()),
+                                DrawMode::Fill(FillMode {
+                                    color: SNAKE_HEAD_COLOR,
+                                    options: FillOptions::default(),
+                                }),
                                 Transform::from_translation(Vec3::new(
                                     0.0,
                                     size.y * 0.5 - head_size.y * 0.5,

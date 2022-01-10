@@ -9,7 +9,7 @@ mod resources;
 use bevy::diagnostic::*;
 use bevy::prelude::*;
 use bevy_egui::{EguiPlugin, EguiSettings};
-use bevy_inspector_egui::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
+use bevy_inspector_egui::{RegisterInspectable, WorldInspectorParams, WorldInspectorPlugin};
 use num_traits::Float;
 
 use resources::*;
@@ -56,7 +56,7 @@ fn main() {
         error!(%data, "Unexpected panic!");
     }));
 
-    let mut app = App::build();
+    let mut app = App::new();
 
     // basic bevy
     app.insert_resource(WindowDescriptor {
@@ -85,7 +85,9 @@ fn main() {
         despawnable_entities: true,
         ..Default::default()
     })
-    .add_plugin(WorldInspectorPlugin::new());
+    .add_plugin(WorldInspectorPlugin::new())
+    .register_inspectable::<components::MainCamera>()
+    .register_inspectable::<components::UiCamera>();
 
     // plugins
     // TODO:
@@ -94,15 +96,7 @@ fn main() {
     // TODO:
 
     // setup
-    app.add_startup_system(setup.system());
-
-    // register components for inspector
-    let mut registry = app
-        .world_mut()
-        .get_resource_or_insert_with(InspectableRegistry::default);
-
-    registry.register::<components::MainCamera>();
-    registry.register::<components::UiCamera>();
+    app.add_startup_system(setup);
 
     app.run();
 }

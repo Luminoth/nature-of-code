@@ -16,7 +16,7 @@ use bevy::core::FixedTimestep;
 use bevy::diagnostic::*;
 use bevy::prelude::*;
 use bevy_egui::{EguiPlugin, EguiSettings};
-use bevy_inspector_egui::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
+use bevy_inspector_egui::{RegisterInspectable, WorldInspectorParams, WorldInspectorPlugin};
 use bevy_prototype_lyon::prelude::*;
 use num_traits::Float;
 
@@ -82,7 +82,7 @@ fn main() {
         error!(%data, "Unexpected panic!");
     }));
 
-    let mut app = App::build();
+    let mut app = App::new();
 
     // basic bevy
     app.insert_resource(WindowDescriptor {
@@ -114,7 +114,27 @@ fn main() {
         despawnable_entities: true,
         ..Default::default()
     })
-    .add_plugin(WorldInspectorPlugin::new());
+    .add_plugin(WorldInspectorPlugin::new())
+    .register_inspectable::<components::MainCamera>()
+    .register_inspectable::<components::UiCamera>()
+    .register_inspectable::<components::physics::Rigidbody>()
+    .register_inspectable::<components::physics::Collider>()
+    .register_inspectable::<components::physics::BoxCollider>()
+    .register_inspectable::<components::physics::Oscillator>()
+    .register_inspectable::<components::physics::Surface>()
+    .register_inspectable::<components::physics::Fluid>()
+    .register_inspectable::<components::particles::ParticleSystem>()
+    .register_inspectable::<components::particles::Particle>()
+    .register_inspectable::<components::creatures::Creature>()
+    .register_inspectable::<components::creatures::Fly>()
+    .register_inspectable::<components::creatures::Firefly>()
+    .register_inspectable::<components::creatures::Fish>()
+    .register_inspectable::<components::creatures::Snake>()
+    .register_inspectable::<components::environment::Ground>()
+    .register_inspectable::<components::environment::Water>()
+    .register_inspectable::<components::environment::WaterCurrent>()
+    .register_inspectable::<components::environment::Air>()
+    .register_inspectable::<components::environment::Wind>();
 
     // plugins
     app.add_plugin(ParticleSystemPlugin);
@@ -124,9 +144,7 @@ fn main() {
 
     // game states
     app.add_state(GameState::Game)
-        .add_system_set(
-            SystemSet::on_enter(GameState::Game).with_system(states::game::setup.system()),
-        )
+        .add_system_set(SystemSet::on_enter(GameState::Game).with_system(states::game::setup))
         .add_system_set(
             // fixed (physics) update
             // 1) all CreaturesSystem::Physics (before Physics, including repel)
@@ -138,140 +156,57 @@ fn main() {
                 // core physics
                 .with_system(
                     physics_collisions
-                        .system()
                         .label(Physics)
                         .label(PhysicsSystem::Collisions)
                         .before(PhysicsSystem::Update),
                 )
-                .with_system(
-                    physics_update
-                        .system()
-                        .label(Physics)
-                        .label(PhysicsSystem::Update),
-                )
+                .with_system(physics_update.label(Physics).label(PhysicsSystem::Update))
                 .with_system(
                     oscillator_update
-                        .system()
                         .label(Physics)
                         .label(PhysicsSystem::Update),
                 )
                 // creaturue behaviors
-                .with_system(
-                    fly_physics
-                        .system()
-                        .label(CreaturesSystem::Physics)
-                        .before(Physics),
-                )
-                .with_system(
-                    fly_repel
-                        .system()
-                        .label(CreaturesSystem::Physics)
-                        .before(Physics),
-                )
-                .with_system(
-                    fly_bounds
-                        .system()
-                        .label(CreaturesSystem::Bounds)
-                        .after(Physics),
-                )
-                .with_system(
-                    fish_physics
-                        .system()
-                        .label(CreaturesSystem::Physics)
-                        .before(Physics),
-                )
-                .with_system(
-                    fish_repel
-                        .system()
-                        .label(CreaturesSystem::Physics)
-                        .before(Physics),
-                )
-                .with_system(
-                    fish_bounds
-                        .system()
-                        .label(CreaturesSystem::Bounds)
-                        .after(Physics),
-                )
+                .with_system(fly_physics.label(CreaturesSystem::Physics).before(Physics))
+                .with_system(fly_repel.label(CreaturesSystem::Physics).before(Physics))
+                .with_system(fly_bounds.label(CreaturesSystem::Bounds).after(Physics))
+                .with_system(fish_physics.label(CreaturesSystem::Physics).before(Physics))
+                .with_system(fish_repel.label(CreaturesSystem::Physics).before(Physics))
+                .with_system(fish_bounds.label(CreaturesSystem::Bounds).after(Physics))
                 .with_system(
                     snake_physics
-                        .system()
                         .label(CreaturesSystem::Physics)
                         .before(Physics),
                 )
-                .with_system(
-                    snake_repel
-                        .system()
-                        .label(CreaturesSystem::Physics)
-                        .before(Physics),
-                )
-                .with_system(
-                    snake_bounds
-                        .system()
-                        .label(CreaturesSystem::Bounds)
-                        .after(Physics),
-                )
+                .with_system(snake_repel.label(CreaturesSystem::Physics).before(Physics))
+                .with_system(snake_bounds.label(CreaturesSystem::Bounds).after(Physics))
                 .with_system(
                     water_current
-                        .system()
                         .label(EnvironmentsSystem::Physics)
                         .before(Physics),
                 )
-                .with_system(
-                    wind.system()
-                        .label(EnvironmentsSystem::Physics)
-                        .before(Physics),
-                ),
+                .with_system(wind.label(EnvironmentsSystem::Physics).before(Physics)),
         )
         .add_system_set(
             // per-frame update
             SystemSet::on_update(GameState::Game)
-                .with_system(fly_update.system().label(CreaturesSystem::Update))
-                .with_system(fish_update.system().label(CreaturesSystem::Update))
-                .with_system(snake_update.system().label(CreaturesSystem::Update))
+                .with_system(fly_update.label(CreaturesSystem::Update))
+                .with_system(fish_update.label(CreaturesSystem::Update))
+                .with_system(snake_update.label(CreaturesSystem::Update))
                 .with_system(
                     creature_facing
-                        .system()
                         .label(CreaturesSystem::UpdateAfter)
                         .after(CreaturesSystem::Update),
                 ),
         )
-        .add_system_set(
-            SystemSet::on_exit(GameState::Game).with_system(states::game::teardown.system()),
-        );
+        .add_system_set(SystemSet::on_exit(GameState::Game).with_system(states::game::teardown));
 
     // setup
-    app.add_startup_system(setup.system())
-        .add_startup_system(setup_debug.system());
+    app.add_startup_system(setup)
+        .add_startup_system(setup_debug);
 
     // debug
-    app.add_system(debug_system.system())
-        .add_system(debug_ui.system());
-
-    // register components for inspector
-    let mut registry = app
-        .world_mut()
-        .get_resource_or_insert_with(InspectableRegistry::default);
-
-    registry.register::<components::MainCamera>();
-    registry.register::<components::UiCamera>();
-    registry.register::<components::physics::Rigidbody>();
-    registry.register::<components::physics::Collider>();
-    registry.register::<components::physics::BoxCollider>();
-    registry.register::<components::physics::Oscillator>();
-    registry.register::<components::physics::Surface>();
-    registry.register::<components::physics::Fluid>();
-    registry.register::<components::particles::ParticleSystem>();
-    registry.register::<components::particles::Particle>();
-    registry.register::<components::creatures::Creature>();
-    registry.register::<components::creatures::Fly>();
-    registry.register::<components::creatures::Firefly>();
-    registry.register::<components::creatures::Fish>();
-    registry.register::<components::creatures::Snake>();
-    registry.register::<components::environment::Ground>();
-    registry.register::<components::environment::Water>();
-    registry.register::<components::environment::WaterCurrent>();
-    registry.register::<components::environment::Air>();
-    registry.register::<components::environment::Wind>();
+    app.add_system(debug_system).add_system(debug_ui);
 
     app.run();
 }

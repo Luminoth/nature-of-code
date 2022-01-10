@@ -10,7 +10,6 @@ use crate::resources::*;
 /// Game setup
 pub fn setup(
     mut commands: Commands,
-    mut materials: ResMut<Assets<ColorMaterial>>,
     mut random: ResMut<Random>,
     simulation: Res<SimulationParams>,
     world_bounds: Res<WorldBounds>,
@@ -29,11 +28,6 @@ pub fn setup(
         .spawn_bundle(UiCameraBundle::default())
         .insert(UiCamera)
         .insert(Name::new("UI Camera"));
-
-    // materials
-    // TODO: wrap these in a struct to pass around (and store as a resource)
-    let firefly_material = materials.add(FIREFLY_COLOR.into());
-    let fish_material = materials.add(Color::NAVY.into());
 
     // world bounds
     let qw = world_bounds.width / 4.0;
@@ -71,13 +65,7 @@ pub fn setup(
     for i in 0..simulation.fly_count {
         let position =
             random.vec2_range(-hw + FLY_SIZE..hw - FLY_SIZE, -hh + FLY_SIZE..hh - FLY_SIZE);
-        Fly::spawn(
-            &mut commands,
-            &mut random,
-            i,
-            position,
-            firefly_material.clone(),
-        );
+        Fly::spawn(&mut commands, &mut random, i, position, FIREFLY_COLOR);
     }
 
     // fish
@@ -86,13 +74,7 @@ pub fn setup(
             -hw + FISH_WIDTH..qw - FISH_WIDTH,
             -hh + FISH_LENGTH..hh - FISH_LENGTH,
         );
-        Fish::spawn(
-            &mut commands,
-            &mut random,
-            i,
-            position,
-            fish_material.clone(),
-        );
+        Fish::spawn(&mut commands, &mut random, i, position, Color::NAVY);
     }
 
     // snakes

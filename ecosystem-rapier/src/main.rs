@@ -15,7 +15,7 @@ mod util;
 use bevy::diagnostic::*;
 use bevy::prelude::*;
 use bevy_egui::{EguiPlugin, EguiSettings};
-use bevy_inspector_egui::{InspectableRegistry, WorldInspectorParams, WorldInspectorPlugin};
+use bevy_inspector_egui::{RegisterInspectable, WorldInspectorParams, WorldInspectorPlugin};
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 use num_traits::Float;
@@ -83,7 +83,7 @@ fn main() {
         error!(%data, "Unexpected panic!");
     }));
 
-    let mut app = App::build();
+    let mut app = App::new();
 
     // basic bevy
     app.insert_resource(WindowDescriptor {
@@ -118,7 +118,9 @@ fn main() {
         despawnable_entities: true,
         ..Default::default()
     })
-    .add_plugin(WorldInspectorPlugin::new());
+    .add_plugin(WorldInspectorPlugin::new())
+    .register_inspectable::<components::MainCamera>()
+    .register_inspectable::<components::UiCamera>();
 
     // plugins
     app.add_plugin(DebugPlugin)
@@ -129,23 +131,11 @@ fn main() {
 
     // game states
     app.add_state(GameState::Game)
-        .add_system_set(
-            SystemSet::on_enter(GameState::Game).with_system(states::game::setup.system()),
-        )
-        .add_system_set(
-            SystemSet::on_exit(GameState::Game).with_system(states::game::teardown.system()),
-        );
+        .add_system_set(SystemSet::on_enter(GameState::Game).with_system(states::game::setup))
+        .add_system_set(SystemSet::on_exit(GameState::Game).with_system(states::game::teardown));
 
     // setup
-    app.add_startup_system(setup.system());
-
-    // register components for inspector
-    let mut registry = app
-        .world_mut()
-        .get_resource_or_insert_with(InspectableRegistry::default);
-
-    registry.register::<components::MainCamera>();
-    registry.register::<components::UiCamera>();
+    app.add_startup_system(setup);
 
     app.run();
 }
